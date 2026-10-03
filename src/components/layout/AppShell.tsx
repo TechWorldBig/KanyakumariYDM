@@ -10,12 +10,16 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Search,
   Settings,
   ShieldCheck,
   Users,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { roleName } from "../../domain/permissions";
+import { sections } from "../../data/sections";
+import { churches } from "../../data/churches";
 import type { Page, Section, UserRole } from "../../types";
 import type { ProfileData } from "../account/ProfileSettingsDialog";
 const navigation = [
@@ -141,6 +145,7 @@ export function Header({
         <strong>{page}</strong>
       </div>
       <div className="header-actions">
+        {role === "district" && <DistrictSearch />}
         <button className="icon-btn" aria-label="Notifications">
           <Bell size={18} />
         </button>
@@ -205,4 +210,17 @@ export function Header({
       </div>
     </header>
   );
+}
+function DistrictSearch() {
+  const [query, setQuery] = useState("");
+  const term = query.trim().toLowerCase();
+  const results = term
+    ? [
+        { type: "Church", name: churches.find(item => item.name.toLowerCase().includes(term))?.name, meta: "Church directory" },
+        { type: "Church admin", name: churches.find(item => item.username.toLowerCase().includes(term))?.username, meta: "Church account" },
+        { type: "Section profile", name: sections.find(item => item.admin.toLowerCase().includes(term))?.admin, meta: "Section Super Admin" },
+        { type: "Profile", name: "District Super Admin", meta: "District administrator" },
+      ].filter(item => item.name && item.name.toLowerCase().includes(term)).slice(0, 6)
+    : [];
+  return <div className="district-search"><Search size={15}/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search churches or profiles" aria-label="Search churches or profiles"/>{query&&<button className="search-clear" onClick={()=>setQuery("")} aria-label="Clear search">×</button>}{query&&<div className="search-results">{results.length?results.map((result,index)=><div className="search-result" key={result.type+result.name+index}><div className="search-result-icon"><Church size={14}/></div><div><strong>{result.name}</strong><span>{result.type} · {result.meta}</span></div></div>):<div className="search-empty">No church or profile found</div>}</div>}</div>
 }
