@@ -1,6 +1,202 @@
-import{Bell,Building2,ChevronDown,Church,ClipboardList,FileText,Headphones,LayoutDashboard,LogOut,Menu,Settings,ShieldCheck,Users,X}from'lucide-react'
-import{roleName}from'../../domain/permissions'
-import type{Page,Section,UserRole}from'../../types'
-const navigation=[['Overview',LayoutDashboard],['Sections',Building2],['Churches',Church],['Users',Users],['Reports',FileText],['Audit logs',ClipboardList]]as const
-export function Sidebar({role,section,page,mobile,onNavigate,onClose,onLogout}:{role:UserRole;section:Section;page:Page;mobile:boolean;onNavigate:(page:Page)=>void;onClose:()=>void;onLogout:()=>void}){return <aside className={'sidebar '+(mobile?'open':'')}><div className="side-top"><div className="brand"><div className="brand-mark"><Church size={18}/></div>District<span className="brand-accent">OS</span></div><button className="close-mobile" onClick={onClose} aria-label="Close menu"><X size={18}/></button></div><div className="workspace-switch"><div className="workspace-icon">{role==='district'?'K':role.replace('section','')}</div><div><strong>{role==='district'?'Kanyakumari':section.name}</strong><small>{role==='district'?'District workspace':'Section workspace'}</small></div><ChevronDown size={15}/></div><nav>{navigation.map(([label,Icon])=><button key={label} className={page===label?'active':''} onClick={()=>onNavigate(label)}><Icon size={17}/>{label}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><Headphones size={17}/><strong>Need a hand?</strong><span>Open the admin guide</span></div><button className="profile" onClick={onLogout}><div className="avatar">SA</div><div><strong>{roleName(role)}</strong><small>{role==='district'?'All sections':section.name}</small></div><LogOut size={15}/></button></div></aside>}
-export function Header({role,section,page,profileOpen,onMenu,onProfile,onLogout}:{role:UserRole;section:Section;page:Page;profileOpen:boolean;onMenu:()=>void;onProfile:()=>void;onLogout:()=>void}){const scope=role==='district'?'All 4 sections':section.name;return <header><button className="mobile-menu" onClick={onMenu} aria-label="Open menu"><Menu size={20}/></button><div className="breadcrumb"><span>{role==='district'?'District':section.name}</span><span>/</span><strong>{page}</strong></div><div className="header-actions"><button className="icon-btn" aria-label="Notifications"><Bell size={18}/></button><button className="header-user" onClick={onProfile} aria-expanded={profileOpen} aria-haspopup="menu"><div className="avatar">SA</div><span>{roleName(role)}</span><ChevronDown size={14}/></button>{profileOpen&&<div className="profile-menu" role="menu"><div className="profile-menu-head"><div className="profile-menu-avatar">SA<i/></div><div><strong>{roleName(role)}</strong><span>Administrator account</span></div></div><div className="profile-scope"><ShieldCheck size={16}/><div><small>Access scope</small><b>{scope}</b></div><em>Full access</em></div><div className="profile-permissions"><span>Read</span><span>Write</span><span>Edit</span><span>Manage</span></div><div className="profile-menu-actions"><button className="profile-menu-item" role="menuitem"><Settings size={16}/><span><b>Profile settings</b><small>Account and preferences</small></span></button><button className="profile-menu-item logout-item" onClick={onLogout} role="menuitem"><LogOut size={16}/><span><b>Log out</b><small>Return to secure login</small></span></button></div></div>}</div></header>}
+import {
+  Activity,
+  Bell,
+  Building2,
+  ChevronDown,
+  Church,
+  ClipboardList,
+  FileText,
+  Headphones,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Settings,
+  ShieldCheck,
+  Users,
+  X,
+} from "lucide-react";
+import { roleName } from "../../domain/permissions";
+import type { Page, Section, UserRole } from "../../types";
+const navigation = [
+  ["Overview", LayoutDashboard],
+  ["Live analytics", Activity],
+  ["Sections", Building2],
+  ["Churches", Church],
+  ["Users", Users],
+  ["Reports", FileText],
+  ["Audit logs", ClipboardList],
+] as const;
+export function Sidebar({
+  role,
+  section,
+  page,
+  mobile,
+  onNavigate,
+  onClose,
+  onLogout,
+}: {
+  role: UserRole;
+  section: Section;
+  page: Page;
+  mobile: boolean;
+  onNavigate: (page: Page) => void;
+  onClose: () => void;
+  onLogout: () => void;
+}) {
+  const visibleNavigation =
+    role === "district"
+      ? navigation
+      : navigation.filter(([label]) => label !== "Live analytics");
+  return (
+    <aside className={"sidebar " + (mobile ? "open" : "")}>
+      <div className="side-top">
+        <div className="brand">
+          <div className="brand-mark">
+            <Church size={18} />
+          </div>
+          District<span className="brand-accent">OS</span>
+        </div>
+        <button
+          className="close-mobile"
+          onClick={onClose}
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
+      </div>
+      <div className="workspace-switch">
+        <div className="workspace-icon">
+          {role === "district" ? "K" : role.replace("section", "")}
+        </div>
+        <div>
+          <strong>{role === "district" ? "Kanyakumari" : section.name}</strong>
+          <small>
+            {role === "district" ? "District workspace" : "Section workspace"}
+          </small>
+        </div>
+        <ChevronDown size={15} />
+      </div>
+      <nav>
+        {visibleNavigation.map(([label, Icon]) => (
+          <button
+            key={label}
+            className={page === label ? "active" : ""}
+            onClick={() => onNavigate(label)}
+          >
+            <Icon size={17} />
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="sidebar-bottom">
+        <div className="help-card">
+          <Headphones size={17} />
+          <strong>Need a hand?</strong>
+          <span>Open the admin guide</span>
+        </div>
+        <button className="profile" onClick={onLogout}>
+          <div className="avatar">SA</div>
+          <div>
+            <strong>{roleName(role)}</strong>
+            <small>{role === "district" ? "All sections" : section.name}</small>
+          </div>
+          <LogOut size={15} />
+        </button>
+      </div>
+    </aside>
+  );
+}
+export function Header({
+  role,
+  section,
+  page,
+  profileOpen,
+  onMenu,
+  onProfile,
+  onLogout,
+}: {
+  role: UserRole;
+  section: Section;
+  page: Page;
+  profileOpen: boolean;
+  onMenu: () => void;
+  onProfile: () => void;
+  onLogout: () => void;
+}) {
+  const scope = role === "district" ? "All 4 sections" : section.name;
+  return (
+    <header>
+      <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
+        <Menu size={20} />
+      </button>
+      <div className="breadcrumb">
+        <span>{role === "district" ? "District" : section.name}</span>
+        <span>/</span>
+        <strong>{page}</strong>
+      </div>
+      <div className="header-actions">
+        <button className="icon-btn" aria-label="Notifications">
+          <Bell size={18} />
+        </button>
+        <button
+          className="header-user"
+          onClick={onProfile}
+          aria-expanded={profileOpen}
+          aria-haspopup="menu"
+        >
+          <div className="avatar">SA</div>
+          <span>{roleName(role)}</span>
+          <ChevronDown size={14} />
+        </button>
+        {profileOpen && (
+          <div className="profile-menu" role="menu">
+            <div className="profile-menu-head">
+              <div className="profile-menu-avatar">
+                SA
+                <i />
+              </div>
+              <div>
+                <strong>{roleName(role)}</strong>
+                <span>Administrator account</span>
+              </div>
+            </div>
+            <div className="profile-scope">
+              <ShieldCheck size={16} />
+              <div>
+                <small>Access scope</small>
+                <b>{scope}</b>
+              </div>
+              <em>Full access</em>
+            </div>
+            <div className="profile-permissions">
+              <span>Read</span>
+              <span>Write</span>
+              <span>Edit</span>
+              <span>Manage</span>
+            </div>
+            <div className="profile-menu-actions">
+              <button className="profile-menu-item" role="menuitem">
+                <Settings size={16} />
+                <span>
+                  <b>Profile settings</b>
+                  <small>Account and preferences</small>
+                </span>
+              </button>
+              <button
+                className="profile-menu-item logout-item"
+                onClick={onLogout}
+                role="menuitem"
+              >
+                <LogOut size={16} />
+                <span>
+                  <b>Log out</b>
+                  <small>Return to secure login</small>
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}

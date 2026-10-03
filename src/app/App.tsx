@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Login } from "../components/auth/Login";
 import { SectionDialog } from "../components/dashboard/SectionDialog";
 import { AddSectionDialog } from "../components/dashboard/AddSectionDialog";
@@ -6,6 +6,7 @@ import { Header, Sidebar } from "../components/layout/AppShell";
 import { sections as initialSections } from "../data/sections";
 import { OverviewPage } from "../pages/OverviewPage";
 import { WorkspacePage } from "../pages/WorkspacePage";
+import { AnalyticsPage } from "../pages/AnalyticsPage";
 import type { Page, Section, UserRole } from "../types";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
@@ -19,6 +20,23 @@ export default function App() {
     () => role === "district" ? allSections : allSections.filter((_, index) => role === `section${index + 1}`),
     [role, allSections],
   );
+  useEffect(() => {
+    fetch("/api/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: window.location.pathname }),
+    }).catch(() => undefined);
+  }, []);
+  useEffect(() => {
+    if (!role) return;
+    const heartbeat = () =>
+      fetch("/api/heartbeat", { method: "POST", credentials: "include" }).catch(
+        () => undefined,
+      );
+    heartbeat();
+    const timer = window.setInterval(heartbeat, 60_000);
+    return () => window.clearInterval(timer);
+  }, [role]);
   if (!role)
     return (
       <Login
@@ -30,6 +48,9 @@ export default function App() {
     );
   const primarySection = scopedSections[0],
     logout = () => {
+      fetch("/api/logout", { method: "POST", credentials: "include" }).catch(
+        () => undefined,
+      );
       setRole(null);
       setProfileOpen(false);
     };
@@ -66,6 +87,8 @@ export default function App() {
               onNavigate={setPage}
               onAdd={() => setAddSectionOpen(true)}
             />
+          ) : page === "Live analytics" && role === "district" ? (
+            <AnalyticsPage />
           ) : (
             <WorkspacePage page={page} role={role} section={primarySection} />
           )}
