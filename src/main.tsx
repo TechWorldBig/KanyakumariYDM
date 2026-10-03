@@ -26,6 +26,8 @@ function App() {
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
     const heading = document.querySelector('.page-heading h1')
+    const dateLabel = document.querySelector('.page-heading .eyebrow')
+    if (dateLabel) dateLabel.textContent = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
     if (heading?.firstChild) heading.firstChild.textContent = greeting + ', District Super Admin '
   }, [page, loggedIn])
   useEffect(() => {
