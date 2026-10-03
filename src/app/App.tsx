@@ -98,6 +98,13 @@ export default function App() {
         <SectionDialog
           section={selectedSection}
           onClose={() => setSelectedSection(null)}
+          isDistrict={role === "district"}
+          onRemove={() => {
+            setAllSections((current) =>
+              current.filter((item) => item.name !== selectedSection.name),
+            );
+            setSelectedSection(null);
+          }}
         />
       )}
       {addSectionOpen && (
