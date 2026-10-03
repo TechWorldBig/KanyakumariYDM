@@ -7,12 +7,16 @@ import { sections as initialSections } from "../data/sections";
 import { OverviewPage } from "../pages/OverviewPage";
 import { WorkspacePage } from "../pages/WorkspacePage";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
+import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDialog";
+import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { Page, Section, UserRole } from "../types";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
     [page, setPage] = useState<Page>("Overview"),
     [mobile, setMobile] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
+    [settingsOpen, setSettingsOpen] = useState(false),
+    [profile, setProfile] = useState<ProfileData>({ name: "", photo: "" }),
     [selectedSection, setSelectedSection] = useState<Section | null>(null),
     [addSectionOpen, setAddSectionOpen] = useState(false),
     [allSections, setAllSections] = useState<Section[]>(initialSections);
@@ -76,6 +80,11 @@ export default function App() {
           profileOpen={profileOpen}
           onMenu={() => setMobile(true)}
           onProfile={() => setProfileOpen((value) => !value)}
+          onSettings={() => {
+            setProfileOpen(false);
+            setSettingsOpen(true);
+          }}
+          profile={profile}
           onLogout={logout}
         />
         <main className="content">
@@ -113,6 +122,17 @@ export default function App() {
           onCreate={(section) => {
             setAllSections((current) => [...current, section]);
             setAddSectionOpen(false);
+          }}
+        />
+      )}
+      {settingsOpen && (
+        <ProfileSettingsDialog
+          role={role}
+          profile={profile}
+          onClose={() => setSettingsOpen(false)}
+          onSave={(nextProfile) => {
+            setProfile(nextProfile);
+            setSettingsOpen(false);
           }}
         />
       )}

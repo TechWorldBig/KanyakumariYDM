@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { roleName } from "../../domain/permissions";
 import type { Page, Section, UserRole } from "../../types";
+import type { ProfileData } from "../account/ProfileSettingsDialog";
 const navigation = [
   ["Overview", LayoutDashboard],
   ["Live analytics", Activity],
@@ -113,6 +114,8 @@ export function Header({
   profileOpen,
   onMenu,
   onProfile,
+  onSettings,
+  profile,
   onLogout,
 }: {
   role: UserRole;
@@ -121,9 +124,12 @@ export function Header({
   profileOpen: boolean;
   onMenu: () => void;
   onProfile: () => void;
+  onSettings: () => void;
+  profile: ProfileData;
   onLogout: () => void;
 }) {
   const scope = role === "district" ? "All 4 sections" : section.name;
+  const displayName = profile.name || roleName(role);
   return (
     <header>
       <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
@@ -144,19 +150,19 @@ export function Header({
           aria-expanded={profileOpen}
           aria-haspopup="menu"
         >
-          <div className="avatar">SA</div>
-          <span>{roleName(role)}</span>
+          <div className="avatar">{profile.photo ? <img src={profile.photo} alt="" /> : "SA"}</div>
+          <span>{displayName}</span>
           <ChevronDown size={14} />
         </button>
         {profileOpen && (
           <div className="profile-menu" role="menu">
             <div className="profile-menu-head">
               <div className="profile-menu-avatar">
-                SA
+                {profile.photo ? <img src={profile.photo} alt="" /> : "SA"}
                 <i />
               </div>
               <div>
-                <strong>{roleName(role)}</strong>
+                <strong>{displayName}</strong>
                 <span>Administrator account</span>
               </div>
             </div>
@@ -175,7 +181,7 @@ export function Header({
               <span>Manage</span>
             </div>
             <div className="profile-menu-actions">
-              <button className="profile-menu-item" role="menuitem">
+              <button className="profile-menu-item" role="menuitem" onClick={onSettings}>
                 <Settings size={16} />
                 <span>
                   <b>Profile settings</b>
