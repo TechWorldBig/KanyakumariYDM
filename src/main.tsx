@@ -32,6 +32,16 @@ function App() {
     if (heading?.firstChild) heading.firstChild.textContent = greeting + ', District Super Admin '
   }, [page, loggedIn])
   useEffect(() => {
+    const allowedIndex = role === 'district' ? -1 : Number(role.replace('section', '')) - 1
+    document.querySelectorAll('.section-grid .section-card').forEach((card, index) => {
+      (card as HTMLElement).style.display = allowedIndex === -1 || index === allowedIndex ? '' : 'none'
+    })
+    const addSection = document.querySelector('.section-grid .add-card') as HTMLElement | null
+    if (addSection) addSection.style.display = role === 'district' ? '' : 'none'
+    const scope = document.querySelector('.workspace-switch small')
+    if (scope) scope.textContent = role === 'district' ? 'District workspace' : 'Scoped section workspace'
+  }, [role, page, loggedIn])
+  useEffect(() => {
     const profile = document.querySelector('.header-user')
     if (!profile || !loggedIn) return
     const toggle = () => {
