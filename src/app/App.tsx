@@ -11,12 +11,21 @@ import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDial
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { Page, Section, UserRole } from "../types";
 export default function App() {
-  const [role, setRole] = useState<UserRole | null>(null),
+  const [role, setRole] = useState<UserRole | null>(() => {
+    const saved = window.localStorage.getItem("district_role");
+    return saved as UserRole | null;
+  }),
     [page, setPage] = useState<Page>("Overview"),
     [mobile, setMobile] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
     [settingsOpen, setSettingsOpen] = useState(false),
-    [profile, setProfile] = useState<ProfileData>({ name: "", photo: "" }),
+    [profile, setProfile] = useState<ProfileData>(() => {
+      try {
+        return JSON.parse(window.localStorage.getItem("district_profile") || '{"name":"","photo":""}');
+      } catch {
+        return { name: "", photo: "" };
+      }
+    }),
     [selectedSection, setSelectedSection] = useState<Section | null>(null),
     [addSectionOpen, setAddSectionOpen] = useState(false),
     [allSections, setAllSections] = useState<Section[]>(initialSections);
@@ -46,6 +55,7 @@ export default function App() {
       <Login
         onLogin={(nextRole) => {
           setRole(nextRole);
+          window.localStorage.setItem("district_role", nextRole);
           setPage("Overview");
         }}
       />
@@ -56,6 +66,7 @@ export default function App() {
         () => undefined,
       );
       setRole(null);
+      window.localStorage.removeItem("district_role");
       setProfileOpen(false);
     };
   return (
@@ -132,6 +143,7 @@ export default function App() {
           onClose={() => setSettingsOpen(false)}
           onSave={(nextProfile) => {
             setProfile(nextProfile);
+            window.localStorage.setItem("district_profile", JSON.stringify(nextProfile));
             setSettingsOpen(false);
           }}
         />
