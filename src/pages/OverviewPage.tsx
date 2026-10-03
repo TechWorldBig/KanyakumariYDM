@@ -31,6 +31,11 @@ export function OverviewPage({
     health = Math.round(
       sections.reduce((n, s) => n + s.health, 0) / sections.length,
     );
+  const activity = sections.flatMap((section) => [
+    { title: `${section.name} church records updated`, detail: `${section.churches} churches · Today`, tone: section.tone },
+    { title: `${section.name} user access reviewed`, detail: `${section.users} users · Today`, tone: section.tone },
+    { title: `${section.name} report generated`, detail: `${section.town} · Today`, tone: section.tone },
+  ]);
   return (
     <>
       <div className="page-heading">
@@ -105,17 +110,13 @@ export function OverviewPage({
         <div className="panel">
           <h2>Recent activity</h2>
           <div className="activity-list">
-            {[
-              "Church records updated",
-              "User access granted",
-              "Report generated",
-            ].map((item) => (
-              <div className="activity-row" key={item}>
-                <div className={"activity-icon " + sections[0].tone}>
+            {activity.map((item) => (
+              <div className="activity-row" key={item.title}>
+                <div className={"activity-icon " + item.tone}>
                   <ShieldCheck size={16} />
                 </div>
                 <div>
-                  <strong>{item}</strong>
+                  <strong>{item.title}</strong>
                   <span>{sections[0].name} · Today</span>
                 </div>
               </div>
