@@ -110,7 +110,14 @@ export default function App() {
           ) : page === "Live analytics" && role === "district" ? (
             <AnalyticsPage />
           ) : (
-            <WorkspacePage page={page} role={role} section={primarySection} />
+            <WorkspacePage
+              page={page}
+              role={role}
+              section={primarySection}
+              sections={scopedSections}
+              onAddSection={() => setAddSectionOpen(true)}
+              onOpenSection={setSelectedSection}
+            />
           )}
         </main>
       </div>
