@@ -28,6 +28,23 @@ function App() {
     const heading = document.querySelector('.page-heading h1')
     if (heading?.firstChild) heading.firstChild.textContent = greeting + ', District Super Admin '
   }, [page, loggedIn])
+  useEffect(() => {
+    const profile = document.querySelector('.header-user')
+    if (!profile || !loggedIn) return
+    const toggle = () => {
+      let menu = document.querySelector('.profile-menu')
+      if (menu) { menu.remove(); return }
+      menu = document.createElement('div')
+      menu.className = 'profile-menu'
+      menu.innerHTML = '<strong>District Super Admin</strong><span>Full district access</span><button class="profile-menu-item">Profile</button><button class="profile-menu-item logout-item">Log out</button>'
+      document.body.appendChild(menu)
+      const rect = profile.getBoundingClientRect()
+      Object.assign((menu as HTMLElement).style, { top: (rect.bottom + 10) + 'px', right: (window.innerWidth - rect.right) + 'px' })
+      menu.querySelector('.logout-item')?.addEventListener('click', () => { menu?.remove(); setLoggedIn(false) })
+    }
+    profile.addEventListener('click', toggle)
+    return () => profile.removeEventListener('click', toggle)
+  }, [loggedIn])
   if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />
   const nav = [{ label:'Overview', icon:LayoutDashboard }, { label:'Sections', icon:Building2 }, { label:'Churches', icon:Church }, { label:'Users', icon:Users }, { label:'Reports', icon:FileText }, { label:'Audit logs', icon:ClipboardList }]
   return <div className="app"><aside className={mobile ? 'sidebar open' : 'sidebar'}><div className="side-top"><div className="brand"><div className="brand-mark"><Church size={18}/></div><span>District<span className="brand-accent">OS</span></span></div><button className="close-mobile" onClick={()=>setMobile(false)}><X size={18}/></button></div><div className="workspace-switch"><div className="workspace-icon">K</div><div><strong>Kanyakumari</strong><small>District workspace</small></div><ChevronDown size={15}/></div><nav>{nav.map(item=><button key={item.label} className={page===item.label?'active':''} onClick={()=>{setPage(item.label as Page);setMobile(false)}}><item.icon size={17}/><span>{item.label}</span>{item.label==='Users' && <b>222</b>}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><Headphones size={17}/><strong>Need a hand?</strong><span>Open the admin guide</span></div><button className="profile" onClick={()=>setLoggedIn(false)}><div className="avatar">SA</div><div><strong>District admin</strong><small>Super admin</small></div><LogOut size={15}/></button></div></aside><div className="main"><header><button className="mobile-menu" onClick={()=>setMobile(true)}><Menu size={20}/></button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{page}</strong></div><div className="header-actions"><button className="icon-btn"><Bell size={18}/><i/></button><div className="header-user"><div className="avatar">SA</div><span>Admin</span><ChevronDown size={14}/></div></div></header><main className="content">{page==='Overview' ? <Overview onPage={setPage}/> : <PageView page={page}/>}</main></div></div>
