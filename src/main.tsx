@@ -4,6 +4,7 @@ import { Activity, ArrowUpRight, Bell, Building2, CheckCircle2, ChevronDown, Chu
 import './styles.css'
 
 type Page = 'Overview' | 'Sections' | 'Churches' | 'Users' | 'Reports' | 'Audit logs'
+type UserRole = 'district' | 'section1' | 'section2' | 'section3' | 'section4'
 const sections = [
   { name: 'Section 1', town: 'Nagercoil Central', admin: 'section1.admin', churches: 18, users: 74, tone: 'blue', health: 96 },
   { name: 'Section 2', town: 'Kanyakumari Coast', admin: 'section2.admin', churches: 14, users: 62, tone: 'green', health: 91 },
@@ -14,14 +15,14 @@ const activity = [
   ['User access updated', 'Section 2 · 8 minutes ago', 'blue'], ['New church added', 'Section 3 · 42 minutes ago', 'orange'], ['Monthly report generated', 'District wide · 2 hours ago', 'green'], ['Password reset completed', 'Head Pastor · Yesterday', 'violet']
 ]
 
-function Login({ onLogin }: { onLogin: () => void }) {
+function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
   const [username, setUsername] = useState('admin'); const [password, setPassword] = useState('admin'); const [error, setError] = useState('')
-  const submit = (e: React.FormEvent) => { e.preventDefault(); if (username === 'admin' && password === 'admin') onLogin(); else setError('Use admin / admin to access the MVP.') }
+  const submit = (e: React.FormEvent) => { e.preventDefault(); const users: Record<string, UserRole> = { admin: 'district', section1: 'section1', section2: 'section2', section3: 'section3', section4: 'section4' }; if (users[username] && password === username) onLogin(users[username]); else setError('Use a valid username and matching password.') }
   return <main className="login-shell"><div className="login-art"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-copy"><span className="eyebrow">Kanyakumari District</span><h1>One district.<br/><em>Every detail.</em></h1><p>A calm command center for people, places, and ministry across every section.</p><div className="art-stat"><ShieldCheck size={18}/><span>Protected by role-based access</span></div></div></div><div className="login-panel"><div className="brand"><div className="brand-mark"><Church size={19}/></div><span>District<span className="brand-accent">OS</span></span></div><div className="login-form"><span className="eyebrow">Super admin portal</span><h2>Welcome back.</h2><p className="muted">Sign in to manage the district workspace.</p><form onSubmit={submit}><label>Username<input value={username} onChange={e=>setUsername(e.target.value)} autoComplete="username"/></label><label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/></label>{error && <div className="form-error">{error}</div>}<button className="primary full" type="submit">Enter workspace <ArrowUpRight size={17}/></button></form><div className="demo-note"><LockKeyhole size={15}/><span>Demo access enabled · admin / admin</span></div></div><div className="login-footer">© 2026 Kanyakumari District · Secure workspace</div></div></main>
 }
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false); const [page, setPage] = useState<Page>('Overview'); const [mobile, setMobile] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false); const [role, setRole] = useState<UserRole>('district'); const [page, setPage] = useState<Page>('Overview'); const [mobile, setMobile] = useState(false)
   useEffect(() => {
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -66,7 +67,7 @@ function App() {
     })
     return () => cards.forEach(card => card.replaceWith(card.cloneNode(true)))
   }, [page, loggedIn])
-  if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />
+  if (!loggedIn) return <Login onLogin={(nextRole) => { setRole(nextRole); setLoggedIn(true) }} />
   const nav = [{ label:'Overview', icon:LayoutDashboard }, { label:'Sections', icon:Building2 }, { label:'Churches', icon:Church }, { label:'Users', icon:Users }, { label:'Reports', icon:FileText }, { label:'Audit logs', icon:ClipboardList }]
   return <div className="app"><aside className={mobile ? 'sidebar open' : 'sidebar'}><div className="side-top"><div className="brand"><div className="brand-mark"><Church size={18}/></div><span>District<span className="brand-accent">OS</span></span></div><button className="close-mobile" onClick={()=>setMobile(false)}><X size={18}/></button></div><div className="workspace-switch"><div className="workspace-icon">K</div><div><strong>Kanyakumari</strong><small>District workspace</small></div><ChevronDown size={15}/></div><nav>{nav.map(item=><button key={item.label} className={page===item.label?'active':''} onClick={()=>{setPage(item.label as Page);setMobile(false)}}><item.icon size={17}/><span>{item.label}</span>{item.label==='Users' && <b>222</b>}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><Headphones size={17}/><strong>Need a hand?</strong><span>Open the admin guide</span></div><button className="profile" onClick={()=>setLoggedIn(false)}><div className="avatar">SA</div><div><strong>District admin</strong><small>Super admin</small></div><LogOut size={15}/></button></div></aside><div className="main"><header><button className="mobile-menu" onClick={()=>setMobile(true)}><Menu size={20}/></button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{page}</strong></div><div className="header-actions"><button className="icon-btn"><Bell size={18}/><i/></button><div className="header-user"><div className="avatar">SA</div><span>Admin</span><ChevronDown size={14}/></div></div></header><main className="content">{page==='Overview' ? <Overview onPage={setPage}/> : <PageView page={page}/>}</main></div></div>
 }
