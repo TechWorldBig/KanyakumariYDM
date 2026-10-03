@@ -1,7 +1,166 @@
-import{useEffect,useState}from'react'
-import{Activity,Eye,Globe2,RefreshCw,Users}from'lucide-react'
-type Session={username:string;role:string;section_scope:string|null;ip_reference:string;user_agent:string;last_seen:string}
-type Analytics={onlineCount:number;visitsToday:number;uniqueVisitorsToday:number;online:Session[]}
-export function AnalyticsPage(){const[data,setData]=useState<Analytics|null>(null),[error,setError]=useState('');async function load(){try{const response=await fetch('/api/analytics',{credentials:'include'});if(!response.ok)throw new Error();setData(await response.json());setError('')}catch{setError('Live analytics are unavailable. Check the Vercel environment variables and deployment.')}}useEffect(()=>{load();const timer=window.setInterval(load,30000);return()=>window.clearInterval(timer)},[]);return <><div className="page-heading"><div><span className="eyebrow">District Super Admin only</span><h1>Live usage</h1><p className="muted">Current sessions and today’s traffic. IP addresses are stored as salted hashes.</p></div><button className="subtle" onClick={load}><RefreshCw size={15}/>Refresh</button></div>{error&&<div className="form-error analytics-error">{error}</div>}<div className="metrics"><AnalyticsMetric icon={Activity} label="Online now" value={String(data?.onlineCount??0)} tone="green"/><AnalyticsMetric icon={Eye} label="Visits today" value={String(data?.visitsToday??0)} tone="blue"/><AnalyticsMetric icon={Globe2} label="Unique visitors" value={String(data?.uniqueVisitorsToday??0)} tone="orange"/><AnalyticsMetric icon={Users} label="Tracked sessions" value={String(data?.online.length??0)} tone="violet"/></div><div className="panel live-panel"><div className="panel-heading"><div><h2>Currently online</h2><p className="muted">A session is online when seen within the last two minutes.</p></div><span className="live-badge"><i/>Live</span></div><div className="session-list">{data?.online.length?data.online.map(session=><div className="session-row" key={session.username+session.last_seen}><div className="avatar">{session.username.slice(0,2).toUpperCase()}</div><div className="session-person"><strong>{session.username}</strong><span>{session.role==='district'?'District Super Admin':session.section_scope}</span></div><code>{session.ip_reference}…</code><span className="session-device">{friendlyDevice(session.user_agent)}</span><time>{new Date(session.last_seen).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</time></div>):<div className="empty-live"><Activity size={24}/><strong>No active sessions</strong><span>Online users will appear here after they sign in.</span></div>}</div></div></>}
-function AnalyticsMetric({icon:Icon,label,value,tone}:{icon:React.ElementType;label:string;value:string;tone:string}){return <div className="metric"><div className={'metric-icon '+tone}><Icon size={18}/></div><div><span>{label}</span><strong>{value}</strong><small>Updates automatically</small></div></div>}
-function friendlyDevice(agent:string){if(/mobile|android|iphone/i.test(agent))return'Mobile';if(/windows/i.test(agent))return'Windows';if(/macintosh/i.test(agent))return'Mac';return'Web browser'}
+import { useEffect, useState } from "react";
+import { Activity, Eye, Globe2, RefreshCw, Users } from "lucide-react";
+type Session = {
+  username: string;
+  role: string;
+  section_scope: string | null;
+  ip_reference: string;
+  user_agent: string;
+  last_seen: string;
+};
+type Analytics = {
+  onlineCount: number;
+  visitsToday: number;
+  uniqueVisitorsToday: number;
+  online: Session[];
+};
+export function AnalyticsPage() {
+  const [data, setData] = useState<Analytics | null>(null),
+    [error, setError] = useState("");
+  async function load() {
+    try {
+      const response = await fetch("/api/analytics", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error();
+      setData(await response.json());
+      setError("");
+    } catch {
+      setError(
+        "Live analytics are unavailable. Check the Vercel environment variables and deployment.",
+      );
+    }
+  }
+  useEffect(() => {
+    load();
+    const timer = window.setInterval(load, 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">District Super Admin only</span>
+          <h1>Live usage</h1>
+          <p className="muted">
+            Current sessions and today’s traffic. IP addresses are stored as
+            salted hashes.
+          </p>
+        </div>
+        <button className="subtle" onClick={load}>
+          <RefreshCw size={15} />
+          Refresh
+        </button>
+      </div>
+      {error && <div className="form-error analytics-error">{error}</div>}
+      <div className="metrics">
+        <AnalyticsMetric
+          icon={Activity}
+          label="Online now"
+          value={String(data?.onlineCount ?? 0)}
+          tone="green"
+        />
+        <AnalyticsMetric
+          icon={Eye}
+          label="Visits today"
+          value={String(data?.visitsToday ?? 0)}
+          tone="blue"
+        />
+        <AnalyticsMetric
+          icon={Globe2}
+          label="Unique visitors"
+          value={String(data?.uniqueVisitorsToday ?? 0)}
+          tone="orange"
+        />
+        <AnalyticsMetric
+          icon={Users}
+          label="Tracked sessions"
+          value={String(data?.online.length ?? 0)}
+          tone="violet"
+        />
+      </div>
+      <div className="panel live-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Currently online</h2>
+            <p className="muted">
+              A session is online when seen within the last two minutes.
+            </p>
+          </div>
+          <span className="live-badge">
+            <i />
+            Live
+          </span>
+        </div>
+        <div className="session-list">
+          {data?.online.length ? (
+            data.online.map((session) => (
+              <div
+                className="session-row"
+                key={session.username + session.last_seen}
+              >
+                <div className="avatar">
+                  {session.username.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="session-person">
+                  <strong>{session.username}</strong>
+                  <span>
+                    {session.role === "district"
+                      ? "District Super Admin"
+                      : session.section_scope}
+                  </span>
+                </div>
+                <code>{session.ip_reference}…</code>
+                <span className="session-device">
+                  {friendlyDevice(session.user_agent)}
+                </span>
+                <time>
+                  {new Date(session.last_seen).toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </time>
+              </div>
+            ))
+          ) : (
+            <div className="empty-live">
+              <Activity size={24} />
+              <strong>No active sessions</strong>
+              <span>Online users will appear here after they sign in.</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+function AnalyticsMetric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div className="metric">
+      <div className={"metric-icon " + tone}>
+        <Icon size={18} />
+      </div>
+      <div>
+        <span>{label}</span>
+        <strong>{value}</strong>
+        <small>Updates automatically</small>
+      </div>
+    </div>
+  );
+}
+function friendlyDevice(agent: string) {
+  if (/mobile|android|iphone/i.test(agent)) return "Mobile";
+  if (/windows/i.test(agent)) return "Windows";
+  if (/macintosh/i.test(agent)) return "Mac";
+  return "Web browser";
+}
