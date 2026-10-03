@@ -13,6 +13,14 @@ type Analytics = {
   visitsToday: number;
   uniqueVisitorsToday: number;
   online: Session[];
+  recentActivity: ActivityRecord[];
+};
+type ActivityRecord = {
+  username: string;
+  role: string;
+  section_scope: string | null;
+  action: string;
+  occurred_at: string;
 };
 export function AnalyticsPage() {
   const [data, setData] = useState<Analytics | null>(null),
@@ -131,6 +139,24 @@ export function AnalyticsPage() {
           )}
         </div>
       </div>
+      <div className="panel activity-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Last activity</h2>
+            <p className="muted">Who logged in or out and when.</p>
+          </div>
+        </div>
+        <div className="activity-table">
+          {data?.recentActivity?.length ? data.recentActivity.map((item) => (
+            <div className="activity-table-row" key={item.username + item.occurred_at}>
+              <div className="avatar">{item.username.slice(0, 2).toUpperCase()}</div>
+              <div><strong>{item.username}</strong><span>{item.role === "district" ? "District Super Admin" : item.section_scope}</span></div>
+              <b className={item.action === "Logged in" ? "activity-in" : "activity-out"}>{item.action}</b>
+              <time>{relativeTime(item.occurred_at)}</time>
+            </div>
+          )) : <div className="empty-live"><Activity size={24}/><strong>No activity yet</strong><span>Login and logout activity will appear here.</span></div>}
+        </div>
+      </div>
     </>
   );
 }
@@ -163,4 +189,12 @@ function friendlyDevice(agent: string) {
   if (/windows/i.test(agent)) return "Windows";
   if (/macintosh/i.test(agent)) return "Mac";
   return "Web browser";
+}
+function relativeTime(value: string) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+  if (minutes < 1) return "This minute";
+  if (minutes === 1) return "1 minute ago";
+  if (minutes < 60) return minutes + " minutes ago";
+  const hours = Math.floor(minutes / 60);
+  return hours === 1 ? "1 hour ago" : hours + " hours ago";
 }
