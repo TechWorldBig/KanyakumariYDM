@@ -1,0 +1,3 @@
+import{Gauge,Plus,Search}from'lucide-react'
+import type{Page,Section,UserRole}from'../types'
+export function WorkspacePage({page,role,section}:{page:Page;role:UserRole;section:Section}){return <><div className="page-heading"><div><span className="eyebrow">{role==='district'?'District workspace':section.name+' workspace'}</span><h1>{page}</h1><p className="muted">Manage {role==='district'?'district-wide':section.name} data.</p></div><button className="primary"><Plus size={16}/>Add new</button></div><div className="placeholder panel"><div className="placeholder-icon"><Gauge size={28}/></div><h2>{page} workspace</h2><p>Your access is limited to {role==='district'?'the district':section.name}.</p><button className="subtle"><Search size={15}/>Explore data</button></div></>}

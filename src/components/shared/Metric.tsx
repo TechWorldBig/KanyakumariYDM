@@ -1,0 +1,1 @@
+export function Metric({icon:Icon,label,value,tone}:{icon:React.ElementType;label:string;value:string;tone:string}){return <div className="metric"><div className={'metric-icon '+tone}><Icon size={18}/></div><div><span>{label}</span><strong>{value}</strong><small>Within your access</small></div></div>}
