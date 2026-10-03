@@ -29,7 +29,7 @@ body[data-role="section1"] .section-grid .section-card:not(:nth-child(1)),body[d
 .section-page-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
 .section-page-shell .section-modal-close{position:static}
 .section-page-shell .church-detail-modal{padding:26px clamp(18px,4vw,42px)}
-@media(max-width:700px){.section-page-shell{padding:12px!important}.section-page-shell>.section-detail-modal{min-height:calc(100vh - 24px);padding:20px 16px}.section-page-shell>.section-modal{border-radius:14px}.section-page-toolbar{margin-bottom:18px}}
+@media(max-width:700px){.section-page-shell{padding:12px!important}.section-page-shell>.section-detail-modal{min-height:0;max-height:none;padding:20px 16px}.section-page-shell>.section-modal{border-radius:14px}.section-page-toolbar{margin-bottom:18px}}
 
 /* DistrictOS depth system: lightweight 3D surfaces across every workspace. */
 .app{perspective:1400px;background:radial-gradient(circle at 82% 4%,#e8f0ff 0,#f6f8fb 28%,#f6f8fb 65%)}
