@@ -57,3 +57,16 @@ header{position:relative;z-index:12;box-shadow:0 8px 24px #18345c0b}
 @media(max-width:700px){.content:before{right:-90px;top:110px;opacity:.55}.metric:hover,.panel:hover,.section-card:hover,.add-card:hover{transform:translateY(-2px)}.sidebar{box-shadow:12px 0 30px #10213b35}}
 
 .credential-fields{display:flex;gap:8px;margin-top:7px}.credential-fields label{display:grid;gap:4px;font-size:9px;color:var(--muted);font-weight:600}.credential-fields input{height:30px;min-width:108px;border:1px solid #cbd9ec;border-radius:6px;padding:0 7px;font:11px 'DM Sans';color:var(--ink);outline:none}.credential-fields input:focus{border-color:#6e93d3;box-shadow:0 0 0 3px #dce8ff}.church-account-copy{flex:1}.credential-saved{font-size:9px;color:#299062;white-space:nowrap}.credential-scope{display:flex;align-items:center;gap:6px;margin-top:8px;color:#71839c;font-size:9px}.credential-scope svg{color:#5c80b6}@media(max-width:700px){.sidebar{position:fixed}.credential-fields{display:grid;grid-template-columns:1fr 1fr;width:100%}.credential-fields input{min-width:0;width:100%}.church-account-copy{min-width:calc(100% - 30px)}}
+
+@media(max-width:700px){
+  header{position:sticky;top:0;z-index:20}
+  .district-search{position:fixed;top:70px;left:14px;right:14px;width:calc(100vw - 28px)!important;height:44px;z-index:22;background:#fff;box-shadow:0 10px 25px #172d5517}
+  .district-search input{font-size:13px}
+  .search-results{top:51px;max-height:min(360px,calc(100vh - 140px));overflow-y:auto}
+  .content{padding-top:82px}
+  .section-page-shell{z-index:40!important}
+  .section-page-shell .church-list-row{grid-template-columns:44px minmax(0,1fr) 18px;padding:11px 9px}
+  .section-page-shell .church-list-row>div:nth-child(2){min-width:0}
+  .section-page-shell .church-list-row strong,.section-page-shell .church-list-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .section-page-shell .church-list-row span{display:block}
+}
