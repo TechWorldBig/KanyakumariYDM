@@ -29,10 +29,12 @@ function App() {
     const heading = document.querySelector('.page-heading h1')
     const dateLabel = document.querySelector('.page-heading .eyebrow')
     if (dateLabel) dateLabel.textContent = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date())
-    if (heading?.firstChild) heading.firstChild.textContent = greeting + ', District Super Admin '
-  }, [page, loggedIn])
+    const signedInRole = role === 'district' ? 'District Super Admin' : 'Section ' + role.replace('section', '') + ' Super Admin'
+    if (heading?.firstChild) heading.firstChild.textContent = greeting + ', ' + signedInRole + ' '
+  }, [page, loggedIn, role])
   useEffect(() => {
     const allowedIndex = role === 'district' ? -1 : Number(role.replace('section', '')) - 1
+    document.body.dataset.role = role
     document.querySelectorAll('.section-grid .section-card').forEach((card, index) => {
       (card as HTMLElement).style.display = allowedIndex === -1 || index === allowedIndex ? '' : 'none'
     })
@@ -40,6 +42,16 @@ function App() {
     if (addSection) addSection.style.display = role === 'district' ? '' : 'none'
     const scope = document.querySelector('.workspace-switch small')
     if (scope) scope.textContent = role === 'district' ? 'District workspace' : 'Scoped section workspace'
+    const workspaceName = document.querySelector('.workspace-switch strong')
+    const selectedSection = allowedIndex >= 0 ? sections[allowedIndex] : null
+    if (workspaceName) workspaceName.textContent = selectedSection?.name || 'Kanyakumari'
+    const metricValues = document.querySelectorAll('.metrics .metric strong')
+    if (metricValues.length === 4) {
+      metricValues[0].textContent = selectedSection ? '1' : '4'
+      metricValues[1].textContent = selectedSection ? String(selectedSection.churches) : '69'
+      metricValues[2].textContent = selectedSection ? String(selectedSection.users) : '292'
+      metricValues[3].textContent = selectedSection ? selectedSection.health + '%' : '94%'
+    }
   }, [role, page, loggedIn])
   useEffect(() => {
     const profile = document.querySelector('.header-user')
@@ -49,7 +61,9 @@ function App() {
       if (menu) { menu.remove(); return }
       menu = document.createElement('div')
       menu.className = 'profile-menu'
-      menu.innerHTML = '<strong>District Super Admin</strong><span>Full district access</span><button class="profile-menu-item">Profile</button><button class="profile-menu-item logout-item">Log out</button>'
+      const roleName = role === 'district' ? 'District Super Admin' : 'Section ' + role.replace('section', '') + ' Super Admin'
+      const roleScope = role === 'district' ? 'Full district access' : 'Access limited to Section ' + role.replace('section', '')
+      menu.innerHTML = '<strong>'+roleName+'</strong><span>'+roleScope+'</span><button class="profile-menu-item">Profile</button><button class="profile-menu-item logout-item">Log out</button>'
       document.body.appendChild(menu)
       const rect = profile.getBoundingClientRect()
       Object.assign((menu as HTMLElement).style, { top: (rect.bottom + 10) + 'px', right: (window.innerWidth - rect.right) + 'px' })
@@ -57,7 +71,7 @@ function App() {
     }
     profile.addEventListener('click', toggle)
     return () => profile.removeEventListener('click', toggle)
-  }, [loggedIn])
+  }, [loggedIn, role])
   useEffect(() => {
     const cards = Array.from(document.querySelectorAll('.section-card'))
     cards.forEach((card, index) => {
