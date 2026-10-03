@@ -45,6 +45,25 @@ function App() {
     profile.addEventListener('click', toggle)
     return () => profile.removeEventListener('click', toggle)
   }, [loggedIn])
+  useEffect(() => {
+    const cards = Array.from(document.querySelectorAll('.section-card'))
+    cards.forEach((card, index) => {
+      const openDetails = (event: Event) => {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        const item = sections[index]
+        const modal = document.createElement('div')
+        modal.className = 'section-modal-backdrop'
+        modal.innerHTML = '<div class="section-modal"><button class="section-modal-close">×</button><span class="eyebrow">Section workspace</span><h2>'+item.name+'</h2><p class="modal-town">'+item.town+'</p><div class="modal-admin"><div class="avatar">SA</div><div><strong>'+item.admin+'</strong><span>Section super admin · Full read, write, edit and manage access</span></div></div><div class="modal-metrics"><div><strong>'+item.churches+'</strong><span>Churches</span></div><div><strong>'+item.users+'</strong><span>Users</span></div><div><strong>'+item.health+'%</strong><span>Access health</span></div></div><h3>Recent section activity</h3><div class="modal-activity"><p><b>Church records updated</b><span>'+item.admin+' · Today</span></p><p><b>New user access granted</b><span>'+item.admin+' · Yesterday</span></p><p><b>Section report generated</b><span>'+item.name+' · This week</span></p></div><button class="primary modal-manage">Manage '+item.name+'</button></div>'
+        document.body.appendChild(modal)
+        modal.querySelector('.section-modal-close')?.addEventListener('click', () => modal.remove())
+        modal.addEventListener('click', event => { if (event.target === modal) modal.remove() })
+      }
+      card.addEventListener('click', openDetails, true)
+      ;(card as HTMLElement).dataset.detailListener = 'true'
+    })
+    return () => cards.forEach(card => card.replaceWith(card.cloneNode(true)))
+  }, [page, loggedIn])
   if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />
   const nav = [{ label:'Overview', icon:LayoutDashboard }, { label:'Sections', icon:Building2 }, { label:'Churches', icon:Church }, { label:'Users', icon:Users }, { label:'Reports', icon:FileText }, { label:'Audit logs', icon:ClipboardList }]
   return <div className="app"><aside className={mobile ? 'sidebar open' : 'sidebar'}><div className="side-top"><div className="brand"><div className="brand-mark"><Church size={18}/></div><span>District<span className="brand-accent">OS</span></span></div><button className="close-mobile" onClick={()=>setMobile(false)}><X size={18}/></button></div><div className="workspace-switch"><div className="workspace-icon">K</div><div><strong>Kanyakumari</strong><small>District workspace</small></div><ChevronDown size={15}/></div><nav>{nav.map(item=><button key={item.label} className={page===item.label?'active':''} onClick={()=>{setPage(item.label as Page);setMobile(false)}}><item.icon size={17}/><span>{item.label}</span>{item.label==='Users' && <b>222</b>}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><Headphones size={17}/><strong>Need a hand?</strong><span>Open the admin guide</span></div><button className="profile" onClick={()=>setLoggedIn(false)}><div className="avatar">SA</div><div><strong>District admin</strong><small>Super admin</small></div><LogOut size={15}/></button></div></aside><div className="main"><header><button className="mobile-menu" onClick={()=>setMobile(true)}><Menu size={20}/></button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{page}</strong></div><div className="header-actions"><button className="icon-btn"><Bell size={18}/><i/></button><div className="header-user"><div className="avatar">SA</div><span>Admin</span><ChevronDown size={14}/></div></div></header><main className="content">{page==='Overview' ? <Overview onPage={setPage}/> : <PageView page={page}/>}</main></div></div>
