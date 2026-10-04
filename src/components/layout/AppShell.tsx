@@ -20,7 +20,7 @@ import { useState } from "react";
 import { roleName } from "../../domain/permissions";
 import { sections } from "../../data/sections";
 import { churches } from "../../data/churches";
-import type { Page, Section, UserRole } from "../../types";
+import type { AccountType, Page, Section, UserRole } from "../../types";
 import type { ProfileData } from "../account/ProfileSettingsDialog";
 const navigation = [
   ["Overview", LayoutDashboard],
@@ -33,6 +33,8 @@ const navigation = [
 ] as const;
 export function Sidebar({
   role,
+  accountType,
+  churchId,
   section,
   page,
   mobile,
@@ -41,6 +43,8 @@ export function Sidebar({
   onLogout,
 }: {
   role: UserRole;
+  accountType: AccountType;
+  churchId: string | null;
   section: Section;
   page: Page;
   mobile: boolean;
@@ -49,9 +53,10 @@ export function Sidebar({
   onLogout: () => void;
 }) {
   const visibleNavigation =
-    role === "district"
+    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : role === "district"
       ? navigation
       : navigation.filter(([label]) => label !== "Live analytics");
+  const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : role === "district" ? "Kanyakumari" : section.name;
   return (
     <aside className={"sidebar " + (mobile ? "open" : "")}>
       <div className="side-top">
@@ -71,12 +76,12 @@ export function Sidebar({
       </div>
       <div className="workspace-switch">
         <div className="workspace-icon">
-          {role === "district" ? "K" : role.replace("section", "")}
+          {accountType === "church" ? "CA" : accountType === "user" ? "CM" : role === "district" ? "K" : role.replace("section", "")}
         </div>
         <div>
-          <strong>{role === "district" ? "Kanyakumari" : section.name}</strong>
+          <strong>{workspaceName}</strong>
           <small>
-            {role === "district" ? "District workspace" : "Section workspace"}
+            {accountType === "church" ? "Church workspace" : accountType === "user" ? "Member workspace" : role === "district" ? "District workspace" : "Section workspace"}
           </small>
         </div>
         <ChevronDown size={15} />
@@ -102,8 +107,8 @@ export function Sidebar({
         <button className="profile" onClick={onLogout}>
           <div className="avatar">SA</div>
           <div>
-            <strong>{roleName(role)}</strong>
-            <small>{role === "district" ? "All sections" : section.name}</small>
+            <strong>{accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : roleName(role)}</strong>
+            <small>{accountType !== "section" ? "Church workspace" : role === "district" ? "All sections" : section.name}</small>
           </div>
           <LogOut size={15} />
         </button>
@@ -113,6 +118,8 @@ export function Sidebar({
 }
 export function Header({
   role,
+  accountType,
+  churchId,
   section,
   page,
   profileOpen,
@@ -123,6 +130,8 @@ export function Header({
   onLogout,
 }: {
   role: UserRole;
+  accountType: AccountType;
+  churchId: string | null;
   section: Section;
   page: Page;
   profileOpen: boolean;
@@ -132,8 +141,8 @@ export function Header({
   profile: ProfileData;
   onLogout: () => void;
 }) {
-  const scope = role === "district" ? "All 4 sections" : section.name;
-  const displayName = profile.name || roleName(role);
+  const scope = accountType !== "section" ? "Church workspace" : role === "district" ? "All 4 sections" : section.name;
+  const displayName = profile.name || (accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : roleName(role));
   return (
     <header>
       <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
@@ -168,7 +177,7 @@ export function Header({
               </div>
               <div>
                 <strong>{displayName}</strong>
-                <span>Administrator account</span>
+                <span>{accountType === "church" ? "Church administrator" : accountType === "user" ? "Church member" : "Administrator account"}</span>
               </div>
             </div>
             <div className="profile-scope">
@@ -177,13 +186,10 @@ export function Header({
                 <small>Access scope</small>
                 <b>{scope}</b>
               </div>
-              <em>Full access</em>
+              <em>{accountType === "section" ? "Full access" : "Church only"}</em>
             </div>
             <div className="profile-permissions">
-              <span>Read</span>
-              <span>Write</span>
-              <span>Edit</span>
-              <span>Manage</span>
+              <span>Read</span><span>Write</span><span>Edit</span>{accountType === "church" && <span>Manage</span>}
             </div>
             <div className="profile-menu-actions">
               <button className="profile-menu-item" role="menuitem" onClick={onSettings}>

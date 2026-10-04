@@ -37,7 +37,7 @@ function ChurchDialog({ church, onBack, canManageCredentials, scopeLabel }: { ch
     if (!/^[a-z0-9._-]{3,40}$/i.test(credentials.username.trim()) || credentials.password.length < 12) { setError('Use a valid username and a password of at least 12 characters.'); return }
     setSaving(true)
     try {
-      const response = await fetch('/api/accounts', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: credentials.username, password: credentials.password, role: 'church', section_scope: church.section }) })
+      const response = await fetch('/api/accounts', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: credentials.username, password: credentials.password, role: 'church', section_scope: church.section, church_id: church.id }) })
       const result = await response.json().catch(() => ({})) as { error?: string }
       if (!response.ok) { setError(result.error || 'Could not save this login.'); return }
       saveCredentials(church.id, credentials); setCredentials((current) => ({ ...current, password: '' })); setEditing(false); setSaved(true); window.setTimeout(() => setSaved(false), 2500)

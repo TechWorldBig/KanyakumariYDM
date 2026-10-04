@@ -9,9 +9,12 @@ import { WorkspacePage } from "../pages/WorkspacePage";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
 import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDialog";
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
-import type { Page, Section, UserRole } from "../types";
+import type { AccountType, Page, Section, UserRole } from "../types";
+import { ChurchAdminPage } from "../pages/ChurchAdminPage";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
+    [accountType, setAccountType] = useState<AccountType>("section"),
+    [churchId, setChurchId] = useState<string | null>(null),
     [authReady, setAuthReady] = useState(false),
     [page, setPage] = useState<Page>("Overview"),
     [mobile, setMobile] = useState(false),
@@ -34,7 +37,7 @@ export default function App() {
   useEffect(() => {
     fetch("/api/session", { credentials: "include" })
       .then((response) => response.ok ? response.json() : null)
-      .then((session: { role: UserRole } | null) => { if (session?.role) setRole(session.role); })
+      .then((session: { role: UserRole; accountType?: AccountType; churchId?: string | null } | null) => { if (session?.role) { setRole(session.role); setAccountType(session.accountType || "section"); setChurchId(session.churchId || null); } })
       .catch(() => undefined)
       .finally(() => setAuthReady(true));
   }, []);
@@ -61,6 +64,8 @@ export default function App() {
       <Login
         onLogin={(nextRole) => {
           setRole(nextRole);
+          setAccountType("section");
+          setChurchId(null);
           setPage("Overview");
         }}
       />
@@ -71,6 +76,8 @@ export default function App() {
         () => undefined,
       );
       setRole(null);
+      setAccountType("section");
+      setChurchId(null);
       window.localStorage.removeItem("district_role");
       setProfileOpen(false);
     };
@@ -78,6 +85,8 @@ export default function App() {
     <div className="app">
       <Sidebar
         role={role}
+        accountType={accountType}
+        churchId={churchId}
         section={primarySection}
         page={page}
         mobile={mobile}
@@ -91,6 +100,8 @@ export default function App() {
       <div className="main">
         <Header
           role={role}
+          accountType={accountType}
+          churchId={churchId}
           section={primarySection}
           page={page}
           profileOpen={profileOpen}
@@ -104,7 +115,9 @@ export default function App() {
           onLogout={logout}
         />
         <main className="content">
-          {page === "Overview" ? (
+          {accountType !== "section" && churchId ? (
+            <ChurchAdminPage churchId={churchId} canManage={accountType === "church"} />
+          ) : page === "Overview" ? (
             <OverviewPage
               role={role}
               sections={scopedSections}

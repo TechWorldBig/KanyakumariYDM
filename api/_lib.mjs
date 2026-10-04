@@ -7,6 +7,7 @@ export async function ensureSchema(){
  await sql.query('CREATE TABLE IF NOT EXISTS traffic_events (id bigserial PRIMARY KEY, ip_hash text NOT NULL, path text NOT NULL, visited_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS session_activity (id bigserial PRIMARY KEY, username text NOT NULL, role text NOT NULL, section_scope text, action text NOT NULL, occurred_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS managed_accounts (username text PRIMARY KEY, password_hash text NOT NULL, role text NOT NULL, section_scope text, created_at timestamptz NOT NULL DEFAULT now())')
+ await sql.query('ALTER TABLE managed_accounts ADD COLUMN IF NOT EXISTS church_id text')
 }
 export const clientIp=req=>String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'unknown').split(',')[0].trim()
 export const hashIp=ip=>{const salt=process.env.IP_HASH_SALT;if(!salt||salt.length<16)throw new Error('IP_HASH_SALT must be configured');return createHash('sha256').update(salt+ip).digest('hex')}

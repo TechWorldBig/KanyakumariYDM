@@ -12,6 +12,7 @@ export type UserRole =
   | "section2"
   | "section3"
   | "section4";
+export type AccountType = "section" | "church" | "user";
 export interface Section {
   name: string;
   town: string;
