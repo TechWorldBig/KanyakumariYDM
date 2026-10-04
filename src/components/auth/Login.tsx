@@ -30,6 +30,7 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
   return (
     <main className="login-shell">
       <div className="login-art">
+        <img className="district-3d-visual" src="/assets/district-network-3d.png" alt="Four churches connected to the district administration" />
         <div className="art-copy">
           <span className="eyebrow">Kanyakumari District</span>
           <h1>

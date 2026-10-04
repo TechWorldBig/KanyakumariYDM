@@ -54,6 +54,7 @@ export function OverviewPage({
           <FileText size={16} />
           View reports
         </button>
+        {district && <img className="overview-3d-visual" src="/assets/district-network-3d.png" alt="" aria-hidden="true" />}
       </div>
       <div className="metrics">
         <Metric
