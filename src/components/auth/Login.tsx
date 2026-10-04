@@ -17,7 +17,8 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
         body: JSON.stringify({ username: key, password }),
       });
       if (!response.ok) {
-        setError(response.status >= 500 ? "The authentication service is unavailable. Try again shortly." : "The username or password is incorrect.");
+        const problem = await response.json().catch(() => null) as { error?: string } | null;
+        setError(response.status >= 500 ? (problem?.error || "The authentication service is unavailable. Try again shortly.") : "The username or password is incorrect.");
         return;
       }
       const result = await response.json() as { role: UserRole };
