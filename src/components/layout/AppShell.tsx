@@ -142,14 +142,16 @@ export function Header({
   onLogout: () => void;
 }) {
   const scope = accountType !== "section" ? "Church workspace" : role === "district" ? "All 4 sections" : section.name;
-  const displayName = profile.name || (accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : roleName(role));
+  const church = churchId ? churches.find(item => item.id === churchId) : null;
+  const displayName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : profile.name || roleName(role);
+  const initials = accountType === "church" ? "CA" : accountType === "user" ? "CM" : "SA";
   return (
     <header>
       <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
         <Menu size={20} />
       </button>
       <div className="breadcrumb">
-        <span>{role === "district" ? "District" : section.name}</span>
+        <span>{church?.name || (role === "district" ? "District" : section.name)}</span>
         <span>/</span>
         <strong>{page}</strong>
       </div>
@@ -164,7 +166,7 @@ export function Header({
           aria-expanded={profileOpen}
           aria-haspopup="menu"
         >
-          <div className="avatar">{profile.photo ? <img src={profile.photo} alt="" /> : "SA"}</div>
+          <div className="avatar">{profile.photo ? <img src={profile.photo} alt="" /> : initials}</div>
           <span>{displayName}</span>
           <ChevronDown size={14} />
         </button>
@@ -172,7 +174,7 @@ export function Header({
           <div className="profile-menu" role="menu">
             <div className="profile-menu-head">
               <div className="profile-menu-avatar">
-                {profile.photo ? <img src={profile.photo} alt="" /> : "SA"}
+                {profile.photo ? <img src={profile.photo} alt="" /> : initials}
                 <i />
               </div>
               <div>
