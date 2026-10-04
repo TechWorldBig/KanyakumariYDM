@@ -80,7 +80,7 @@ header{position:relative;z-index:12;box-shadow:0 8px 24px #18345c0b}
 .metric,.panel,.section-card,.add-card{box-shadow:0 2px 8px #1b2f4b0d!important;transform:none!important;transition:border-color .16s ease,box-shadow .16s ease!important}
 .metric:hover,.panel:hover,.section-card:hover,.add-card:hover{box-shadow:0 5px 14px #1b2f4b14!important;transform:translateY(-1px)!important}
 .metric:after,.section-card:before{display:none!important}
-.sidebar{box-shadow:1px 0 0 #dfe5ec!important;position:relative!important}
+.sidebar{box-shadow:1px 0 0 #dfe5ec!important}
 .primary{box-shadow:0 3px 8px #1b3c781c!important}
 .overview-3d-visual{width:128px;height:82px;object-fit:cover;object-position:center;border-radius:8px;margin-left:14px;filter:saturate(.82);mix-blend-mode:multiply}
 .page-heading{position:relative}
@@ -99,4 +99,43 @@ header{position:relative;z-index:12;box-shadow:0 8px 24px #18345c0b}
   header .district-search input{min-width:0;font-size:11px}
   header .search-results{position:fixed;top:64px;left:12px;right:12px;width:auto;max-height:calc(100vh - 82px);overflow-y:auto}
   .content{padding-top:27px}
+}
+
+/* Mobile contract: this final block owns the drawer and church-workspace layout. */
+@media(max-width:700px){
+  .app{display:block;min-width:0;overflow-x:hidden}
+  .main{width:100%;min-width:0}
+  .sidebar{position:fixed!important;z-index:80;top:0;bottom:0;left:0;width:min(292px,calc(100vw - 44px));height:100dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateX(-105%)}
+  .sidebar.open{transform:translateX(0)}
+  header{position:sticky;top:0;z-index:30;width:100%;padding:0 14px;gap:8px}
+  .content{width:100%;max-width:none;padding:20px 14px 42px;overflow:visible}
+  .church-admin-page{min-width:0}
+  .church-admin-page .page-heading{align-items:flex-start;margin-bottom:18px}
+  .church-admin-page .page-heading h1{font-size:26px;line-height:1.12;overflow-wrap:anywhere}
+  .church-admin-page .page-heading p{line-height:1.45}
+  .church-admin-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin-bottom:14px;border-radius:11px}
+  .church-admin-hero h2{line-height:1.2;overflow-wrap:anywhere}
+  .church-admin-hero p{line-height:1.45}
+  .church-admin-stat{align-self:end}
+  .church-admin-tabs{width:calc(100% + 28px);margin:0 -14px 14px;padding:0 14px;scrollbar-gutter:stable;overscroll-behavior-x:contain}
+  .church-admin-tabs button{min-height:44px;padding:11px 12px}
+  .church-admin-panel{padding:15px;min-width:0}
+  .church-admin-panel .panel-heading{gap:10px;margin-bottom:14px}
+  .church-details-summary,.shared-church-summary{gap:8px;margin:12px 0}
+  .church-details-summary>div,.shared-church-summary>div{min-width:0;padding:11px}
+  .church-details-summary strong,.shared-church-summary strong{overflow-wrap:anywhere}
+  .church-form{grid-template-columns:1fr!important;gap:10px;padding:12px;margin-bottom:14px}
+  .church-form .wide{grid-column:auto}
+  .church-form input,.church-form select,.church-form textarea{min-height:42px;font-size:16px}
+  .church-form textarea{min-height:110px}
+  .form-actions{justify-content:stretch;flex-direction:column-reverse}
+  .form-actions .primary,.form-actions .subtle{width:100%;justify-content:center;min-height:42px}
+  .church-person{gap:9px;padding:12px 0}
+  .church-person>div:nth-child(2){min-width:0}
+  .church-person span,.church-person small{overflow-wrap:anywhere}
+  .church-person .subtle{flex:none;padding:8px}
+  .pastor-layout{gap:12px}
+  .pastor-photo{height:170px}
+  .section-modal-backdrop{padding:8px}
+  .church-detail-modal,.section-detail-modal{width:100%;max-height:calc(100dvh - 16px)}
 }
