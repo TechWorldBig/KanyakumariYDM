@@ -8,14 +8,14 @@ const credentialsKey = 'district_church_credentials'
 
 function readCredentials(church: ChurchRecord): Credentials {
   try {
-    const saved = JSON.parse(localStorage.getItem(credentialsKey) || '{}') as Record<string, Credentials>
-    return saved[church.id] || { username: church.username, password: 'church123' }
-  } catch { return { username: church.username, password: 'church123' } }
+    const saved = JSON.parse(localStorage.getItem(credentialsKey) || '{}') as Record<string, { username?: string }>
+    return { username: saved[church.id]?.username || church.username, password: '' }
+  } catch { return { username: church.username, password: '' } }
 }
 
 function saveCredentials(churchId: string, credentials: Credentials) {
-  const saved = JSON.parse(localStorage.getItem(credentialsKey) || '{}') as Record<string, Credentials>
-  localStorage.setItem(credentialsKey, JSON.stringify({ ...saved, [churchId]: credentials }))
+  const saved = JSON.parse(localStorage.getItem(credentialsKey) || '{}') as Record<string, { username?: string }>
+  localStorage.setItem(credentialsKey, JSON.stringify({ ...saved, [churchId]: { username: credentials.username } }))
 }
 
 export function SectionDialog({ section, onClose, isDistrict, onRemove }: { section: Section; onClose: () => void; isDistrict: boolean; onRemove: () => void }) {
