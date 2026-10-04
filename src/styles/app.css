@@ -72,6 +72,7 @@ header{position:relative;z-index:12;box-shadow:0 8px 24px #18345c0b}
   .section-page-shell .church-list-row strong,.section-page-shell .church-list-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .section-page-shell .church-list-row span{display:block}
 }
+
 @media(max-width:700px){.church-admin-page .page-heading{gap:10px}.church-admin-badge{align-self:flex-start}.church-admin-hero{padding:18px;align-items:flex-start;gap:15px}.church-admin-hero h2{font-size:18px}.church-admin-stat strong{font-size:22px}.church-admin-tabs{margin-left:-3px;margin-right:-3px}.church-admin-tabs button{padding-left:9px;padding-right:9px}.church-form{grid-template-columns:1fr 1fr;padding:12px}.church-form .wide{grid-column:1/-1}.pastor-layout{grid-template-columns:1fr}.pastor-photo{height:190px}.church-person{align-items:flex-start}.church-person .subtle{margin-left:auto}.saved-notice{margin-top:-9px}.church-details-summary,.shared-church-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.church-details-form{grid-template-columns:1fr}.church-details-form .wide{grid-column:1}}
 
 /* Editorial dashboard pass: quiet surfaces, one purposeful 3D visual, no ambient decoration. */
@@ -139,3 +140,21 @@ header{position:relative;z-index:12;box-shadow:0 8px 24px #18345c0b}
   .section-modal-backdrop{padding:8px}
   .church-detail-modal,.section-detail-modal{width:100%;max-height:calc(100dvh - 16px)}
 }
+
+/* Final override layer: keeps the product depth system authoritative after responsive rules. */
+.app{perspective:1500px!important;background:linear-gradient(135deg,#f2f5f9 0%,#f8fafc 58%,#eef3fa 100%)!important}
+.main{transform-style:preserve-3d}
+header{box-shadow:0 8px 22px #1a345d12,0 1px 0 #fff inset!important;background:linear-gradient(180deg,#fff 0%,#fbfcfe 100%)!important}
+.sidebar{box-shadow:8px 0 28px #1a345d10,1px 0 0 #dfe5ec!important;background:linear-gradient(180deg,#fff 0%,#f9fbfe 100%)!important}
+.metric,.panel,.section-card,.add-card,.management-card,.management-list,.church-admin-hero,.church-admin-badge,.church-details-summary>div,.shared-church-summary>div,.church-person,.announcement-list article{transform:translateZ(0)!important;box-shadow:0 10px 22px #213c6412,0 1px 2px #213c6414!important;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important}
+.metric:hover,.panel:hover,.section-card:hover,.add-card:hover,.management-card:hover,.church-person:hover,.announcement-list article:hover{transform:translateY(-3px) translateZ(8px)!important;box-shadow:0 17px 30px #213c6420,0 2px 4px #213c6418!important;border-color:#c4d5ed!important}
+.metric-icon,.section-icon,.management-icon,.management-avatar,.church-person-avatar,.placeholder-icon,.brand-mark,.workspace-icon{box-shadow:inset 0 1px 0 #fff9,0 7px 14px #2449791b!important}
+.primary{box-shadow:0 8px 15px #173b762e,inset 0 1px 0 #fff3!important;transform:translateZ(2px);transition:transform .16s ease,box-shadow .16s ease!important}
+.primary:hover{transform:translateY(-2px) translateZ(4px)!important;box-shadow:0 12px 21px #173b7638,inset 0 1px 0 #fff3!important}
+.subtle{transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important}.subtle:hover{transform:translateY(-1px) translateZ(2px);box-shadow:0 6px 12px #24497914}
+.profile-menu,.search-results,.section-modal{box-shadow:0 24px 54px #102b5235,0 2px 5px #102b5218!important}
+.church-admin-hero{position:relative;overflow:hidden;box-shadow:0 18px 34px #122f5c32,0 1px 0 #ffffff25 inset!important}
+.church-admin-hero:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(120deg,#fff1,transparent 38%,#0000000b);mix-blend-mode:screen}
+.church-details-summary>div,.shared-church-summary>div{background:linear-gradient(145deg,#fff,#f5f8fc)!important}
+@media(max-width:700px){.metric,.panel,.section-card,.add-card,.management-card,.management-list,.church-admin-hero,.church-details-summary>div,.shared-church-summary>div,.church-person,.announcement-list article{box-shadow:0 7px 16px #213c6410,0 1px 2px #213c6414!important}.metric:hover,.panel:hover,.section-card:hover,.add-card:hover,.management-card:hover,.church-person:hover,.announcement-list article:hover{transform:none!important}.sidebar{box-shadow:12px 0 30px #10213b35!important}}
+@media(prefers-reduced-motion:reduce){.metric,.panel,.section-card,.add-card,.management-card,.church-person,.announcement-list article,.primary,.subtle{transition:none!important}.metric:hover,.panel:hover,.section-card:hover,.add-card:hover,.management-card:hover,.church-person:hover,.announcement-list article:hover,.primary:hover,.subtle:hover{transform:none!important}}
