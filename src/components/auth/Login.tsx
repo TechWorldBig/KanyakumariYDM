@@ -17,7 +17,7 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
         body: JSON.stringify({ username: key, password }),
       });
       if (!response.ok) {
-        setError(response.status >= 500 ? "The server authentication configuration is unavailable. Check the Vercel environment variables and redeploy." : "The username or password is incorrect.");
+        setError(response.status >= 500 ? "The authentication service is unavailable. Try again shortly." : "The username or password is incorrect.");
         return;
       }
       const result = await response.json() as { role: UserRole };
