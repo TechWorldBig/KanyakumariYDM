@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ArrowUpRight, Church, LockKeyhole, ShieldCheck } from "lucide-react";
-import type { UserRole } from "../../types";
-export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
+import type { AccountType, UserRole } from "../../types";
+type LoginResult = { role: UserRole; accountType: AccountType; churchId: string | null };
+export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) {
   const [username, setUsername] = useState("admin"),
     [password, setPassword] = useState("admin"),
     [error, setError] = useState("");
@@ -21,8 +22,8 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
         setError(response.status >= 500 ? (problem?.error || "The authentication service is unavailable. Try again shortly.") : "The username or password is incorrect.");
         return;
       }
-      const result = await response.json() as { role: UserRole };
-      onLogin(result.role);
+      const result = await response.json() as LoginResult;
+      onLogin(result);
     } catch {
       setError("Secure sign-in is unavailable. Try again shortly.");
     }

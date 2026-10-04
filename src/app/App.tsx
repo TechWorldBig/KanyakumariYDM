@@ -62,10 +62,10 @@ export default function App() {
   if (!role)
     return (
       <Login
-        onLogin={(nextRole) => {
-          setRole(nextRole);
-          setAccountType("section");
-          setChurchId(null);
+        onLogin={(session) => {
+          setRole(session.role);
+          setAccountType(session.accountType || "section");
+          setChurchId(session.churchId || null);
           setPage("Overview");
         }}
       />
