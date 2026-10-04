@@ -17,7 +17,7 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
         body: JSON.stringify({ username: key, password }),
       });
       if (!response.ok) {
-        setError("The username or password is incorrect.");
+        setError(response.status === 503 ? "Admin account is not configured on the server. Set ACCOUNT_ADMIN_PASSWORD in Vercel and redeploy." : "The username or password is incorrect.");
         return;
       }
       const result = await response.json() as { role: UserRole };
