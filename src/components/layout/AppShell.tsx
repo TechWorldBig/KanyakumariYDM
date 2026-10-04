@@ -155,7 +155,7 @@ export function Header({
       </div>
       <div className="header-actions">
         {role === "district" && <DistrictSearch />}
-        <button className="icon-btn" aria-label="Notifications">
+        <button className="icon-btn" aria-label="Notifications" disabled>
           <Bell size={18} />
         </button>
         <button
