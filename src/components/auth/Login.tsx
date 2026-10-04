@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowUpRight, Church, LockKeyhole, ShieldCheck } from "lucide-react";
+import districtNetworkVisual from "../../assets/district-network-3d.png?inline";
 import type { UserRole } from "../../types";
 export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
   const [username, setUsername] = useState("admin"),
@@ -30,7 +31,7 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
   return (
     <main className="login-shell">
       <div className="login-art">
-        <img className="district-3d-visual" src="/assets/district-network-3d.png" alt="Four churches connected to the district administration" />
+        <img className="district-3d-visual" src={districtNetworkVisual} alt="Four churches connected to the district administration" />
         <div className="art-copy">
           <span className="eyebrow">Kanyakumari District</span>
           <h1>
