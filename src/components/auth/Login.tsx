@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ArrowUpRight, Church, LockKeyhole, ShieldCheck } from "lucide-react";
-import { accounts } from "../../domain/permissions";
 import type { UserRole } from "../../types";
 export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
   const [username, setUsername] = useState("admin"),
@@ -8,12 +7,8 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
     [error, setError] = useState("");
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    const key = username.trim().toLowerCase(),
-      role = accounts[key];
-    if (!role || password !== key) {
-      setError("The username or password is incorrect.");
-      return;
-    }
+    const key = username.trim().toLowerCase();
+    if (!key || !password) { setError("Enter your username and password."); return; }
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -21,14 +16,15 @@ export function Login({ onLogin }: { onLogin: (role: UserRole) => void }) {
         credentials: "include",
         body: JSON.stringify({ username: key, password }),
       });
-      if (response.status === 401) {
+      if (!response.ok) {
         setError("The username or password is incorrect.");
         return;
       }
+      const result = await response.json() as { role: UserRole };
+      onLogin(result.role);
     } catch {
-      // Local Vite development can continue without serverless APIs.
+      setError("Secure sign-in is unavailable. Try again shortly.");
     }
-    onLogin(role);
   }
   return (
     <main className="login-shell">

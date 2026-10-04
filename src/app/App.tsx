@@ -11,10 +11,8 @@ import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDial
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { Page, Section, UserRole } from "../types";
 export default function App() {
-  const [role, setRole] = useState<UserRole | null>(() => {
-    const saved = window.localStorage.getItem("district_role");
-    return saved as UserRole | null;
-  }),
+  const [role, setRole] = useState<UserRole | null>(null),
+    [authReady, setAuthReady] = useState(false),
     [page, setPage] = useState<Page>("Overview"),
     [mobile, setMobile] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
@@ -34,6 +32,13 @@ export default function App() {
     [role, allSections],
   );
   useEffect(() => {
+    fetch("/api/session", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((session: { role: UserRole } | null) => { if (session?.role) setRole(session.role); })
+      .catch(() => undefined)
+      .finally(() => setAuthReady(true));
+  }, []);
+  useEffect(() => {
     fetch("/api/visit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,12 +55,12 @@ export default function App() {
     const timer = window.setInterval(heartbeat, 60_000);
     return () => window.clearInterval(timer);
   }, [role]);
+  if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
   if (!role)
     return (
       <Login
         onLogin={(nextRole) => {
           setRole(nextRole);
-          window.localStorage.setItem("district_role", nextRole);
           setPage("Overview");
         }}
       />
