@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Building2, Church, MapPin, Plus, ShieldCheck, UserRound, Users } from 'lucide-react'
 import { churches } from '../data/churches'
 import type { Page, Section, UserRole } from '../types'
+import { isDistrictScope } from '../domain/permissions'
 
 type AddedRecord = { id: string; name: string; detail: string; section: string; username: string }
 type ManagedPage = 'Churches' | 'Users'
@@ -11,7 +12,7 @@ export function WorkspacePage({ page, role, section, sections, onAddSection, onO
   const [adding, setAdding] = useState<ManagedPage | null>(null)
   const [addedChurches, setAddedChurches] = useState<AddedRecord[]>(() => readAdded('Churches'))
   const [addedUsers, setAddedUsers] = useState<AddedRecord[]>(() => readAdded('Users'))
-  const visibleChurches = churches.filter((church) => role === 'district' || church.section === section.name)
+  const visibleChurches = churches.filter((church) => isDistrictScope(role) || church.section === section.name)
   const add = () => page === 'Sections' ? onAddSection() : (page === 'Churches' || page === 'Users') && setAdding(page)
   const create = async (record: AddedRecord, password: string) => {
     const response = await fetch('/api/accounts', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: record.username, password, role: adding === 'Churches' ? 'church' : 'user', section_scope: record.section }) })
@@ -21,8 +22,8 @@ export function WorkspacePage({ page, role, section, sections, onAddSection, onO
     setAdding(null)
     return true
   }
-  const canAdd = page === 'Churches' || page === 'Users' || (page === 'Sections' && role === 'district')
-  return <><div className="page-heading"><div><span className="eyebrow">{role === 'district' ? 'District workspace' : `${section.name} workspace`}</span><h1>{page}</h1><p className="muted">Manage {role === 'district' ? 'district-wide' : section.name} data.</p></div>{canAdd && <button className="primary" onClick={add}><Plus size={16} />Add {page.slice(0, -1).toLowerCase()}</button>}</div>{page === 'Sections' ? <SectionDirectory sections={sections} onOpen={onOpenSection} /> : page === 'Churches' ? <ChurchDirectory records={visibleChurches} added={addedChurches} /> : page === 'Users' ? <UserDirectory sections={sections} added={addedUsers} /> : <InfoWorkspace page={page} role={role} section={section} />}{adding && <AddRecordDialog kind={adding} sections={sections} defaultSection={section.name} onClose={() => setAdding(null)} onCreate={create} />}</>
+  const canAdd = role !== 'head-pastor' && (page === 'Churches' || page === 'Users' || (page === 'Sections' && role === 'district'))
+  return <><div className="page-heading"><div><span className="eyebrow">{isDistrictScope(role) ? 'District workspace' : `${section.name} workspace`}</span><h1>{page}</h1><p className="muted">{role === 'head-pastor' ? 'Read-only view of all district data.' : `Manage ${isDistrictScope(role) ? 'district-wide' : section.name} data.`}</p></div>{canAdd && <button className="primary" onClick={add}><Plus size={16} />Add {page.slice(0, -1).toLowerCase()}</button>}</div>{page === 'Sections' ? <SectionDirectory sections={sections} onOpen={onOpenSection} /> : page === 'Churches' ? <ChurchDirectory records={visibleChurches} added={addedChurches} /> : page === 'Users' ? <UserDirectory sections={sections} added={addedUsers} /> : <InfoWorkspace page={page} role={role} section={section} />}{adding && <AddRecordDialog kind={adding} sections={sections} defaultSection={section.name} onClose={() => setAdding(null)} onCreate={create} />}</>
 }
 
 function SectionDirectory({ sections, onOpen }: { sections: Section[]; onOpen: (section: Section) => void }) { return <div className="management-grid">{sections.map((item) => <button className="management-card" key={item.name} onClick={() => onOpen(item)}><div className={`management-icon ${item.tone}`}><Building2 size={19} /></div><div><strong>{item.name}</strong><span><MapPin size={12} />{item.town}</span></div><div className="management-meta"><b>{item.churches}</b> churches <b>{item.users}</b> users</div></button>)}</div> }

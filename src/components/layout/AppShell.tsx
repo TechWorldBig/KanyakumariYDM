@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { roleName } from "../../domain/permissions";
+import { isDistrictScope, roleName } from "../../domain/permissions";
 import { sections } from "../../data/sections";
 import { churches, type ChurchRecord } from "../../data/churches";
 import { ChurchDialog } from "../dashboard/SectionDialog";
@@ -54,10 +54,10 @@ export function Sidebar({
   onLogout: () => void;
 }) {
   const visibleNavigation =
-    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : role === "district"
+    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : isDistrictScope(role)
       ? navigation
       : navigation.filter(([label]) => label !== "Live analytics");
-  const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : role === "district" ? "Kanyakumari" : section.name;
+  const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : isDistrictScope(role) ? "Kanyakumari" : section.name;
   return (
     <aside className={"sidebar " + (mobile ? "open" : "")}>
       <div className="side-top">
@@ -77,12 +77,12 @@ export function Sidebar({
       </div>
       <div className="workspace-switch">
         <div className="workspace-icon">
-          {accountType === "church" ? "CA" : accountType === "user" ? "CM" : role === "district" ? "K" : role.replace("section", "")}
+            {accountType === "church" ? "CA" : accountType === "user" ? "CM" : isDistrictScope(role) ? "K" : role.replace("section", "")}
         </div>
         <div>
           <strong>{workspaceName}</strong>
           <small>
-            {accountType === "church" ? "Church workspace" : accountType === "user" ? "Member workspace" : role === "district" ? "District workspace" : "Section workspace"}
+            {accountType === "church" ? "Church workspace" : accountType === "user" ? "Member workspace" : isDistrictScope(role) ? "District workspace" : "Section workspace"}
           </small>
         </div>
         <ChevronDown size={15} />
@@ -109,7 +109,7 @@ export function Sidebar({
           <div className="avatar">SA</div>
           <div>
             <strong>{accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : roleName(role)}</strong>
-            <small>{accountType !== "section" ? "Church workspace" : role === "district" ? "All sections" : section.name}</small>
+            <small>{accountType !== "section" ? "Church workspace" : isDistrictScope(role) ? "All sections" : section.name}</small>
           </div>
           <LogOut size={15} />
         </button>
@@ -142,7 +142,7 @@ export function Header({
   profile: ProfileData;
   onLogout: () => void;
 }) {
-  const scope = accountType !== "section" ? "Church workspace" : role === "district" ? "All 4 sections" : section.name;
+  const scope = accountType !== "section" ? "Church workspace" : isDistrictScope(role) ? "All 4 sections" : section.name;
   const church = churchId ? churches.find(item => item.id === churchId) : null;
   const displayName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : profile.name || roleName(role);
   const initials = accountType === "church" ? "CA" : accountType === "user" ? "CM" : "SA";
@@ -152,7 +152,7 @@ export function Header({
         <Menu size={20} />
       </button>
       <div className="breadcrumb">
-        <span>{church?.name || (role === "district" ? "District" : section.name)}</span>
+        <span>{church?.name || (isDistrictScope(role) ? "District" : section.name)}</span>
         <span>/</span>
         <strong>{page}</strong>
       </div>
@@ -224,7 +224,7 @@ function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }
   const [query, setQuery] = useState("");
   const [selectedChurch, setSelectedChurch] = useState<ChurchRecord | null>(null);
   const term = query.trim().toLowerCase();
-  const accessibleChurches = role === "district" ? churches : churches.filter((church) => church.section === section.name);
+  const accessibleChurches = isDistrictScope(role) ? churches : churches.filter((church) => church.section === section.name);
   const results = term
     ? accessibleChurches.filter((church) => [
         church.name,
@@ -254,6 +254,6 @@ function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }
         </button>) : <div className="search-empty">No church or member found in your workspace</div>}
       </div>}
     </div>
-    {selectedChurch && <ChurchDialog church={selectedChurch} onBack={() => setSelectedChurch(null)} canManageCredentials scopeLabel={role === "district" ? "District Super Admin" : `${section.name} Super Admin`} />}
+    {selectedChurch && <ChurchDialog church={selectedChurch} onBack={() => setSelectedChurch(null)} canManageCredentials={role === "district"} scopeLabel={isDistrictScope(role) ? roleName(role) : `${section.name} Super Admin`} />}
   </>;
 }

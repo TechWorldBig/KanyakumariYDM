@@ -8,6 +8,7 @@ export type Page =
   | "Audit logs";
 export type UserRole =
   | "district"
+  | "head-pastor"
   | "section1"
   | "section2"
   | "section3"

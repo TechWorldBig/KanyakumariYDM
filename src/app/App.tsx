@@ -11,6 +11,7 @@ import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDial
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { AccountType, Page, Section, UserRole } from "../types";
 import { ChurchAdminPage } from "../pages/ChurchAdminPage";
+import { isDistrictScope } from "../domain/permissions";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
     [accountType, setAccountType] = useState<AccountType>("section"),
@@ -31,7 +32,7 @@ export default function App() {
     [addSectionOpen, setAddSectionOpen] = useState(false),
     [allSections, setAllSections] = useState<Section[]>(initialSections);
   const scopedSections = useMemo(
-    () => role === "district" ? allSections : allSections.filter((_, index) => role === `section${index + 1}`),
+    () => role && isDistrictScope(role) ? allSections : allSections.filter((_, index) => role === `section${index + 1}`),
     [role, allSections],
   );
   useEffect(() => {
@@ -125,7 +126,7 @@ export default function App() {
               onNavigate={setPage}
               onAdd={() => setAddSectionOpen(true)}
             />
-          ) : page === "Live analytics" && role === "district" ? (
+          ) : page === "Live analytics" && isDistrictScope(role) ? (
             <AnalyticsPage />
           ) : (
             <WorkspacePage
@@ -144,6 +145,7 @@ export default function App() {
           section={selectedSection}
           onClose={() => setSelectedSection(null)}
           isDistrict={role === "district"}
+          canManageCredentials={role === "district" || /^section[1-4]$/.test(role)}
           onRemove={() => {
             setAllSections((current) =>
               current.filter((item) => item.name !== selectedSection.name),
