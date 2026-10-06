@@ -19,7 +19,8 @@ import {
 import { useState } from "react";
 import { roleName } from "../../domain/permissions";
 import { sections } from "../../data/sections";
-import { churches } from "../../data/churches";
+import { churches, type ChurchRecord } from "../../data/churches";
+import { ChurchDialog } from "../dashboard/SectionDialog";
 import type { AccountType, Page, Section, UserRole } from "../../types";
 import type { ProfileData } from "../account/ProfileSettingsDialog";
 const navigation = [
@@ -156,7 +157,7 @@ export function Header({
         <strong>{page}</strong>
       </div>
       <div className="header-actions">
-        {role === "district" && <DistrictSearch />}
+        {accountType === "section" && <WorkspaceSearch role={role} section={section} />}
         <button className="icon-btn" aria-label="Notifications" disabled>
           <Bell size={18} />
         </button>
@@ -219,16 +220,40 @@ export function Header({
     </header>
   );
 }
-function DistrictSearch() {
+function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }) {
   const [query, setQuery] = useState("");
+  const [selectedChurch, setSelectedChurch] = useState<ChurchRecord | null>(null);
   const term = query.trim().toLowerCase();
+  const accessibleChurches = role === "district" ? churches : churches.filter((church) => church.section === section.name);
   const results = term
-    ? [
-        { type: "Church", name: churches.find(item => item.name.toLowerCase().includes(term))?.name, meta: "Church directory" },
-        { type: "Church admin", name: churches.find(item => item.username.toLowerCase().includes(term))?.username, meta: "Church account" },
-        { type: "Section profile", name: sections.find(item => item.admin.toLowerCase().includes(term))?.admin, meta: "Section Super Admin" },
-        { type: "Profile", name: "District Super Admin", meta: "District administrator" },
-      ].filter(item => item.name && item.name.toLowerCase().includes(term)).slice(0, 6)
+    ? accessibleChurches.filter((church) => [
+        church.name,
+        church.address,
+        church.admin,
+        church.username,
+        church.pastor,
+        ...church.committee.map((person) => person.name),
+        ...church.ydm.map((person) => person.name),
+        ...church.womenMinistry.map((person) => person.name),
+      ].some((value) => value.toLowerCase().includes(term))).slice(0, 6)
     : [];
-  return <div className="district-search"><Search size={15}/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search churches or profiles" aria-label="Search churches or profiles"/>{query&&<button className="search-clear" onClick={()=>setQuery("")} aria-label="Clear search">×</button>}{query&&<div className="search-results">{results.length?results.map((result,index)=><div className="search-result" key={result.type+result.name+index}><div className="search-result-icon"><Church size={14}/></div><div><strong>{result.name}</strong><span>{result.type} · {result.meta}</span></div></div>):<div className="search-empty">No church or profile found</div>}</div>}</div>
+  const openChurch = (church: ChurchRecord) => {
+    setSelectedChurch(church);
+    setQuery("");
+  };
+  return <>
+    <div className="district-search">
+      <Search size={15}/>
+      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search churches or people" aria-label="Search churches or people" />
+      {query && <button className="search-clear" onClick={() => setQuery("")} aria-label="Clear search">?</button>}
+      {query && <div className="search-results" role="listbox" aria-label="Church search results">
+        {results.length ? results.map((church) => <button className="search-result" key={church.id} onClick={() => openChurch(church)}>
+          <div className="search-result-icon"><Church size={14}/></div>
+          <div><strong>{church.name}</strong><span>{church.section} ? {church.address}</span></div>
+          <span className="search-result-action">View profile</span>
+        </button>) : <div className="search-empty">No church or member found in your workspace</div>}
+      </div>}
+    </div>
+    {selectedChurch && <ChurchDialog church={selectedChurch} onBack={() => setSelectedChurch(null)} canManageCredentials scopeLabel={role === "district" ? "District Super Admin" : `${section.name} Super Admin`} />}
+  </>;
 }

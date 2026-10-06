@@ -158,3 +158,9 @@ header{box-shadow:0 8px 22px #1a345d12,0 1px 0 #fff inset!important;background:l
 .church-details-summary>div,.shared-church-summary>div{background:linear-gradient(145deg,#fff,#f5f8fc)!important}
 @media(max-width:700px){.metric,.panel,.section-card,.add-card,.management-card,.management-list,.church-admin-hero,.church-details-summary>div,.shared-church-summary>div,.church-person,.announcement-list article{box-shadow:0 7px 16px #213c6410,0 1px 2px #213c6414!important}.metric:hover,.panel:hover,.section-card:hover,.add-card:hover,.management-card:hover,.church-person:hover,.announcement-list article:hover{transform:none!important}.sidebar{box-shadow:12px 0 30px #10213b35!important}}
 @media(prefers-reduced-motion:reduce){.metric,.panel,.section-card,.add-card,.management-card,.church-person,.announcement-list article,.primary,.subtle{transition:none!important}.metric:hover,.panel:hover,.section-card:hover,.add-card:hover,.management-card:hover,.church-person:hover,.announcement-list article:hover,.primary:hover,.subtle:hover{transform:none!important}}
+/* Search opens a full church profile for district and section administrators. */
+.search-result{width:100%;border:0;background:#fff;text-align:left;cursor:pointer;font-family:inherit}
+.search-result:hover,.search-result:focus-visible{background:#f4f8ff;outline:none}
+.search-result:focus-visible{box-shadow:inset 0 0 0 2px #3d70c2}
+.search-result-action{margin-left:auto!important;white-space:nowrap;color:#3565ad!important;font-weight:700}
+@media(max-width:700px){.search-result-action{display:none!important}.search-result{min-height:52px}}
