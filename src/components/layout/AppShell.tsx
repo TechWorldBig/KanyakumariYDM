@@ -247,7 +247,7 @@ function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }
       <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search churches or people" aria-label="Search churches or people" />
       {query && <button className="search-clear" onClick={() => setQuery("")} aria-label="Clear search">?</button>}
       {query && <div className="search-results" role="listbox" aria-label="Church search results">
-        {results.length ? results.map((church) => <button className="search-result" key={church.id} onClick={() => openChurch(church)}>
+        {results.length ? results.map((church) => <button type="button" className="search-result" key={church.id} onClick={(event) => { event.preventDefault(); event.stopPropagation(); openChurch(church); }}>
           <div className="search-result-icon"><Church size={14}/></div>
           <div><strong>{church.name}</strong><span>{church.section} ? {church.address}</span></div>
           <span className="search-result-action">View profile</span>
