@@ -126,7 +126,7 @@ export default function App() {
               onNavigate={setPage}
               onAdd={() => setAddSectionOpen(true)}
             />
-          ) : page === "Live analytics" && isDistrictScope(role) ? (
+          ) : page === "Live analytics" && role === "district" ? (
             <AnalyticsPage />
           ) : (
             <WorkspacePage

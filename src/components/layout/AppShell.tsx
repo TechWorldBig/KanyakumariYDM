@@ -54,7 +54,7 @@ export function Sidebar({
   onLogout: () => void;
 }) {
   const visibleNavigation =
-    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : isDistrictScope(role)
+    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : role === "district"
       ? navigation
       : navigation.filter(([label]) => label !== "Live analytics");
   const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : isDistrictScope(role) ? "Kanyakumari" : section.name;
