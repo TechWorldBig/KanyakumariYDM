@@ -164,3 +164,66 @@ header{box-shadow:0 8px 22px #1a345d12,0 1px 0 #fff inset!important;background:l
 .search-result:focus-visible{box-shadow:inset 0 0 0 2px #3d70c2}
 .search-result-action{margin-left:auto!important;white-space:nowrap;color:#3565ad!important;font-weight:700}
 @media(max-width:700px){.search-result-action{display:none!important}.search-result{min-height:52px}}
+
+/* Responsive product polish: preserve a calm desktop canvas and a touch-first mobile rhythm. */
+html{background:#f4f6f8;scroll-behavior:smooth}
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #b7cdf5;outline-offset:2px}
+.header-user,.icon-btn,.mobile-menu,.close-mobile,.profile,.subtle,.primary{min-height:40px}
+.header-user{border:1px solid transparent;background:transparent;border-radius:9px;padding:5px 8px}
+.header-user:hover{background:#f3f6fb;border-color:#e1e8f2}
+.content{width:100%;max-width:1390px}
+.page-heading h1{font-size:clamp(27px,2.4vw,36px)}
+.metrics,.section-grid,.bottom-grid{align-items:stretch}
+.metric,.section-card{min-height:150px}
+.panel{min-width:0}
+.management-list,.activity-table,.live-panel{overflow-x:auto}
+@media(min-width:1200px){
+  .sidebar{width:272px;padding-left:19px;padding-right:19px}
+  header{height:78px;padding-left:52px;padding-right:52px}
+  .content{padding-top:48px;padding-left:64px;padding-right:64px}
+  .metrics{gap:18px}
+  .section-grid{gap:18px}
+  .metric{min-height:164px;padding:22px}
+}
+@media(max-width:1100px) and (min-width:701px){
+  .sidebar{width:220px}
+  header{padding-left:26px;padding-right:26px}
+  .content{padding:32px 26px 48px}
+  .header-actions{gap:12px}
+  .district-search{width:220px}
+  .section-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  html{scroll-behavior:auto}
+  header{height:64px;padding:0 12px}
+  .mobile-menu{width:40px;height:40px;margin:0}
+  header .header-actions{gap:7px}
+  header .district-search{max-width:none;height:40px;border-radius:10px;padding-left:10px}
+  header .header-user{width:40px;height:40px;padding:4px;justify-content:center;border-color:#e1e8f2}
+  header .header-user .avatar{width:29px;height:29px}
+  header .icon-btn{width:34px;height:40px;padding:0;display:grid;place-items:center}
+  .content{padding:22px 14px 46px}
+  .page-heading h1{font-size:28px;letter-spacing:-.05em}
+  .page-heading p{font-size:12px;line-height:1.5}
+  .metrics{gap:9px}
+  .metric{min-height:122px;padding:13px 11px;align-items:flex-start}
+  .metric strong{font-size:20px}
+  .section-card{min-height:0;padding:15px}
+  .bottom-grid{gap:12px}
+  .panel{border-radius:12px}
+  .panel-heading{gap:12px}
+  .panel-heading h2{font-size:16px;line-height:1.25}
+  .section-modal-backdrop{align-items:end;padding:0}
+  .section-modal{max-height:calc(100dvh - 8px);border-radius:18px 18px 0 0;padding:22px 16px 28px}
+  .church-detail-modal,.section-detail-modal{max-height:calc(100dvh - 8px)}
+  .profile-menu{position:fixed;top:58px;right:10px;width:min(320px,calc(100vw - 20px));max-height:calc(100dvh - 70px);overflow:auto}
+  .search-results{border-radius:12px}
+}
+@media(max-width:380px){
+  .metrics{grid-template-columns:1fr}
+  .metric{min-height:96px}
+  header .district-search input{font-size:12px}
+  .page-heading h1{font-size:25px}
+}
