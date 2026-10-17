@@ -16,6 +16,18 @@ export default async function handler(req,res){
    : await sql.query('SELECT username,role,section_scope,church_id,created_at FROM managed_accounts WHERE section_scope=$1 ORDER BY created_at DESC',[administratorScope])
   return res.status(200).json({accounts:rows})
  }
+ if(req.method==='DELETE'){
+  const username=String(req.body?.username||'').trim().toLowerCase()
+  if(!username)return res.status(400).json({error:'Username is required'})
+  const rows=session.role==='district'
+   ? await sql.query('SELECT username,section_scope FROM managed_accounts WHERE username=$1',[username])
+   : await sql.query('SELECT username,section_scope FROM managed_accounts WHERE username=$1 AND section_scope=$2',[username,administratorScope])
+  if(!rows.length)return res.status(404).json({error:'Account not found in your scope'})
+  await sql.query('DELETE FROM managed_accounts WHERE username=$1',[username])
+  await sql.query('DELETE FROM active_sessions WHERE username=$1',[username])
+  await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,rows[0].section_scope,`Deleted account ${username}`])
+  return res.status(204).end()
+ }
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'})
  const body=req.body||{}
  const username=String(body.username||'').trim().toLowerCase()
