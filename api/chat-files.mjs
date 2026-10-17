@@ -7,6 +7,11 @@ export default async function handler(req, res) {
   await ensureSchema()
   const session = readSession(req)
   const partner = String(req.query?.with || req.body?.with || '').trim()
+  if (req.query?.mode === 'status' && req.method === 'GET') {
+    const rows = await sql.query('SELECT max(last_seen) AS last_seen FROM active_sessions WHERE role=$1', [partner])
+    const lastSeen = rows[0]?.last_seen || null
+    return res.status(200).json({ lastSeen, online: Boolean(lastSeen && Date.now() - new Date(lastSeen).getTime() < 120000) })
+  }
   if (req.query?.mode === 'messages') {
     if (!partner || partner === session.role) return res.status(400).json({ error: 'Choose a valid recipient' })
     const conversationKey = ['kanyakumari-chat', ...[session.role, partner].sort()].join(':')
