@@ -3,6 +3,7 @@ import { roleName } from './permissions'
 
 type AccessLevel = 'manage' | 'edit' | 'view' | 'none'
 const storageKey = 'district_access_matrix'
+export const accessUpdatedEvent = 'district-access-updated'
 
 export function accessLevel(role: UserRole, feature: string): AccessLevel {
   try {

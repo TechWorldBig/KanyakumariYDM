@@ -16,9 +16,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isDistrictScope, roleName } from "../../domain/permissions";
-import { canAccess } from "../../domain/access";
+import { accessUpdatedEvent, canAccess } from "../../domain/access";
 import { sections } from "../../data/sections";
 import { churches, type ChurchRecord } from "../../data/churches";
 import { ChurchDialog } from "../dashboard/SectionDialog";
@@ -55,6 +55,8 @@ export function Sidebar({
   onClose: () => void;
   onLogout: () => void;
 }) {
+  const [, refreshAccess] = useState(0);
+  useEffect(() => { const refresh = () => refreshAccess((value) => value + 1); window.addEventListener(accessUpdatedEvent, refresh); return () => window.removeEventListener(accessUpdatedEvent, refresh); }, []);
   const visibleNavigation = (accountType !== "section"
     ? navigation.filter(([label]) => label === "Overview" || label === "Users")
     : navigation.filter(([label]) => (label === "Live analytics" || label === "Access control") ? role === "district" : canAccess(role, label)))
