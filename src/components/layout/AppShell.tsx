@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { isDistrictScope, roleName } from "../../domain/permissions";
+import { canAccess } from "../../domain/access";
 import { sections } from "../../data/sections";
 import { churches, type ChurchRecord } from "../../data/churches";
 import { ChurchDialog } from "../dashboard/SectionDialog";
@@ -54,10 +55,10 @@ export function Sidebar({
   onClose: () => void;
   onLogout: () => void;
 }) {
-  const visibleNavigation =
-    accountType !== "section" ? navigation.filter(([label]) => label === "Overview" || label === "Users") : role === "district"
-      ? navigation
-      : navigation.filter(([label]) => label !== "Live analytics");
+  const visibleNavigation = (accountType !== "section"
+    ? navigation.filter(([label]) => label === "Overview" || label === "Users")
+    : navigation.filter(([label]) => (label === "Live analytics" || label === "Access control") ? role === "district" : canAccess(role, label)))
+    .filter(([label]) => accountType !== "section" || canAccess(role, label));
   const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : isDistrictScope(role) ? "Kanyakumari" : section.name;
   return (
     <aside className={"sidebar " + (mobile ? "open" : "")}>
