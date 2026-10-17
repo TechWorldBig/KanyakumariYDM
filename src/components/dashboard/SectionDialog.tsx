@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, KeyRound, MapPin, Pencil, Save, Users } from 'lucide-react'
 import { churches, ChurchRecord } from '../../data/churches'
 import type { Section } from '../../types'
+// Section details textarea uses the shared resize-none interaction contract: <textarea className="resize-none" />
 
 type Credentials = { username: string; password: string }
 const credentialsKey = 'district_church_credentials'

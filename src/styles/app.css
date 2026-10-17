@@ -167,6 +167,12 @@ header{box-shadow:0 8px 22px #1a345d12,0 1px 0 #fff inset!important;background:l
 .section-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.section-description{margin:0 0 18px;color:var(--muted);font-size:11px;line-height:1.5}.section-editor{display:grid;gap:11px;margin:8px 0 18px;padding:14px;background:#f6f9fd;border:1px solid #e1e9f3;border-radius:10px}.section-editor label{display:grid;gap:5px;color:#60728d;font-size:10px;font-weight:700}.section-editor input,.section-editor textarea{width:100%;border:1px solid #d9e2ed;border-radius:7px;background:#fff;padding:10px;color:var(--ink);font:12px 'DM Sans'}.section-editor textarea{min-height:76px;resize:vertical}.section-editor .dialog-actions{display:flex;justify-content:flex-end;gap:8px}
 @media(max-width:700px){.search-result-action{display:none!important}.search-result{min-height:52px}}
 
+/* Product tokens: one source for surfaces, type, motion and interaction depth. */
+:root{--surface:#fff;--surface-subtle:#f7f9fc;--surface-raised:#fff;--text-primary:#17253d;--text-secondary:#8290a5;--text-muted:#9aa7b8;--border-subtle:#e6ebf1;--brand:#2b65d9;--brand-deep:#1b3c78;--success:#2e9363;--warning:#d88943;--danger:#ad5148;--radius-sm:7px;--radius-md:11px;--radius-lg:16px;--shadow-sm:0 2px 8px #1b2f4b0d;--shadow-md:0 10px 22px #213c6412;--motion-fast:160ms;--motion-standard:220ms;--content-max:1390px}
+@media(prefers-color-scheme:dark){body[data-theme="system"]{color-scheme:dark}}
+html{scrollbar-color:#b9c8dc #f4f6f8;scrollbar-width:thin}html:focus-within{scroll-behavior:smooth}.app-error{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f4f6f8;color:var(--ink)}.app-error-card{width:min(460px,100%);padding:32px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-md)}.app-error-card h1{margin:12px 0 8px;font-size:28px;letter-spacing:-.04em}.app-error-card p{margin:0 0 22px;color:var(--muted);font-size:13px;line-height:1.6}.app-error-card .primary{min-height:44px}
+@media(prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}}
+
 /* Responsive product polish: preserve a calm desktop canvas and a touch-first mobile rhythm. */
 html{background:#f4f6f8;scroll-behavior:smooth}
 body{overflow-x:hidden}
