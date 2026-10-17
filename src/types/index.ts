@@ -9,6 +9,11 @@ export type Page =
 export type UserRole =
   | "district"
   | "head-pastor"
+  | "think-tank"
+  | "section-pastor"
+  | "church-pastor"
+  | "district-ydm"
+  | "district-women"
   | "section1"
   | "section2"
   | "section3"
