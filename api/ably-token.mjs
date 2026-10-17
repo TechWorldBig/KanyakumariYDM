@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const allowedRoles = ['district', 'head-pastor', 'think-tank', 'section-pastor', 'church-pastor', 'district-ydm', 'district-women', 'section1', 'section2', 'section3', 'section4']
   const partner = String(req.query?.with || '').trim()
   if (!allowedRoles.includes(partner) || partner === session.role) return res.status(400).json({ error: 'Choose a valid conversation recipient' })
-  const channelName = ['kanyakumari-chat', session.role, partner].sort().join(':')
+  const channelName = `kanyakumari-chat:${[session.role, partner].sort().join(':')}`
   const clientId = `${session.username}:${session.role}`
   const capability = { [channelName]: ['publish', 'subscribe', 'presence', 'history'] }
   const realtime = new Ably.Rest(process.env.ABLY_API_KEY)
