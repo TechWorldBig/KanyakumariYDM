@@ -6,7 +6,8 @@ export type Page =
   | "Users"
   | "Reports"
   | "Audit logs"
-  | "Access control";
+  | "Access control"
+  | "YDM meetings";
 export type UserRole =
   | "district"
   | "head-pastor"

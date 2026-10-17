@@ -2,7 +2,7 @@ import { Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { accessUpdatedEvent } from '../../domain/access'
 
-const features = ['Overview', 'Sections', 'Churches', 'Users', 'Reports', 'Audit logs', 'Live analytics']
+const features = ['Overview', 'Sections', 'Churches', 'Users', 'Reports', 'Audit logs', 'Live analytics', 'YDM meetings']
 type AccessLevel = 'manage' | 'edit' | 'view' | 'none'
 type AccessRole = { name: string; permissions: Record<string, AccessLevel> }
 const defaultRoleNames = ['District Super Admin', 'Section Super Admin', 'Think Tank Admin', 'Section Pastor Admin', 'Pastor of Church', 'District YDM Leader', 'District Women Leader', 'Head Pastor']

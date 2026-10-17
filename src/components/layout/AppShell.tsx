@@ -14,6 +14,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Video,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -33,6 +34,7 @@ const navigation = [
   ["Reports", FileText],
   ["Audit logs", ClipboardList],
   ["Access control", ShieldCheck],
+  ["YDM meetings", Video],
 ] as const;
 export function Sidebar({
   role,
@@ -58,7 +60,7 @@ export function Sidebar({
   const [, refreshAccess] = useState(0);
   useEffect(() => { const refresh = () => refreshAccess((value) => value + 1); window.addEventListener(accessUpdatedEvent, refresh); return () => window.removeEventListener(accessUpdatedEvent, refresh); }, []);
   const visibleNavigation = (accountType !== "section"
-    ? navigation.filter(([label]) => label === "Overview" || label === "Users")
+    ? navigation.filter(([label]) => label === "Overview" || label === "Users" || label === "YDM meetings")
     : navigation.filter(([label]) => (label === "Live analytics" || label === "Access control") ? role === "district" : canAccess(role, label)))
     .filter(([label]) => accountType !== "section" || canAccess(role, label));
   const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : isDistrictScope(role) ? "Kanyakumari" : section.name;
