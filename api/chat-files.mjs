@@ -19,8 +19,9 @@ export default async function handler(req, res) {
     if (!pathname || !pathname.startsWith('chat/')) return res.status(400).json({ error: 'Attachment not found' })
     const blob = await get(pathname, { access: 'private' })
     if (!blob) return res.status(404).json({ error: 'Attachment not found' })
+    if (blob.statusCode !== 200 || !blob.stream) return res.status(404).json({ error: 'Attachment not available' })
     const filename = pathname.split('/').pop()?.replace(/[^a-zA-Z0-9._-]/g, '-') || 'attachment'
-    const data = await blob.blob.arrayBuffer()
+    const data = await new Response(blob.stream).arrayBuffer()
     res.setHeader('Content-Type', blob.blob.contentType || 'application/octet-stream')
     res.setHeader('Content-Length', String(data.byteLength))
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
