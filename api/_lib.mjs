@@ -13,6 +13,8 @@ export async function ensureSchema(){
  await sql.query('ALTER TABLE ydm_meetings ADD COLUMN IF NOT EXISTS scheduled_for timestamptz NOT NULL DEFAULT now()')
  await sql.query('ALTER TABLE ydm_meetings ADD COLUMN IF NOT EXISTS attendee_emails text[] NOT NULL DEFAULT ARRAY[]::text[]')
  await sql.query('CREATE TABLE IF NOT EXISTS chat_messages (id text PRIMARY KEY, conversation_key text NOT NULL, sender_role text NOT NULL, recipient_role text NOT NULL, message text NOT NULL DEFAULT \'\', attachment jsonb, sent_at timestamptz NOT NULL DEFAULT now())')
+ await sql.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS edited_at timestamptz')
+ await sql.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS deleted_at timestamptz')
  await sql.query('CREATE INDEX IF NOT EXISTS chat_messages_conversation_idx ON chat_messages(conversation_key, sent_at DESC)')
 }
 export const clientIp=req=>String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'unknown').split(',')[0].trim()
