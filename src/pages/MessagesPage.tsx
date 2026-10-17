@@ -177,14 +177,19 @@ export function MessagesPage({ role }: { role: UserRole }) {
     const presence = () =>
       activeChannel.presence
         .get()
-        .then((members) =>
-          setOnline(
-            members.map(
-              (member) => member.data || member.clientId.split(":").pop() || "",
-            ),
-          ),
-        )
+        .then((members) => {
+          const recipientIsPresent = members.some(
+            (member) =>
+              (member.data || member.clientId.split(":").pop() || "") === selected,
+          );
+          setOnline((current) =>
+            recipientIsPresent
+              ? [...new Set([...current, selected])]
+              : current.filter((value) => value !== selected),
+          );
+        })
         .catch(() => undefined);
+    const presenceListener = () => void presence();
     Promise.all([
       realtimeChannel.subscribe("chat", receive),
       realtimeChannel.subscribe("chat-edit", edit),
@@ -209,9 +214,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
           "Realtime messaging is unavailable. Check the Ably configuration.",
         ),
       );
+    realtimeChannel.presence.subscribe(presenceListener);
     const timer = window.setInterval(presence, 15000);
     return () => {
       window.clearInterval(timer);
+      realtimeChannel.presence.unsubscribe(presenceListener);
       realtimeChannel.unsubscribe();
       activeChannel.presence.leave().catch(() => undefined);
     };
@@ -356,8 +363,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 }
                 onClick={() => setSelected(item.id)}
               >
-                <span className="chat-avatar">
+                <span className="chat-avatar chat-avatar-with-presence">
                   <UserRound size={16} />
+                  {online.includes(item.id) && (
+                    <i className="chat-presence-dot" aria-label="Active now" />
+                  )}
                 </span>
                 <span>
                   <strong>{item.label}</strong>
@@ -372,8 +382,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
         </aside>
         <div className="chat-window">
           <div className="chat-window-head">
-            <span className="chat-avatar">
+            <span className="chat-avatar chat-avatar-with-presence">
               <MessageCircle size={17} />
+              {online.includes(selected) && (
+                <i className="chat-presence-dot" aria-label="Active now" />
+              )}
             </span>
             <div>
               <h2>{selectedLabel}</h2>
@@ -462,7 +475,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
               </small>
             )}
           </div>
-          <form className="chat-compose" onSubmit={send}>
+          <form className="chat-compose" onSubmit={send} noValidate>
             {attachment && (
               <div className="attachment-chip">
                 <Paperclip size={13} />
