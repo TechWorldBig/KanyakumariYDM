@@ -31,6 +31,7 @@ const navigation = [
   ["Users", Users],
   ["Reports", FileText],
   ["Audit logs", ClipboardList],
+  ["Access control", ShieldCheck],
 ] as const;
 export function Sidebar({
   role,
