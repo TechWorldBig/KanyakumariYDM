@@ -13,6 +13,7 @@ import type { AccountType, Page, Section, UserRole } from "../types";
 import { ChurchAdminPage } from "../pages/ChurchAdminPage";
 import { AuditLogsPage } from "../pages/AuditLogsPage";
 import { YdmMeetingsPage } from "../pages/YdmMeetingsPage";
+import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
@@ -132,6 +133,8 @@ export default function App() {
             <AuditLogsPage role={role} />
           ) : page === "YDM meetings" ? (
             <YdmMeetingsPage role={role} />
+          ) : page === "Messages" ? (
+            <MessagesPage role={role} />
           ) : page === "Live analytics" && role === "district" ? (
             <AnalyticsPage />
           ) : (
