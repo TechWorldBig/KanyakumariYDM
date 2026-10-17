@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/chat-attachment", "destination": "/api/chat-files" },
+    { "source": "/api/chat-upload", "destination": "/api/chat-files" }
+  ]
+}
