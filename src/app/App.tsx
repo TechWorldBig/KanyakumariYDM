@@ -11,6 +11,7 @@ import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDial
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { AccountType, Page, Section, UserRole } from "../types";
 import { ChurchAdminPage } from "../pages/ChurchAdminPage";
+import { AuditLogsPage } from "../pages/AuditLogsPage";
 import { isDistrictScope } from "../domain/permissions";
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
@@ -126,6 +127,8 @@ export default function App() {
               onNavigate={setPage}
               onAdd={() => setAddSectionOpen(true)}
             />
+          ) : page === "Audit logs" ? (
+            <AuditLogsPage role={role} />
           ) : page === "Live analytics" && role === "district" ? (
             <AnalyticsPage />
           ) : (
