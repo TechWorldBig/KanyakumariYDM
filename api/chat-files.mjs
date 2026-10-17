@@ -20,9 +20,11 @@ export default async function handler(req, res) {
     const blob = await get(pathname, { access: 'private' })
     if (!blob) return res.status(404).json({ error: 'Attachment not found' })
     const filename = pathname.split('/').pop()?.replace(/[^a-zA-Z0-9._-]/g, '-') || 'attachment'
+    const data = await blob.blob.arrayBuffer()
     res.setHeader('Content-Type', blob.blob.contentType || 'application/octet-stream')
+    res.setHeader('Content-Length', String(data.byteLength))
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-    return new Promise(resolve => { blob.blob.stream.pipe(res); blob.blob.stream.on('end', resolve) })
+    return res.status(200).end(Buffer.from(data))
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const body = req.body || {}, name = String(body.name || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '-'), type = String(body.type || 'application/octet-stream'), data = String(body.data || '')
