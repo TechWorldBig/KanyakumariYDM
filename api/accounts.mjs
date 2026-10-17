@@ -10,6 +10,7 @@ export default async function handler(req,res){
  await ensureSchema()
  if(req.query?.mode==='profile'){
   if(req.method==='GET'){
+   await sql.query("UPDATE user_profiles SET profile_role=$2 WHERE username=$1 AND (profile_role IS NULL OR profile_role='')",[session.username,session.role])
    const profile=(await sql.query('SELECT display_name AS name,phone,email,photo FROM user_profiles WHERE username=$1 LIMIT 1',[session.username]))[0]
    return res.status(200).json({profile:profile||{name:'',phone:'',email:'',photo:''}})
   }
@@ -17,8 +18,12 @@ export default async function handler(req,res){
   const body=req.body||{},name=String(body.name||'').trim().slice(0,80),phone=String(body.phone||'').trim().slice(0,30),email=String(body.email||'').trim().toLowerCase().slice(0,254),photo=String(body.photo||'')
   if(email&&!emailPattern.test(email))return res.status(400).json({error:'Enter a valid email address'})
   if(photo&&(!photo.startsWith('data:image/')||photo.length>1500000))return res.status(400).json({error:'Use a profile image smaller than 1 MB'})
-  const profile=(await sql.query("INSERT INTO user_profiles(username,display_name,phone,email,photo,updated_at) VALUES($1,$2,$3,$4,$5,now()) ON CONFLICT(username) DO UPDATE SET display_name=EXCLUDED.display_name,phone=EXCLUDED.phone,email=EXCLUDED.email,photo=EXCLUDED.photo,updated_at=now() RETURNING display_name AS name,phone,email,photo",[session.username,name,phone,email,photo]))[0]
+  const profile=(await sql.query("INSERT INTO user_profiles(username,display_name,phone,email,photo,profile_role,updated_at) VALUES($1,$2,$3,$4,$5,$6,now()) ON CONFLICT(username) DO UPDATE SET display_name=EXCLUDED.display_name,phone=EXCLUDED.phone,email=EXCLUDED.email,photo=EXCLUDED.photo,profile_role=EXCLUDED.profile_role,updated_at=now() RETURNING display_name AS name,phone,email,photo",[session.username,name,phone,email,photo,session.role]))[0]
   return res.status(200).json({profile})
+ }
+ if(req.query?.mode==='chat-profiles'&&req.method==='GET'){
+  const profiles=await sql.query("SELECT DISTINCT ON (profile_role) profile_role AS role,display_name AS name,photo FROM user_profiles WHERE profile_role IS NOT NULL AND profile_role<>'' ORDER BY profile_role,updated_at DESC")
+  return res.status(200).json({profiles})
  }
  if(session.managedRole&&!['church','section'].includes(session.managedRole))return res.status(403).json({error:'Administrator access required'})
  const administratorScope=sectionName(session.role)

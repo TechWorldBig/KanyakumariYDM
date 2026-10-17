@@ -25,6 +25,7 @@ type ChatMessage = {
   reactions?: Record<string, string[]>;
   attachment?: { url: string; name: string; type: string };
 };
+type ChatProfile = { name: string; photo: string };
 const emojis = [
   "😀",
   "😂",
@@ -91,6 +92,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
     [attachment, setAttachment] = useState<File | null>(null),
     [uploading, setUploading] = useState(false),
     [online, setOnline] = useState<string[]>([]),
+    [recipientProfiles, setRecipientProfiles] = useState<Record<string, ChatProfile>>({}),
     [lastSeen, setLastSeen] = useState<Record<string, string | null>>({}),
     [typing, setTyping] = useState(false),
     [error, setError] = useState(""),
@@ -223,6 +225,12 @@ export function MessagesPage({ role }: { role: UserRole }) {
       activeChannel.presence.leave().catch(() => undefined);
     };
   }, [role, selected]);
+  useEffect(() => {
+    fetch("/api/accounts?mode=chat-profiles", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((result) => setRecipientProfiles(Object.fromEntries((result?.profiles || []).map((profile: { role: string; name: string; photo: string }) => [profile.role, { name: profile.name || "", photo: profile.photo || "" }]))) )
+      .catch(() => undefined);
+  }, [role]);
   const send = async (event: React.FormEvent) => {
     event.preventDefault();
     const value = text.trim();
@@ -334,7 +342,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       .catch(() => undefined);
   };
   const recipientName =
-    recipients.find((item) => item.id === selected)?.label || selected;
+    recipientProfiles[selected]?.name || recipients.find((item) => item.id === selected)?.label || selected;
   const recipientStatus = statusLabel(
     lastSeen[selected] || null,
     online.includes(selected),
@@ -364,13 +372,13 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 onClick={() => setSelected(item.id)}
               >
                 <span className="chat-avatar chat-avatar-with-presence">
-                  <UserRound size={16} />
+                  {recipientProfiles[item.id]?.photo ? <img src={recipientProfiles[item.id].photo} alt="" /> : <UserRound size={16} />}
                   {online.includes(item.id) && (
                     <i className="chat-presence-dot" aria-label="Active now" />
                   )}
                 </span>
                 <span>
-                  <strong>{item.label}</strong>
+                  <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
                   <small className={online.includes(item.id) ? "online" : ""}>
                     {online.includes(item.id)
                       ? "Online now"
@@ -383,7 +391,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
         <div className="chat-window">
           <div className="chat-window-head">
             <span className="chat-avatar chat-avatar-with-presence">
-              <MessageCircle size={17} />
+              {recipientProfiles[selected]?.photo ? <img src={recipientProfiles[selected].photo} alt="" /> : <MessageCircle size={17} />}
               {online.includes(selected) && (
                 <i className="chat-presence-dot" aria-label="Active now" />
               )}
