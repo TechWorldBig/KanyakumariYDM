@@ -150,10 +150,12 @@ export function Header({
   profile: ProfileData;
   onLogout: () => void;
 }) {
-  const scope = accountType !== "section" ? "Church workspace" : isDistrictScope(role) ? "All 4 sections" : section.name;
+  const scope = accountType !== "section" ? "Church workspace" : role === "district" ? "All 4 sections" : isDistrictScope(role) ? "District workspace" : section.name;
   const church = churchId ? churches.find(item => item.id === churchId) : null;
-  const displayName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : profile.name || roleName(role);
-  const initials = accountType === "church" ? "CA" : accountType === "user" ? "CM" : "SA";
+  const roleLabel = roleName(role);
+  const displayName = profile.name || roleLabel;
+  const initials = (profile.name || roleLabel).split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const permissionLabels = role === "district" ? ["Read", "Write", "Edit", "Manage"] : accountType === "church" ? ["Read", "Write", "Edit", "Manage"] : role === "head-pastor" ? ["Read"] : ["Read", "Write"];
   return (
     <header>
       <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
@@ -188,7 +190,7 @@ export function Header({
               </div>
               <div>
                 <strong>{displayName}</strong>
-                <span>{accountType === "church" ? "Church administrator" : accountType === "user" ? "Church member" : "Administrator account"}</span>
+                <span>{roleLabel}</span>
               </div>
             </div>
             <div className="profile-scope">
@@ -197,10 +199,10 @@ export function Header({
                 <small>Access scope</small>
                 <b>{scope}</b>
               </div>
-              <em>{accountType === "section" ? "Full access" : "Church only"}</em>
+              <em>{role === "district" ? "Full access" : accountType !== "section" ? "Church only" : "Role access"}</em>
             </div>
             <div className="profile-permissions">
-              <span>Read</span><span>Write</span><span>Edit</span>{accountType === "church" && <span>Manage</span>}
+              {permissionLabels.map((permission) => <span key={permission}>{permission}</span>)}
             </div>
             <div className="profile-menu-actions">
               <button className="profile-menu-item" role="menuitem" onClick={onSettings}>

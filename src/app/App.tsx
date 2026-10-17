@@ -24,13 +24,7 @@ export default function App() {
     [mobile, setMobile] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
     [settingsOpen, setSettingsOpen] = useState(false),
-    [profile, setProfile] = useState<ProfileData>(() => {
-      try {
-        return { name: "", photo: "", phone: "", email: "", ...JSON.parse(window.localStorage.getItem("district_profile") || '{}') };
-      } catch {
-        return { name: "", photo: "", phone: "", email: "" };
-      }
-    }),
+    [profile, setProfile] = useState<ProfileData>({ name: "", photo: "", phone: "", email: "" }),
     [selectedSection, setSelectedSection] = useState<Section | null>(null),
     [addSectionOpen, setAddSectionOpen] = useState(false),
     [allSections, setAllSections] = useState<Section[]>(initialSections);
@@ -62,6 +56,14 @@ export default function App() {
     const timer = window.setInterval(heartbeat, 60_000);
     return () => window.clearInterval(timer);
   }, [role]);
+  useEffect(() => {
+    if (!role) return;
+    setProfile({ name: "", photo: "", phone: "", email: "" });
+    fetch("/api/accounts?mode=profile", { credentials: "include" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((result) => result?.profile && setProfile({ name: result.profile.name || "", photo: result.profile.photo || "", phone: result.profile.phone || "", email: result.profile.email || "" }))
+      .catch(() => undefined);
+  }, [role]);
   if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
   if (!role)
     return (
@@ -70,6 +72,7 @@ export default function App() {
           setRole(session.role);
           setAccountType(session.accountType || "section");
           setChurchId(session.churchId || null);
+          setProfile({ name: "", photo: "", phone: "", email: "" });
           setPage("Overview");
         }}
       />
@@ -82,7 +85,7 @@ export default function App() {
       setRole(null);
       setAccountType("section");
       setChurchId(null);
-      window.localStorage.removeItem("district_role");
+      setProfile({ name: "", photo: "", phone: "", email: "" });
       setProfileOpen(false);
     };
   return (
@@ -179,9 +182,11 @@ export default function App() {
           role={role}
           profile={profile}
           onClose={() => setSettingsOpen(false)}
-          onSave={(nextProfile) => {
-            setProfile(nextProfile);
-            window.localStorage.setItem("district_profile", JSON.stringify(nextProfile));
+          onSave={async (nextProfile) => {
+            const response = await fetch("/api/accounts?mode=profile", { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Profile could not be saved");
+            setProfile(result.profile);
             setSettingsOpen(false);
           }}
         />

@@ -16,18 +16,31 @@ export function ProfileSettingsDialog({
   role: UserRole;
   profile: ProfileData;
   onClose: () => void;
-  onSave: (profile: ProfileData) => void;
+  onSave: (profile: ProfileData) => Promise<void>;
 }) {
   const [name, setName] = useState(profile.name),
     [photo, setPhoto] = useState(profile.photo),
     [phone, setPhone] = useState(profile.phone || ''),
-    [email, setEmail] = useState(profile.email || '');
+    [email, setEmail] = useState(profile.email || ''),
+    [saving, setSaving] = useState(false),
+    [error, setError] = useState('');
   function choose(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => setPhoto(String(reader.result));
     reader.readAsDataURL(file);
+  }
+  async function save() {
+    setSaving(true);
+    setError('');
+    try {
+      await onSave({ name: name.trim(), photo, phone: phone.trim(), email: email.trim() });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Profile could not be saved');
+    } finally {
+      setSaving(false);
+    }
   }
   return (
     <div
@@ -81,17 +94,17 @@ export function ProfileSettingsDialog({
           <span>Role</span>
           <strong>{roleName(role)}</strong>
         </div>
+        {error && <div className="form-error">{error}</div>}
         <div className="dialog-actions">
           <button className="subtle" onClick={onClose}>
             Cancel
           </button>
           <button
             className="primary"
-            onClick={() =>
-              onSave({ name: name.trim() || roleName(role), photo, phone: phone.trim(), email: email.trim() })
-            }
+            onClick={() => void save()}
+            disabled={saving}
           >
-            Save profile
+            {saving ? 'Saving…' : 'Save profile'}
           </button>
         </div>
       </div>
