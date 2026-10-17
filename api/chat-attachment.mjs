@@ -9,6 +9,7 @@ export default async function handler(req, res) {
   const blob = await get(pathname, { access: 'private' })
   if (!blob) return res.status(404).json({ error: 'Attachment not found' })
   res.setHeader('Content-Type', blob.blob.contentType || 'application/octet-stream')
-  res.setHeader('Content-Disposition', 'inline')
+  const filename = pathname.split('/').pop()?.replace(/[^a-zA-Z0-9._-]/g, '-') || 'attachment'
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
   return new Promise(resolve => { blob.blob.stream.pipe(res); blob.blob.stream.on('end', resolve) })
 }
