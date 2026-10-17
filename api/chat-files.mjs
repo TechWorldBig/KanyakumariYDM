@@ -1,9 +1,18 @@
 import { get, put } from '@vercel/blob'
-import { readSession, securityHeaders } from './_lib.mjs'
+import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
 
 export default async function handler(req, res) {
   securityHeaders(res)
   if (!readSession(req)) return res.status(401).json({ error: 'Sign in to continue' })
+  await ensureSchema()
+  const session = readSession(req)
+  const partner = String(req.query?.with || req.body?.with || '').trim()
+  if (req.query?.mode === 'messages') {
+    if (!partner || partner === session.role) return res.status(400).json({ error: 'Choose a valid recipient' })
+    const conversationKey = ['kanyakumari-chat', ...[session.role, partner].sort()].join(':')
+    if (req.method === 'GET') return res.status(200).json({ messages: await sql.query('SELECT id,sender_role AS "from",recipient_role AS "to",message AS text,attachment,sent_at AS "sentAt" FROM chat_messages WHERE conversation_key=$1 ORDER BY sent_at ASC LIMIT 200', [conversationKey]) })
+    if (req.method === 'POST') { const body = req.body || {}; await sql.query('INSERT INTO chat_messages(id,conversation_key,sender_role,recipient_role,message,attachment,sent_at) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING', [String(body.id), conversationKey, session.role, partner, String(body.text || ''), body.attachment || null, body.sentAt || new Date().toISOString()]); return res.status(201).json({ ok: true }) }
+  }
   if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(503).json({ error: 'File storage is not configured' })
   if (req.method === 'GET') {
     const pathname = String(req.query?.pathname || '')
