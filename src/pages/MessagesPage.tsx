@@ -377,11 +377,6 @@ export function MessagesPage({ role }: { role: UserRole }) {
             </span>
             <div>
               <h2>{selectedLabel}</h2>
-              <p className={online.includes(selected) ? "online" : "muted"}>
-                {online.includes(selected)
-                  ? "Online now"
-                  : "Offline · will see your message after login"}
-              </p>
             </div>
           </div>
           <div className="chat-messages">
