@@ -146,6 +146,8 @@ export default function App() {
           onClose={() => setSelectedSection(null)}
           isDistrict={role === "district"}
           canManageCredentials={role === "district" || /^section[1-4]$/.test(role)}
+          canEditSection={role === "district" || selectedSection.name === scopedSections[0]?.name}
+          onSaveSection={(nextSection) => { setAllSections((current) => current.map((item) => item.name === selectedSection.name ? nextSection : item)); setSelectedSection(nextSection); }}
           onRemove={() => {
             setAllSections((current) =>
               current.filter((item) => item.name !== selectedSection.name),

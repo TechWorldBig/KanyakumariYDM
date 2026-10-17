@@ -22,6 +22,7 @@ export type AccountType = "section" | "church" | "user";
 export interface Section {
   name: string;
   town: string;
+  description?: string;
   admin: string;
   churches: number;
   users: number;
