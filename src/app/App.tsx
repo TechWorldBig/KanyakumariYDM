@@ -24,9 +24,9 @@ export default function App() {
     [settingsOpen, setSettingsOpen] = useState(false),
     [profile, setProfile] = useState<ProfileData>(() => {
       try {
-        return JSON.parse(window.localStorage.getItem("district_profile") || '{"name":"","photo":""}');
+        return { name: "", photo: "", phone: "", email: "", ...JSON.parse(window.localStorage.getItem("district_profile") || '{}') };
       } catch {
-        return { name: "", photo: "" };
+        return { name: "", photo: "", phone: "", email: "" };
       }
     }),
     [selectedSection, setSelectedSection] = useState<Section | null>(null),

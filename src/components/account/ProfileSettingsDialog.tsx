@@ -4,6 +4,8 @@ import { roleName } from "../../domain/permissions";
 export interface ProfileData {
   name: string;
   photo: string;
+  phone: string;
+  email: string;
 }
 export function ProfileSettingsDialog({
   role,
@@ -17,7 +19,9 @@ export function ProfileSettingsDialog({
   onSave: (profile: ProfileData) => void;
 }) {
   const [name, setName] = useState(profile.name),
-    [photo, setPhoto] = useState(profile.photo);
+    [photo, setPhoto] = useState(profile.photo),
+    [phone, setPhone] = useState(profile.phone || ''),
+    [email, setEmail] = useState(profile.email || '');
   function choose(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -71,6 +75,8 @@ export function ProfileSettingsDialog({
             placeholder={roleName(role)}
           />
         </label>
+        <label className="profile-name-field">Phone number<input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" autoComplete="tel" /></label>
+        <label className="profile-name-field">Email address<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" autoComplete="email" /></label>
         <div className="profile-settings-scope">
           <span>Role</span>
           <strong>{roleName(role)}</strong>
@@ -82,7 +88,7 @@ export function ProfileSettingsDialog({
           <button
             className="primary"
             onClick={() =>
-              onSave({ name: name.trim() || roleName(role), photo })
+              onSave({ name: name.trim() || roleName(role), photo, phone: phone.trim(), email: email.trim() })
             }
           >
             Save profile
