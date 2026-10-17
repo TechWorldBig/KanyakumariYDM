@@ -135,7 +135,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
           }),
       ).catch(() => undefined);
     void load();
-    const timer = window.setInterval(load, 30000);
+    const timer = window.setInterval(load, 10000);
     return () => window.clearInterval(timer);
   }, [role]);
   useEffect(() => {
