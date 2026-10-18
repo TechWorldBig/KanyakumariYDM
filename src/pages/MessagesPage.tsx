@@ -59,7 +59,13 @@ function statusLabel(lastSeen: string | null, online: boolean) {
   if (hours < 24)
     return `Active ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   const days = Math.floor(hours / 24);
-  return `Active ${days} ${days === 1 ? "day" : "days"} ago`;
+  if (days < 30)
+    return `Active ${days} ${days === 1 ? "day" : "days"} ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12)
+    return `Active ${months} ${months === 1 ? "month" : "months"} ago`;
+  const years = Math.floor(months / 12);
+  return `Active ${years} ${years === 1 ? "year" : "years"} ago`;
 }
 function messageDateLabel(value: string) {
   const date = new Date(value)
@@ -423,9 +429,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 <span>
                   <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
                   <small className={online.includes(item.id) ? "online" : ""}>
-                    {online.includes(item.id)
-                      ? "Online now"
-                      : "Offline · messages saved"}
+                    {statusLabel(lastSeen[item.id] || null, online.includes(item.id))}
                   </small>
                 </span>
                 {unreadCounts[item.id] > 0 && <b className="chat-unread-count" aria-label={`${unreadCounts[item.id]} unread messages`}>{unreadCounts[item.id] > 99 ? '99+' : unreadCounts[item.id]}</b>}
