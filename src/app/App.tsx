@@ -61,10 +61,17 @@ export default function App() {
       if (document.visibilityState === "visible") heartbeat(true);
     };
     const recordActivity = () => heartbeat();
+    const leavePresence = () => {
+      const url = "/api/heartbeat?offline=1";
+      if (!navigator.sendBeacon(url)) {
+        void fetch(url, { method: "POST", credentials: "include", keepalive: true });
+      }
+    };
     heartbeat(true);
     const timer = window.setInterval(() => heartbeat(true), 20_000);
     window.addEventListener("focus", refreshPresence);
     window.addEventListener("online", refreshPresence);
+    window.addEventListener("pagehide", leavePresence);
     document.addEventListener("visibilitychange", refreshPresence);
     document.addEventListener("pointerdown", recordActivity, { passive: true });
     document.addEventListener("keydown", recordActivity);
@@ -72,6 +79,7 @@ export default function App() {
       window.clearInterval(timer);
       window.removeEventListener("focus", refreshPresence);
       window.removeEventListener("online", refreshPresence);
+      window.removeEventListener("pagehide", leavePresence);
       document.removeEventListener("visibilitychange", refreshPresence);
       document.removeEventListener("pointerdown", recordActivity);
       document.removeEventListener("keydown", recordActivity);
