@@ -48,13 +48,34 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!role) return;
-    const heartbeat = () =>
+    let lastHeartbeat = 0;
+    const heartbeat = (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastHeartbeat < 15_000) return;
+      lastHeartbeat = now;
       fetch("/api/heartbeat", { method: "POST", credentials: "include" }).catch(
         () => undefined,
       );
-    heartbeat();
-    const timer = window.setInterval(heartbeat, 60_000);
-    return () => window.clearInterval(timer);
+    };
+    const refreshPresence = () => {
+      if (document.visibilityState === "visible") heartbeat(true);
+    };
+    const recordActivity = () => heartbeat();
+    heartbeat(true);
+    const timer = window.setInterval(() => heartbeat(true), 30_000);
+    window.addEventListener("focus", refreshPresence);
+    window.addEventListener("online", refreshPresence);
+    document.addEventListener("visibilitychange", refreshPresence);
+    document.addEventListener("pointerdown", recordActivity, { passive: true });
+    document.addEventListener("keydown", recordActivity);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshPresence);
+      window.removeEventListener("online", refreshPresence);
+      document.removeEventListener("visibilitychange", refreshPresence);
+      document.removeEventListener("pointerdown", recordActivity);
+      document.removeEventListener("keydown", recordActivity);
+    };
   }, [role]);
   useEffect(() => {
     if (!role) return;
