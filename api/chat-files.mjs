@@ -8,12 +8,12 @@ export default async function handler(req, res) {
   const session = readSession(req)
   const partner = String(req.query?.with || req.body?.with || '').trim()
   if (req.query?.mode === 'statuses' && req.method === 'GET') {
-    const rows = await sql.query("WITH active AS (SELECT role,max(last_seen) AS last_seen,bool_or(last_seen>now()-interval '2 minutes') AS online FROM active_sessions GROUP BY role),history AS (SELECT role,max(occurred_at) AS last_seen FROM session_activity GROUP BY role) SELECT coalesce(active.role,history.role) AS role,greatest(active.last_seen,history.last_seen) AS last_seen,coalesce(active.online,false) AS online FROM active FULL OUTER JOIN history ON history.role=active.role")
+    const rows = await sql.query("WITH active AS (SELECT role,max(last_seen) AS last_seen,bool_or(last_seen>now()-interval '60 seconds') AS online FROM active_sessions GROUP BY role),history AS (SELECT role,max(occurred_at) AS last_seen FROM session_activity GROUP BY role) SELECT coalesce(active.role,history.role) AS role,greatest(active.last_seen,history.last_seen) AS last_seen,coalesce(active.online,false) AS online FROM active FULL OUTER JOIN history ON history.role=active.role")
     const statuses = Object.fromEntries(rows.map(row => [row.role, { lastSeen: row.last_seen, online: row.online }]))
     return res.status(200).json({ statuses })
   }
   if (req.query?.mode === 'status' && req.method === 'GET') {
-    const rows = await sql.query("SELECT greatest((SELECT max(last_seen) FROM active_sessions WHERE role=$1),(SELECT max(occurred_at) FROM session_activity WHERE role=$1)) AS last_seen,EXISTS(SELECT 1 FROM active_sessions WHERE role=$1 AND last_seen>now()-interval '2 minutes') AS online", [partner])
+    const rows = await sql.query("SELECT greatest((SELECT max(last_seen) FROM active_sessions WHERE role=$1),(SELECT max(occurred_at) FROM session_activity WHERE role=$1)) AS last_seen,EXISTS(SELECT 1 FROM active_sessions WHERE role=$1 AND last_seen>now()-interval '60 seconds') AS online", [partner])
     const lastSeen = rows[0]?.last_seen || null
     return res.status(200).json({ lastSeen, online: Boolean(rows[0]?.online) })
   }

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     if (process.env.ABLY_API_KEY) {
       try {
         const remaining = (await sql.query(
-          "SELECT max(last_seen) AS last_seen FROM active_sessions WHERE role=$1 AND last_seen>now()-interval '2 minutes'",
+          "SELECT max(last_seen) AS last_seen FROM active_sessions WHERE role=$1 AND last_seen>now()-interval '60 seconds'",
           [session.role],
         ))[0]?.last_seen || null
         const realtime = new Ably.Rest(process.env.ABLY_API_KEY)

@@ -92,7 +92,7 @@ export function AnalyticsPage() {
           <div>
             <h2>Currently online</h2>
             <p className="muted">
-              A session is online when seen within the last two minutes.
+              A session is online when seen within the last minute.
             </p>
           </div>
           <span className="live-badge">

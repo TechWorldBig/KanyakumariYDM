@@ -62,7 +62,7 @@ export default function App() {
     };
     const recordActivity = () => heartbeat();
     heartbeat(true);
-    const timer = window.setInterval(() => heartbeat(true), 30_000);
+    const timer = window.setInterval(() => heartbeat(true), 20_000);
     window.addEventListener("focus", refreshPresence);
     window.addEventListener("online", refreshPresence);
     document.addEventListener("visibilitychange", refreshPresence);

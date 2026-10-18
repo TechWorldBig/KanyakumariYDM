@@ -48,24 +48,24 @@ const legacyEmojiOptions = [
 ];
 function statusLabel(lastSeen: string | null, online: boolean) {
   if (online) return "Active now";
-  if (!lastSeen) return "Not active recently";
+  if (!lastSeen) return "Inactive · No recent activity";
   const minutes = Math.max(
     1,
     Math.floor((Date.now() - new Date(lastSeen).getTime()) / 60000),
   );
-  if (minutes < 2) return "Active this minute";
-  if (minutes < 60) return `Active ${minutes} minutes ago`;
+  if (minutes < 2) return "Inactive · Active this minute ago";
+  if (minutes < 60) return `Inactive · Active ${minutes} minutes ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24)
-    return `Active ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+    return `Inactive · Active ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   const days = Math.floor(hours / 24);
   if (days < 30)
-    return `Active ${days} ${days === 1 ? "day" : "days"} ago`;
+    return `Inactive · Active ${days} ${days === 1 ? "day" : "days"} ago`;
   const months = Math.floor(days / 30);
   if (months < 12)
-    return `Active ${months} ${months === 1 ? "month" : "months"} ago`;
+    return `Inactive · Active ${months} ${months === 1 ? "month" : "months"} ago`;
   const years = Math.floor(months / 12);
-  return `Active ${years} ${years === 1 ? "year" : "years"} ago`;
+  return `Inactive · Active ${years} ${years === 1 ? "year" : "years"} ago`;
 }
 function messageDateLabel(value: string) {
   const date = new Date(value)
