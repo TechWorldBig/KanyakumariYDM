@@ -10,7 +10,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 
@@ -54,6 +54,15 @@ function statusLabel(lastSeen: string | null, online: boolean) {
     return `Active ${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   const days = Math.floor(hours / 24);
   return `Active ${days} ${days === 1 ? "day" : "days"} ago`;
+}
+function messageDateLabel(value: string) {
+  const date = new Date(value)
+  const today = new Date()
+  const startOfDay = (item: Date) => new Date(item.getFullYear(), item.getMonth(), item.getDate()).getTime()
+  const daysApart = Math.round((startOfDay(today) - startOfDay(date)) / 86_400_000)
+  if (daysApart === 0) return 'Today'
+  if (daysApart === 1) return 'Yesterday'
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric' })
 }
 const recipients: Array<{ id: UserRole; label: string }> = [
   { id: "district", label: "District Super Admin" },
@@ -421,7 +430,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </div>
           <div className="chat-messages">
             {conversation.length ? (
-              conversation.map((message) => (
+              conversation.map((message, index) => <Fragment key={message.id}>
+                {(index === 0 || new Date(message.sentAt).toDateString() !== new Date(conversation[index - 1].sentAt).toDateString()) && <div className="chat-date-divider" role="separator">{messageDateLabel(message.sentAt)}</div>}
                 <div
                   className={
                     message.from === role ? "chat-bubble mine" : "chat-bubble"
@@ -488,7 +498,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                     )}
                   </div>
                 </div>
-              ))
+              </Fragment>)
             ) : (
               <div className="chat-empty">
                 <MessageCircle size={28} />
