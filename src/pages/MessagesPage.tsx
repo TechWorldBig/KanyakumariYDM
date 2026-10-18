@@ -173,7 +173,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
   }, [role]);
   useEffect(() => {
     const activeChannel = channel(),
-      realtimeChannel = activeChannel as any;
+      realtimeChannel = activeChannel as any,
+      statusChannel = getAblyClient(selected).channels.get("kanyakumari-presence") as any;
     const receive = (event: { data: ChatMessage }) => {
       if (event.data?.id)
         setMessages((current) =>
@@ -235,6 +236,12 @@ export function MessagesPage({ role }: { role: UserRole }) {
         })
         .catch(() => undefined);
     const presenceListener = () => void presence();
+    const statusListener = (event: { data: { role: string; online: boolean; lastSeen?: string } }) => {
+      const status = event.data;
+      if (!status?.role || status.role === role) return;
+      setOnline((current) => status.online ? [...new Set([...current, status.role])] : current.filter((value) => value !== status.role));
+      if (status.lastSeen) setLastSeen((current) => ({ ...current, [status.role]: status.lastSeen || null }));
+    };
     const loadConversation = async () => {
       try {
         const response = await fetch("/api/chat-files?mode=messages&with=" + encodeURIComponent(selected), { credentials: "include" });
@@ -254,6 +261,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       realtimeChannel.subscribe("chat-reaction", reaction),
       realtimeChannel.subscribe("chat-read", readReceipt),
       realtimeChannel.subscribe("typing", typingListener),
+      statusChannel.subscribe("role-status", statusListener),
     ]).then(async () => {
       await activeChannel.presence.enter(role);
       void presence();
@@ -266,6 +274,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       setTyping(false);
       realtimeChannel.presence.unsubscribe(presenceListener);
       realtimeChannel.unsubscribe();
+      statusChannel.unsubscribe("role-status", statusListener);
       activeChannel.presence.leave().catch(() => undefined);
     };
   }, [role, selected]);
