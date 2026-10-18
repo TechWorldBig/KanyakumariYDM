@@ -174,7 +174,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
   useEffect(() => {
     const activeChannel = channel(),
       realtimeChannel = activeChannel as any,
-      statusChannel = getAblyClient(selected).channels.get("kanyakumari-presence") as any;
+      statusChannel = getAblyClient(selected).channels.get("kanyakumari-district") as any;
     const receive = (event: { data: ChatMessage }) => {
       if (event.data?.id)
         setMessages((current) =>

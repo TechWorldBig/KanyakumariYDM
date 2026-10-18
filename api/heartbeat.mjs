@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (process.env.ABLY_API_KEY) {
     try {
       const realtime = new Ably.Rest(process.env.ABLY_API_KEY)
-      await realtime.channels.get('kanyakumari-presence').publish('role-status', {
+      await realtime.channels.get('kanyakumari-district').publish('role-status', {
         role: session.role,
         online: true,
         lastSeen: new Date().toISOString(),

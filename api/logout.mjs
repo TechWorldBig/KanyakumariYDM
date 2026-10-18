@@ -17,7 +17,7 @@ export default async function handler(req, res) {
           [session.role],
         ))[0]?.last_seen || null
         const realtime = new Ably.Rest(process.env.ABLY_API_KEY)
-        await realtime.channels.get('kanyakumari-presence').publish('role-status', {
+        await realtime.channels.get('kanyakumari-district').publish('role-status', {
           role: session.role,
           online: Boolean(remaining),
           lastSeen: remaining || new Date().toISOString(),

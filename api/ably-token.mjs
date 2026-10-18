@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const clientId = `${session.username}:${session.role}`
   const capability = {
     [channelName]: ['publish', 'subscribe', 'presence', 'history'],
-    'kanyakumari-presence': ['subscribe'],
+    'kanyakumari-district': ['subscribe'],
   }
   const realtime = new Ably.Rest(process.env.ABLY_API_KEY)
   const tokenRequest = await realtime.auth.createTokenRequest({ clientId, capability: JSON.stringify(capability) })
