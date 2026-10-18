@@ -1,4 +1,6 @@
 import {
+  Check,
+  CheckCheck,
   Download,
   FileText,
   MessageCircle,
@@ -25,6 +27,7 @@ type ChatMessage = {
   sentAt: string;
   editedAt?: string;
   deletedAt?: string;
+  readAt?: string;
   reactions?: Record<string, string[]>;
   attachment?: { url: string; name: string; type: string };
 };
@@ -153,7 +156,15 @@ export function MessagesPage({ role }: { role: UserRole }) {
       .catch(() => undefined);
   const markConversationRead = (partner: UserRole) =>
     fetch('/api/chat-files?mode=messages&with=' + encodeURIComponent(partner), { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-read' }) })
-      .then((response) => response.ok && setUnreadCounts((current) => ({ ...current, [partner]: 0 })))
+      .then(async (response) => {
+        if (!response.ok) return;
+        const result = await response.json();
+        setUnreadCounts((current) => ({ ...current, [partner]: 0 }));
+        if (result.messages?.length) {
+          const receiptChannel = getAblyClient(partner).channels.get(conversationChannelName(role, partner));
+          await receiptChannel.publish('chat-read', { reader: role, messages: result.messages });
+        }
+      })
       .catch(() => undefined);
   useEffect(() => {
     void loadUnreadCounts();
@@ -193,6 +204,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
       );
     const reaction = (event: { data: { id: string; reactions: Record<string, string[]> } }) =>
       setMessages((current) => current.map((item) => item.id === event.data.id ? { ...item, reactions: event.data.reactions } : item));
+    const readReceipt = (event: { data: { reader: string; messages: Array<{ id: string; readAt: string }> } }) => {
+      if (event.data?.reader !== selected) return;
+      const readTimes = new Map(event.data.messages.map((item) => [item.id, item.readAt]));
+      setMessages((current) => current.map((item) => readTimes.has(item.id) ? { ...item, readAt: readTimes.get(item.id) } : item));
+    };
     const typingListener = (event: {
       data: { from: string; typing: boolean };
     }) => {
@@ -236,6 +252,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       realtimeChannel.subscribe("chat-edit", edit),
       realtimeChannel.subscribe("chat-delete", remove),
       realtimeChannel.subscribe("chat-reaction", reaction),
+      realtimeChannel.subscribe("chat-read", readReceipt),
       realtimeChannel.subscribe("typing", typingListener),
     ]).then(async () => {
       await activeChannel.presence.enter(role);
@@ -488,6 +505,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
                       })}
                       {message.editedAt ? " · edited" : ""}
                     </time>
+                    {message.from === role && (
+                      <span className={message.readAt ? "message-status read" : "message-status"} aria-label={message.readAt ? "Read" : "Sent"} title={message.readAt ? "Read" : "Sent"}>
+                        {message.readAt ? <CheckCheck size={14} /> : <Check size={14} />}
+                      </span>
+                    )}
                     <button className="message-react-button" onClick={() => setReactionFor((current) => current === message.id ? null : message.id)} aria-label="React to message"><Smile size={12}/></button>
                     {message.from === role && (
                       <span className="message-actions">
