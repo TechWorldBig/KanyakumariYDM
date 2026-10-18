@@ -220,22 +220,6 @@ export function MessagesPage({ role }: { role: UserRole }) {
         incomingTypingTimer.current = window.setTimeout(() => setTyping(false), 2500);
       }
     };
-    const presence = () =>
-      activeChannel.presence
-        .get()
-        .then((members) => {
-          const recipientIsPresent = members.some(
-            (member) =>
-              (member.data || member.clientId.split(":").pop() || "") === selected,
-          );
-          setOnline((current) =>
-            recipientIsPresent
-              ? [...new Set([...current, selected])]
-              : current.filter((value) => value !== selected),
-          );
-        })
-        .catch(() => undefined);
-    const presenceListener = () => void presence();
     const statusListener = (event: { data: { role: string; online: boolean; lastSeen?: string } }) => {
       const status = event.data;
       if (!status?.role || status.role === role) return;
@@ -262,20 +246,14 @@ export function MessagesPage({ role }: { role: UserRole }) {
       realtimeChannel.subscribe("chat-read", readReceipt),
       realtimeChannel.subscribe("typing", typingListener),
       statusChannel.subscribe("role-status", statusListener),
-    ]).then(async () => {
-      await activeChannel.presence.enter(role);
-      void presence();
-      realtimeChannel.presence.subscribe(presenceListener);
-    }).catch(() => setError("Live updates are unavailable. Messages will refresh automatically."));
-    const timer = window.setInterval(() => { void loadConversation(); void presence(); }, 10000);
+    ]).catch(() => setError("Live updates are unavailable. Messages will refresh automatically."));
+    const timer = window.setInterval(() => { void loadConversation(); }, 10000);
     return () => {
       window.clearInterval(timer);
       if (incomingTypingTimer.current) window.clearTimeout(incomingTypingTimer.current);
       setTyping(false);
-      realtimeChannel.presence.unsubscribe(presenceListener);
       realtimeChannel.unsubscribe();
       statusChannel.unsubscribe("role-status", statusListener);
-      activeChannel.presence.leave().catch(() => undefined);
     };
   }, [role, selected]);
   useEffect(() => {
