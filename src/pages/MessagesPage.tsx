@@ -91,6 +91,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
     [text, setText] = useState(""),
     [attachment, setAttachment] = useState<File | null>(null),
     [uploading, setUploading] = useState(false),
+    [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({}),
     [online, setOnline] = useState<string[]>([]),
     [recipientProfiles, setRecipientProfiles] = useState<Record<string, ChatProfile>>({}),
     [lastSeen, setLastSeen] = useState<Record<string, string | null>>({}),
@@ -140,6 +141,20 @@ export function MessagesPage({ role }: { role: UserRole }) {
     const timer = window.setInterval(load, 10000);
     return () => window.clearInterval(timer);
   }, [role]);
+  const loadUnreadCounts = () =>
+    fetch('/api/chat-files?mode=unread', { credentials: 'include' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((result) => setUnreadCounts(Object.fromEntries((result?.unread || []).map((item: { role: string; count: number }) => [item.role, item.count]))))
+      .catch(() => undefined);
+  const markConversationRead = (partner: UserRole) =>
+    fetch('/api/chat-files?mode=messages&with=' + encodeURIComponent(partner), { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-read' }) })
+      .then((response) => response.ok && setUnreadCounts((current) => ({ ...current, [partner]: 0 })))
+      .catch(() => undefined);
+  useEffect(() => {
+    void loadUnreadCounts();
+    const timer = window.setInterval(() => void loadUnreadCounts(), 10000);
+    return () => window.clearInterval(timer);
+  }, [role]);
   useEffect(() => {
     const activeChannel = channel(),
       realtimeChannel = activeChannel as any;
@@ -150,6 +165,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
             ? current
             : [...current, event.data],
         );
+      if (event.data?.from === selected && event.data?.to === role) void markConversationRead(selected);
+      else void loadUnreadCounts();
     };
     const edit = (event: {
       data: { id: string; text: string; editedAt: string };
@@ -208,6 +225,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       .then((response) => response.json())
       .then((result) => {
         setMessages(result.messages || []);
+        void markConversationRead(selected);
         return activeChannel.presence.enter(role);
       })
       .then(presence)
@@ -385,6 +403,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                       : "Offline · messages saved"}
                   </small>
                 </span>
+                {unreadCounts[item.id] > 0 && <b className="chat-unread-count" aria-label={`${unreadCounts[item.id]} unread messages`}>{unreadCounts[item.id] > 99 ? '99+' : unreadCounts[item.id]}</b>}
               </button>
             ))}
         </aside>
