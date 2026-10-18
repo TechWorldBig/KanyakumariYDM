@@ -10,7 +10,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 
@@ -96,6 +96,8 @@ async function attachmentData(file: File) {
 }
 
 export function MessagesPage({ role }: { role: UserRole }) {
+  const outgoingTypingTimer = useRef<number | null>(null),
+    incomingTypingTimer = useRef<number | null>(null);
   const [selected, setSelected] = useState<UserRole>(
       recipients.find((item) => item.id !== role)?.id || "district",
     ),
@@ -194,7 +196,12 @@ export function MessagesPage({ role }: { role: UserRole }) {
     const typingListener = (event: {
       data: { from: string; typing: boolean };
     }) => {
-      if (event.data?.from === selected) setTyping(event.data.typing);
+      if (event.data?.from !== selected) return;
+      if (incomingTypingTimer.current) window.clearTimeout(incomingTypingTimer.current);
+      setTyping(Boolean(event.data.typing));
+      if (event.data.typing) {
+        incomingTypingTimer.current = window.setTimeout(() => setTyping(false), 2500);
+      }
     };
     const presence = () =>
       activeChannel.presence
@@ -238,6 +245,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
     const timer = window.setInterval(() => { void loadConversation(); void presence(); }, 10000);
     return () => {
       window.clearInterval(timer);
+      if (incomingTypingTimer.current) window.clearTimeout(incomingTypingTimer.current);
+      setTyping(false);
       realtimeChannel.presence.unsubscribe(presenceListener);
       realtimeChannel.unsubscribe();
       activeChannel.presence.leave().catch(() => undefined);
@@ -253,6 +262,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
     event.preventDefault();
     const value = text.trim();
     if (!value && !attachment) return;
+    if (outgoingTypingTimer.current) window.clearTimeout(outgoingTypingTimer.current);
+    outgoingTypingTimer.current = null;
+    channel().publish("typing", { from: role, typing: false }).catch(() => undefined);
     setUploading(Boolean(attachment));
     setError("");
     try {
@@ -355,9 +367,18 @@ export function MessagesPage({ role }: { role: UserRole }) {
   };
   const updateTyping = (value: string) => {
     setText(value);
-    channel()
-      .publish("typing", { from: role, typing: Boolean(value) })
-      .catch(() => undefined);
+    if (outgoingTypingTimer.current) window.clearTimeout(outgoingTypingTimer.current);
+    channel().publish("typing", { from: role, typing: Boolean(value) }).catch(() => undefined);
+    if (value) {
+      outgoingTypingTimer.current = window.setTimeout(() => {
+        channel().publish("typing", { from: role, typing: false }).catch(() => undefined);
+      }, 1500);
+    }
+  };
+  const stopTyping = () => {
+    if (outgoingTypingTimer.current) window.clearTimeout(outgoingTypingTimer.current);
+    outgoingTypingTimer.current = null;
+    channel().publish("typing", { from: role, typing: false }).catch(() => undefined);
   };
   const recipientName =
     recipientProfiles[selected]?.name || recipients.find((item) => item.id === selected)?.label || selected;
@@ -540,6 +561,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
             <input
               value={text}
               onChange={(event) => updateTyping(event.target.value)}
+              onBlur={stopTyping}
               placeholder={
                 editingId ? "Edit message" : `Message ${selectedLabel}`
               }
