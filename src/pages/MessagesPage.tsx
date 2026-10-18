@@ -15,6 +15,7 @@ import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
+const quickReactions = ["\u{1F44D}", "\u{2764}\u{FE0F}", "\u{1F602}", "\u{1F64F}", "\u{1F62E}"];
 
 type ChatMessage = {
   id: string;
@@ -28,7 +29,7 @@ type ChatMessage = {
   attachment?: { url: string; name: string; type: string };
 };
 type ChatProfile = { name: string; photo: string };
-const quickReactions = [
+const legacyEmojiOptions = [
   "😀",
   "😂",
   "😍",
@@ -468,7 +469,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                       </a>
                     )}
                   </span>
-                  {reactionFor === message.id && <div className="message-reaction-emoji-picker"><Suspense fallback={<div className="emoji-picker-loading">Loading emoji…</div>}><EmojiPicker width={300} height={360} searchPlaceholder="Search emoji" onEmojiClick={(emojiData) => void reactToMessage(message, emojiData.emoji)} /></Suspense></div>}
+                  {reactionFor === message.id && <div className="message-reaction-picker">{quickReactions.map((emoji) => <button type="button" key={emoji} onClick={() => void reactToMessage(message, emoji)}>{emoji}</button>)}</div>}
                   {message.reactions && Object.keys(message.reactions).length > 0 && <div className="message-reactions">{Object.entries(message.reactions).map(([emoji,members]) => <button type="button" key={emoji} onClick={() => reactToMessage(message,emoji)} className={members.includes(role)?"mine":""}>{emoji} {members.length}</button>)}</div>}
                   <div className="chat-meta">
                     <time>
