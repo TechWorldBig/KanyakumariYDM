@@ -10,9 +10,11 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
+
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
 
 type ChatMessage = {
   id: string;
@@ -26,7 +28,7 @@ type ChatMessage = {
   attachment?: { url: string; name: string; type: string };
 };
 type ChatProfile = { name: string; photo: string };
-const emojis = [
+const quickReactions = [
   "😀",
   "😂",
   "😍",
@@ -466,7 +468,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                       </a>
                     )}
                   </span>
-                  {reactionFor === message.id && <div className="message-reaction-picker">{emojis.slice(0,6).map((emoji) => <button type="button" key={emoji} onClick={() => reactToMessage(message, emoji)}>{emoji}</button>)}</div>}
+                  {reactionFor === message.id && <div className="message-reaction-emoji-picker"><Suspense fallback={<div className="emoji-picker-loading">Loading emoji…</div>}><EmojiPicker width={300} height={360} searchPlaceholder="Search emoji" onEmojiClick={(emojiData) => void reactToMessage(message, emojiData.emoji)} /></Suspense></div>}
                   {message.reactions && Object.keys(message.reactions).length > 0 && <div className="message-reactions">{Object.entries(message.reactions).map(([emoji,members]) => <button type="button" key={emoji} onClick={() => reactToMessage(message,emoji)} className={members.includes(role)?"mine":""}>{emoji} {members.length}</button>)}</div>}
                   <div className="chat-meta">
                     <time>
@@ -541,19 +543,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 <Smile size={17} />
               </button>
               {emojiOpen && (
-                <div className="emoji-picker">
-                  {emojis.map((emoji) => (
-                    <button
-                      type="button"
-                      key={emoji}
-                      onClick={() => {
-                        setText((value) => value + emoji);
-                        setEmojiOpen(false);
-                      }}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
+                <div className="emoji-picker-surface">
+                  <Suspense fallback={<div className="emoji-picker-loading">Loading emoji…</div>}><EmojiPicker width={320} height={390} searchPlaceholder="Search emoji" onEmojiClick={(emojiData) => { setText((value) => value + emojiData.emoji); setEmojiOpen(false); }} /></Suspense>
                 </div>
               )}
             </div>
