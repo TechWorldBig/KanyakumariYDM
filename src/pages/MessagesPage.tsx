@@ -403,7 +403,6 @@ export function MessagesPage({ role }: { role: UserRole }) {
         <div>
           <span className="eyebrow">Realtime communication</span>
           <h1>Messages</h1>
-          <p className="muted">Private conversations with permanent history.</p>
         </div>
       </div>
       {error && <div className="form-error">{error}</div>}
