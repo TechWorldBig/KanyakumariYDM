@@ -221,33 +221,30 @@ export function MessagesPage({ role }: { role: UserRole }) {
         })
         .catch(() => undefined);
     const presenceListener = () => void presence();
+    const loadConversation = async () => {
+      try {
+        const response = await fetch("/api/chat-files?mode=messages&with=" + encodeURIComponent(selected), { credentials: "include" });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "Could not load messages.");
+        setMessages(result.messages || []);
+        void markConversationRead(selected);
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : "Could not load messages.");
+      }
+    };
+    void loadConversation();
     Promise.all([
       realtimeChannel.subscribe("chat", receive),
       realtimeChannel.subscribe("chat-edit", edit),
       realtimeChannel.subscribe("chat-delete", remove),
       realtimeChannel.subscribe("chat-reaction", reaction),
       realtimeChannel.subscribe("typing", typingListener),
-    ])
-      .then(() =>
-        fetch(
-          "/api/chat-files?mode=messages&with=" + encodeURIComponent(selected),
-          { credentials: "include" },
-        ),
-      )
-      .then((response) => response.json())
-      .then((result) => {
-        setMessages(result.messages || []);
-        void markConversationRead(selected);
-        return activeChannel.presence.enter(role);
-      })
-      .then(presence)
-      .catch(() =>
-        setError(
-          "Realtime messaging is unavailable. Check the Ably configuration.",
-        ),
-      );
-    realtimeChannel.presence.subscribe(presenceListener);
-    const timer = window.setInterval(presence, 15000);
+    ]).then(async () => {
+      await activeChannel.presence.enter(role);
+      void presence();
+      realtimeChannel.presence.subscribe(presenceListener);
+    }).catch(() => setError("Live updates are unavailable. Messages will refresh automatically."));
+    const timer = window.setInterval(() => { void loadConversation(); void presence(); }, 10000);
     return () => {
       window.clearInterval(timer);
       realtimeChannel.presence.unsubscribe(presenceListener);
