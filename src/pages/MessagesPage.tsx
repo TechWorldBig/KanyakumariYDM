@@ -127,31 +127,22 @@ export function MessagesPage({ role }: { role: UserRole }) {
       conversationChannelName(role, selected),
     );
   useEffect(() => {
-    const load = () =>
-      Promise.all(
-        recipients
-          .filter((item) => item.id !== role)
-          .map(async (item) => {
-            const response = await fetch(
-                "/api/chat-files?mode=status&with=" +
-                  encodeURIComponent(item.id),
-                { credentials: "include" },
-              ),
-              result = await response.json();
-            setLastSeen((current) => ({
-              ...current,
-              [item.id]: result.lastSeen || null,
-            }));
-            setOnline((current) =>
-              result.online
-                ? [...new Set([...current, item.id])]
-                : current.filter((value) => value !== item.id),
-            );
-          }),
-      ).catch(() => undefined);
+    const load = async () => {
+      try {
+        const response = await fetch("/api/chat-files?mode=statuses", { credentials: "include" });
+        if (!response.ok) return;
+        const result = await response.json();
+        const statuses = result.statuses || {};
+        setLastSeen(Object.fromEntries(recipients.filter((item) => item.id !== role).map((item) => [item.id, statuses[item.id]?.lastSeen || null])));
+        setOnline(recipients.filter((item) => item.id !== role && statuses[item.id]?.online).map((item) => item.id));
+      } catch { /* The realtime presence check remains available as fallback. */ }
+    };
     void load();
-    const timer = window.setInterval(load, 10000);
-    return () => window.clearInterval(timer);
+    const timer = window.setInterval(() => void load(), 10000);
+    const refreshOnFocus = () => void load();
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnFocus);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refreshOnFocus); document.removeEventListener("visibilitychange", refreshOnFocus); };
   }, [role]);
   const loadUnreadCounts = () =>
     fetch('/api/chat-files?mode=unread', { credentials: 'include' })

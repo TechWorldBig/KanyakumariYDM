@@ -7,6 +7,11 @@ export default async function handler(req, res) {
   await ensureSchema()
   const session = readSession(req)
   const partner = String(req.query?.with || req.body?.with || '').trim()
+  if (req.query?.mode === 'statuses' && req.method === 'GET') {
+    const rows = await sql.query("SELECT role,max(last_seen) AS last_seen FROM active_sessions GROUP BY role")
+    const statuses = Object.fromEntries(rows.map(row => [row.role, { lastSeen: row.last_seen, online: Date.now() - new Date(row.last_seen).getTime() < 120000 }]))
+    return res.status(200).json({ statuses })
+  }
   if (req.query?.mode === 'status' && req.method === 'GET') {
     const rows = await sql.query('SELECT max(last_seen) AS last_seen FROM active_sessions WHERE role=$1', [partner])
     const lastSeen = rows[0]?.last_seen || null
