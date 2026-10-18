@@ -396,7 +396,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
     lastSeen[selected] || null,
     online.includes(selected),
   );
-  const selectedLabel = `${recipientName} · ${recipientStatus}`;
+  const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
     <section className="messages-page">
       <div className="page-heading">
