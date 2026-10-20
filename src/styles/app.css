@@ -254,6 +254,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .meeting-start-form{display:grid;gap:12px;margin-bottom:18px}
 .meeting-start-form .button{justify-self:start}
 .meeting-list{display:grid;gap:12px}
+.meeting-list-items{display:grid;gap:12px;max-height:382px;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 2px 2px;align-content:start}
+.meeting-list-items .meeting-card{min-height:118px}
+.meeting-list-items:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .meeting-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#fff,#f7fbff);box-shadow:0 10px 28px rgba(24,55,102,.08)}
 .meeting-card h3{margin:0 0 5px;color:var(--ink);font-size:17px}
 .meeting-card p{margin:0;color:var(--muted);font-size:13px}
@@ -285,6 +288,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .notification-item strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.notification-item span{font-size:11px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.notification-item small{color:var(--muted);font-size:10px}
 .notification-empty,.notification-error{padding:16px;margin:0;font-size:11px;color:var(--muted)}.notification-error{color:#a83e3e}
 @media(max-width:640px){
+  .meeting-list-items{max-height:min(532px,60dvh)}
+  .meeting-list-items .meeting-card{min-height:168px}
   .meeting-card{align-items:flex-start;flex-direction:column}
   .meeting-card .button{width:100%}
 }
