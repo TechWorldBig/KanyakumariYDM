@@ -1,12 +1,14 @@
-import { ImagePlus, MessageCircle, Plus, Send, Trash2, Users, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ImagePlus, MessageCircle, Pencil, Plus, Send, Smile, Trash2, Users, X } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
 
 type Group = { id: string; name: string; description: string; createdBy: string; createdAt: string; memberCount: number }
 type Person = { username: string; label: string }
 type GroupDetails = Group & { members: Array<{ username: string; name: string }> }
-type GroupMessage = { id: string; sender: string; text: string; sentAt: string; attachment: { url: string; name: string; type: string } | null }
+type GroupMessage = { id: string; sender: string; text: string; sentAt: string; editedAt: string | null; attachment: { url: string; name: string; type: string } | null; reactions: Record<string, string[]> }
+const EmojiPicker = lazy(() => import('emoji-picker-react'))
+const quickReactions = ['👍', '❤️', '😂', '🙏', '😮']
 
 async function imagePayload(file: File) {
   if (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 5_000_000) throw new Error('Choose a JPG, PNG, WebP or GIF image smaller than 5 MB')
@@ -46,8 +48,12 @@ export function GroupMessages() {
   const [text, setText] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [reactionFor, setReactionFor] = useState<string | null>(null)
+  const [emojiOpen, setEmojiOpen] = useState(false)
   const [error, setError] = useState('')
   const active = groups.find(group => group.id === selected)
+  const editingMessage = messages.find(message => message.id === editingId)
 
   const loadGroups = async () => {
     try {
@@ -68,6 +74,7 @@ export function GroupMessages() {
   }, [])
 
   useEffect(() => {
+    setEditingId(null); setText(''); setImage(null); setReactionFor(null); setEmojiOpen(false)
     if (!selected) { setMessages([]); return }
     let live = true
     const load = async () => {
@@ -113,9 +120,17 @@ export function GroupMessages() {
 
   const send = async (event: FormEvent) => {
     event.preventDefault()
-    if (!selected || (!text.trim() && !image)) return
+    if (!selected || (editingId ? !text.trim() && !editingMessage?.attachment : !text.trim() && !image)) return
     setBusy(true); setError('')
     try {
+      if (editingId) {
+        const response = await fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editingId, text: text.trim() }) })
+        const result = await response.json()
+        if (!response.ok) throw new Error(result.error || 'Could not edit message')
+        setMessages(current => current.map(message => message.id === editingId ? { ...message,text:result.text,editedAt:result.editedAt } : message))
+        setEditingId(null); setText('')
+        return
+      }
       const payload: { text: string; image?: { name: string; type: string; data: string } } = { text: text.trim() }
       if (image) payload.image = await imagePayload(image)
       const response = await fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -125,6 +140,31 @@ export function GroupMessages() {
       setText(''); setImage(null)
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not send message') }
     finally { setBusy(false) }
+  }
+
+  const deleteMessage = async (message: GroupMessage) => {
+    if (!selected) return
+    setError('')
+    try {
+      const response = await fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: message.id }) })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Could not delete message')
+      setMessages(current => current.filter(item => item.id !== message.id))
+      if (editingId === message.id) { setEditingId(null); setText('') }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not delete message') }
+  }
+
+  const reactToMessage = async (message: GroupMessage, emoji: string) => {
+    if (!selected) return
+    const remove = Boolean(message.reactions?.[emoji]?.includes(username))
+    setError('')
+    try {
+      const response = await fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: message.id, action: 'reaction', emoji, remove }) })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Could not update reaction')
+      setMessages(current => current.map(item => item.id === message.id ? { ...item,reactions:result.reactions } : item))
+      setReactionFor(null)
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not update reaction') }
   }
 
   const openDetails = async () => {
@@ -157,7 +197,27 @@ export function GroupMessages() {
 
   return <div className="group-layout panel">
     <aside className="group-sidebar"><div className="group-sidebar-head"><h2>Groups</h2><button type="button" className="subtle" onClick={() => { setCreating(true); setError('') }}><Plus size={14}/> New</button></div><p className="muted group-hint">Only selected members can see a group.</p>{groups.map(group => <button type="button" key={group.id} className={`group-contact${selected === group.id ? ' active' : ''}`} onClick={() => setSelected(group.id)}><span className="chat-avatar"><Users size={16}/></span><span><strong>{group.name}</strong><small>{group.memberCount} members</small></span></button>)}{!groups.length && <p className="muted group-empty">Create a group to share messages and images.</p>}</aside>
-    <div className="group-window"><div className="group-window-head"><div>{active ? <h2><button type="button" className="group-name-button" onClick={() => void openDetails()} title="View group details">{active.name}</button></h2> : <h2>Select a group</h2>}{active && <p className="muted">{active.memberCount} members · Click the name for details</p>}</div>{active?.createdBy === username && <button type="button" className="subtle group-delete" onClick={() => setDeleting(true)}><Trash2 size={14}/> Delete group</button>}</div>{error && <div className="form-error" role="alert">{error}</div>}<div className="group-messages" aria-live="polite">{messages.length ? messages.map(message => <div className={`group-bubble${message.sender === username ? ' mine' : ''}`} key={message.id}><strong>{message.sender}</strong>{message.text && <p>{message.text}</p>}{message.attachment && <a href={message.attachment.url} target="_blank" rel="noreferrer"><img src={message.attachment.url} alt={message.attachment.name}/></a>}<time>{new Date(message.sentAt).toLocaleString('en-IN')}</time></div>) : <div className="chat-empty"><MessageCircle size={28}/><strong>{active ? 'No messages yet' : 'Choose a group'}</strong></div>}</div><form className="group-compose" onSubmit={send}><label className="group-image-button" title="Add image"><ImagePlus size={18}/><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImage(event.target.files?.[0] || null)} disabled={!active || busy}/></label><div className="group-compose-input">{image && <span>{image.name} <button type="button" onClick={() => setImage(null)} aria-label="Remove image"><X size={13}/></button></span>}<input value={text} onChange={event => setText(event.target.value)} placeholder={active ? `Message ${active.name}` : 'Select a group'} disabled={!active || busy} maxLength={4000}/></div><button className="primary" disabled={!active || busy || (!text.trim() && !image)} aria-label="Send group message"><Send size={16}/></button></form></div>
+    <div className="group-window">
+      <div className="group-window-head"><div>{active ? <h2><button type="button" className="group-name-button" onClick={() => void openDetails()} title="View group details">{active.name}</button></h2> : <h2>Select a group</h2>}{active && <p className="muted">{active.memberCount} members · Click the name for details</p>}</div>{active?.createdBy === username && <button type="button" className="subtle group-delete" onClick={() => setDeleting(true)}><Trash2 size={14}/> Delete group</button>}</div>
+      {error && <div className="form-error" role="alert">{error}</div>}
+      <div className="group-messages" aria-live="polite">
+        {messages.length ? messages.map(message => <div className={`group-bubble${message.sender === username ? ' mine' : ''}`} key={message.id}>
+          <strong>{message.sender}</strong>
+          {message.text && <p>{message.text}</p>}
+          {message.attachment && <a href={message.attachment.url} target="_blank" rel="noreferrer"><img src={message.attachment.url} alt={message.attachment.name}/></a>}
+          {message.reactions && Object.keys(message.reactions).length > 0 && <div className="group-reactions">{Object.entries(message.reactions).map(([emoji, users]) => <button type="button" key={emoji} className={users.includes(username) ? 'mine' : ''} onClick={() => void reactToMessage(message, emoji)} aria-label={`${emoji} reaction from ${users.length} member${users.length === 1 ? '' : 's'}`}>{emoji} {users.length}</button>)}</div>}
+          {reactionFor === message.id && <div className="group-reaction-picker">{quickReactions.map(emoji => <button type="button" key={emoji} onClick={() => void reactToMessage(message, emoji)}>{emoji}</button>)}</div>}
+          <div className="group-message-meta"><time>{new Date(message.sentAt).toLocaleString('en-IN')}{message.editedAt ? ' · edited' : ''}</time><button type="button" onClick={() => setReactionFor(current => current === message.id ? null : message.id)} aria-label="React to message"><Smile size={14}/></button>{message.sender === username && <><button type="button" onClick={() => { setEditingId(message.id); setText(message.text); setImage(null); setEmojiOpen(false) }} aria-label="Edit message"><Pencil size={14}/></button><button type="button" onClick={() => void deleteMessage(message)} aria-label="Delete message"><Trash2 size={14}/></button></>}</div>
+        </div>) : <div className="chat-empty"><MessageCircle size={28}/><strong>{active ? 'No messages yet' : 'Choose a group'}</strong></div>}
+      </div>
+      <form className="group-compose" onSubmit={send}>
+        <label className="group-image-button" title="Add image"><ImagePlus size={18}/><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImage(event.target.files?.[0] || null)} disabled={!active || busy || Boolean(editingId)}/></label>
+        <div className="group-compose-emoji"><button type="button" onClick={() => setEmojiOpen(current => !current)} disabled={!active || busy} aria-label="Add emoji"><Smile size={18}/></button>{emojiOpen && <div className="group-emoji-picker"><Suspense fallback={<span>Loading emoji…</span>}><EmojiPicker width={300} height={350} onEmojiClick={emoji => { setText(current => current + emoji.emoji); setEmojiOpen(false) }}/></Suspense></div>}</div>
+        <div className="group-compose-input">{image && <span>{image.name} <button type="button" onClick={() => setImage(null)} aria-label="Remove image"><X size={13}/></button></span>}<input value={text} onChange={event => setText(event.target.value)} placeholder={editingId ? 'Edit message' : active ? `Message ${active.name}` : 'Select a group'} disabled={!active || busy} maxLength={4000}/></div>
+        {editingId && <button type="button" className="group-cancel-edit" onClick={() => { setEditingId(null); setText('') }} aria-label="Cancel editing"><X size={16}/></button>}
+        <button className="primary" disabled={!active || busy || (editingId ? !text.trim() && !editingMessage?.attachment : !text.trim() && !image)} aria-label={editingId ? 'Save edited message' : 'Send group message'}><Send size={16}/></button>
+      </form>
+    </div>
     {creating && <div className="meeting-dialog-backdrop"><form className="panel group-dialog" role="dialog" aria-modal="true" aria-labelledby="create-group-title" onSubmit={create}><h2 id="create-group-title">Create group</h2>{error && <p className="form-error" role="alert">{error}</p>}<label>Group name<input value={name} onChange={event => setName(event.target.value)} maxLength={80} required autoFocus/></label><label>Team description<textarea value={description} onChange={event => setDescription(event.target.value)} maxLength={500} rows={3} placeholder="What is this group for?"/></label><fieldset><legend>Select members</legend><div className="group-people">{people.map(person => <label key={person.username}><input type="checkbox" checked={members.includes(person.username)} onChange={event => setMembers(current => event.target.checked ? [...current,person.username] : current.filter(value => value !== person.username))}/><span>{person.label}<small>{person.username}</small></span></label>)}</div></fieldset><div className="meeting-dialog-actions"><button className="subtle" type="button" onClick={() => setCreating(false)}>Cancel</button><button className="primary" disabled={busy || !name.trim() || !members.length}>{busy ? 'Creating…' : 'Create group'}</button></div></form></div>}
     {details && <div className="meeting-dialog-backdrop"><div className="panel group-dialog" role="dialog" aria-modal="true" aria-labelledby="group-details-title"><div className="group-details-head"><h2 id="group-details-title">{details.name}</h2><button type="button" className="subtle" onClick={() => setDetails(null)} aria-label="Close group details"><X size={16}/></button></div><p className="muted">Created {new Date(details.createdAt).toLocaleString('en-IN')} by {details.createdBy}</p>{error && <p className="form-error" role="alert">{error}</p>}<div><strong>Team description</strong>{editingDescription ? <form className="group-description-form" onSubmit={saveDescription}><textarea value={descriptionDraft} onChange={event => setDescriptionDraft(event.target.value)} maxLength={500} rows={4} autoFocus/><div className="meeting-dialog-actions"><button type="button" className="subtle" onClick={() => setEditingDescription(false)}>Cancel</button><button className="primary" disabled={busy}>Save description</button></div></form> : <><p>{details.description || 'No description added.'}</p>{details.createdBy === username && <button type="button" className="subtle group-description-edit" onClick={() => setEditingDescription(true)}>Edit description</button>}</>}</div><div><strong>Members ({details.members.length})</strong><ul className="group-member-list">{details.members.map(member => <li key={member.username}>{member.name}<small>{member.username === details.createdBy ? 'Creator · ' : ''}{member.username}</small></li>)}</ul></div></div></div>}
     {deleting && active && <div className="meeting-dialog-backdrop"><div className="panel group-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-group-title"><h2 id="delete-group-title">Delete {active.name}?</h2><p className="muted">This deletes the group and its messages for every member.</p>{error && <p className="form-error" role="alert">{error}</p>}<div className="meeting-dialog-actions"><button className="subtle" type="button" onClick={() => setDeleting(false)} disabled={busy}>Keep group</button><button className="primary" type="button" onClick={() => void remove()} disabled={busy}>{busy ? 'Deleting…' : 'Delete group'}</button></div></div></div>}

@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     if (!member) return res.status(403).json({ error: 'This group is not available to your account' })
     if (req.query?.mode === 'group-image') {
       if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-      const row = (await sql.query('SELECT attachment FROM chat_group_messages WHERE group_id=$1 AND id=$2', [groupId,String(req.query?.messageId || '')]))[0]
+      const row = (await sql.query('SELECT attachment FROM chat_group_messages WHERE group_id=$1 AND id=$2 AND deleted_at IS NULL', [groupId,String(req.query?.messageId || '')]))[0]
       const pathname = row?.attachment?.pathname
       if (!pathname || !pathname.startsWith('group-chat/')) return res.status(404).json({ error: 'Image not found' })
       const blob = await get(pathname, { access: 'private' })
@@ -82,8 +82,11 @@ export default async function handler(req, res) {
       return res.status(200).end(Buffer.from(data))
     }
     if (req.method === 'GET') {
-      const messages = await sql.query('SELECT id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt" FROM chat_group_messages WHERE group_id=$1 ORDER BY sent_at DESC LIMIT 200', [groupId])
-      return res.status(200).json({ messages: messages.reverse() })
+      const messages = await sql.query('SELECT id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt" FROM chat_group_messages WHERE group_id=$1 AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 200', [groupId])
+      const reactions = messages.length ? await sql.query('SELECT message_id,emoji,array_agg(username) AS members FROM chat_group_message_reactions WHERE message_id=ANY($1::text[]) GROUP BY message_id,emoji', [messages.map(message => message.id)]) : []
+      const reactionMap = new Map()
+      for (const reaction of reactions) reactionMap.set(reaction.message_id, { ...(reactionMap.get(reaction.message_id) || {}), [reaction.emoji]: reaction.members })
+      return res.status(200).json({ messages: messages.reverse().map(message => ({ ...message,reactions:reactionMap.get(message.id) || {} })) })
     }
     if (req.method === 'POST') {
       const text = String(req.body?.text || '').trim(), image = req.body?.image, id = randomUUID()
@@ -96,8 +99,32 @@ export default async function handler(req, res) {
         const blob = await put(`group-chat/${groupId}/${id}-${name}`, Buffer.from(data.split(',')[1], 'base64'), { access:'private',contentType:type,addRandomSuffix:true })
         attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-image&groupId=${groupId}&messageId=${id}` }
       }
-      const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt"', [id,groupId,session.username,text,attachment]))[0]
-      return res.status(201).json({ message })
+      const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt"', [id,groupId,session.username,text,attachment]))[0]
+      return res.status(201).json({ message: { ...message,reactions:{} } })
+    }
+    if (req.method === 'PATCH') {
+      const id = String(req.body?.id || '')
+      if (req.body?.action === 'reaction') {
+        const emoji = String(req.body?.emoji || '').trim()
+        if (!emoji || emoji.length > 16) return res.status(400).json({ error: 'Choose a valid emoji' })
+        const message = (await sql.query('SELECT id FROM chat_group_messages WHERE id=$1 AND group_id=$2 AND deleted_at IS NULL', [id,groupId]))[0]
+        if (!message) return res.status(404).json({ error: 'Message not found' })
+        if (req.body?.remove) await sql.query('DELETE FROM chat_group_message_reactions WHERE message_id=$1 AND username=$2 AND emoji=$3', [id,session.username,emoji])
+        else await sql.query('INSERT INTO chat_group_message_reactions(message_id,username,emoji) VALUES($1,$2,$3) ON CONFLICT DO NOTHING', [id,session.username,emoji])
+        const rows = await sql.query('SELECT emoji,array_agg(username) AS members FROM chat_group_message_reactions WHERE message_id=$1 GROUP BY emoji', [id])
+        return res.status(200).json({ id,reactions:Object.fromEntries(rows.map(row => [row.emoji,row.members])) })
+      }
+      const text = String(req.body?.text || '').trim()
+      if (!id || text.length > 4000) return res.status(400).json({ error: 'Enter a valid message' })
+      const updated = await sql.query('UPDATE chat_group_messages SET message=$1,edited_at=now() WHERE id=$2 AND group_id=$3 AND sender_username=$4 AND deleted_at IS NULL AND ($1<>\'\' OR attachment IS NOT NULL) RETURNING edited_at AS "editedAt"', [text,id,groupId,session.username])
+      if (!updated.length) return res.status(403).json({ error: 'Only the sender can edit this message' })
+      return res.status(200).json({ id,text,editedAt:updated[0].editedAt })
+    }
+    if (req.method === 'DELETE') {
+      const id = String(req.body?.id || '')
+      const deleted = await sql.query('UPDATE chat_group_messages SET deleted_at=now() WHERE id=$1 AND group_id=$2 AND sender_username=$3 AND deleted_at IS NULL RETURNING id', [id,groupId,session.username])
+      if (!deleted.length) return res.status(403).json({ error: 'Only the sender can delete this message' })
+      return res.status(200).json({ deleted:true,id })
     }
     return res.status(405).json({ error: 'Method not allowed' })
   }
