@@ -20,29 +20,49 @@ export default async function handler(req, res) {
   }
   if (req.query?.mode === 'groups') {
     if (req.method === 'GET') {
-      const groups = await sql.query('SELECT g.id,g.name,g.created_by AS "createdBy",g.created_at AS "createdAt",count(all_members.username)::int AS "memberCount" FROM chat_groups g JOIN chat_group_members mine ON mine.group_id=g.id AND mine.username=$1 JOIN chat_group_members all_members ON all_members.group_id=g.id GROUP BY g.id ORDER BY g.created_at DESC LIMIT 100', [session.username])
+      const groups = await sql.query('SELECT g.id,g.name,g.description,g.created_by AS "createdBy",g.created_at AS "createdAt",count(all_members.username)::int AS "memberCount" FROM chat_groups g JOIN chat_group_members mine ON mine.group_id=g.id AND mine.username=$1 JOIN chat_group_members all_members ON all_members.group_id=g.id GROUP BY g.id ORDER BY g.created_at DESC LIMIT 100', [session.username])
       return res.status(200).json({ groups })
     }
     if (req.method === 'POST') {
-      const name = String(req.body?.name || '').trim(), members = [...new Set((Array.isArray(req.body?.members) ? req.body.members : []).map(value => String(value).trim().toLowerCase()))].filter(value => value && value !== session.username)
+      const name = String(req.body?.name || '').trim(), description = String(req.body?.description || '').trim(), members = [...new Set((Array.isArray(req.body?.members) ? req.body.members : []).map(value => String(value).trim().toLowerCase()))].filter(value => value && value !== session.username)
       if (!name || name.length > 80 || !members.length || members.length > 20) return res.status(400).json({ error: 'Enter a group name and select 1 to 20 members' })
+      if (description.length > 500) return res.status(400).json({ error: 'Keep the group description under 500 characters' })
       const managed = await sql.query('SELECT username FROM managed_accounts WHERE username=ANY($1::text[])', [members])
       const allowed = new Set([...Object.keys(builtInAccounts), ...managed.map(row => row.username)])
       if (members.some(username => !allowed.has(username))) return res.status(400).json({ error: 'One or more selected accounts no longer exist' })
       const id = randomUUID()
-      await sql.query('INSERT INTO chat_groups(id,name,created_by) VALUES($1,$2,$3)', [id,name,session.username])
+      await sql.query('INSERT INTO chat_groups(id,name,description,created_by) VALUES($1,$2,$3,$4)', [id,name,description,session.username])
       try { await sql.query('INSERT INTO chat_group_members(group_id,username) SELECT $1,unnest($2::text[])', [id,[session.username,...members]]) }
       catch (error) { await sql.query('DELETE FROM chat_groups WHERE id=$1', [id]); throw error }
-      return res.status(201).json({ group: { id,name,createdBy:session.username,memberCount:members.length+1 } })
+      return res.status(201).json({ group: { id,name,description,createdBy:session.username,memberCount:members.length+1 } })
     }
     if (req.method === 'DELETE') {
       const id = String(req.body?.groupId || '')
       if (!validGroupId(id)) return res.status(400).json({ error: 'Choose a valid group' })
-      const deleted = await sql.query('DELETE FROM chat_groups WHERE id=$1 AND created_by=$2 RETURNING id', [id,session.username])
-      if (!deleted.length) return res.status(403).json({ error: 'Only the creator can delete this group' })
+      const notified = await sql.query(`WITH members AS MATERIALIZED (SELECT username FROM chat_group_members WHERE group_id=$1),
+        deleted AS (DELETE FROM chat_groups WHERE id=$1 AND created_by=$2 RETURNING name)
+        INSERT INTO chat_group_notifications(username,group_name,deleted_by)
+        SELECT members.username,deleted.name,$2 FROM members CROSS JOIN deleted RETURNING id`, [id,session.username])
+      if (!notified.length) return res.status(403).json({ error: 'Only the creator can delete this group' })
       return res.status(200).json({ deleted: true })
     }
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+  if (req.query?.mode === 'group-details') {
+    const groupId = String(req.query?.groupId || req.body?.groupId || '')
+    if (!validGroupId(groupId)) return res.status(400).json({ error: 'Choose a valid group' })
+    if (req.method === 'PATCH') {
+      const description = String(req.body?.description || '').trim()
+      if (description.length > 500) return res.status(400).json({ error: 'Keep the group description under 500 characters' })
+      const updated = await sql.query('UPDATE chat_groups SET description=$1 WHERE id=$2 AND created_by=$3 RETURNING description', [description,groupId,session.username])
+      if (!updated.length) return res.status(403).json({ error: 'Only the creator can edit the description' })
+      return res.status(200).json({ description: updated[0].description })
+    }
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    const group = (await sql.query('SELECT g.id,g.name,g.description,g.created_by AS "createdBy",g.created_at AS "createdAt" FROM chat_groups g JOIN chat_group_members m ON m.group_id=g.id AND m.username=$2 WHERE g.id=$1', [groupId,session.username]))[0]
+    if (!group) return res.status(403).json({ error: 'This group is not available to your account' })
+    const members = await sql.query("SELECT m.username,coalesce(nullif(p.display_name,''),m.username) AS name FROM chat_group_members m LEFT JOIN user_profiles p ON p.username=m.username WHERE m.group_id=$1 ORDER BY m.username", [groupId])
+    return res.status(200).json({ group: { ...group,members } })
   }
   if (req.query?.mode === 'group-messages' || req.query?.mode === 'group-image') {
     const groupId = String(req.query?.groupId || req.body?.groupId || '')
