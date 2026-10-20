@@ -84,9 +84,16 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const messages = await sql.query('SELECT id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt" FROM chat_group_messages WHERE group_id=$1 AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 200', [groupId])
       const reactions = messages.length ? await sql.query('SELECT message_id,emoji,array_agg(username) AS members FROM chat_group_message_reactions WHERE message_id=ANY($1::text[]) GROUP BY message_id,emoji', [messages.map(message => message.id)]) : []
+      const reads = messages.length ? await sql.query('SELECT message_id,username FROM chat_group_message_reads WHERE message_id=ANY($1::text[])', [messages.map(message => message.id)]) : []
+      const members = await sql.query('SELECT username FROM chat_group_members WHERE group_id=$1', [groupId])
       const reactionMap = new Map()
       for (const reaction of reactions) reactionMap.set(reaction.message_id, { ...(reactionMap.get(reaction.message_id) || {}), [reaction.emoji]: reaction.members })
-      return res.status(200).json({ messages: messages.reverse().map(message => ({ ...message,reactions:reactionMap.get(message.id) || {} })) })
+      const readMap = new Map()
+      for (const read of reads) readMap.set(read.message_id, new Set([...(readMap.get(read.message_id) || []),read.username]))
+      return res.status(200).json({ messages: messages.reverse().map(message => {
+        const readers = readMap.get(message.id) || new Set()
+        return { ...message,reactions:reactionMap.get(message.id) || {},readByMe:message.sender===session.username||readers.has(session.username),allRead:members.every(member => member.username===message.sender||readers.has(member.username)) }
+      }) })
     }
     if (req.method === 'POST') {
       const text = String(req.body?.text || '').trim(), image = req.body?.image, id = randomUUID()
@@ -100,10 +107,14 @@ export default async function handler(req, res) {
         attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-image&groupId=${groupId}&messageId=${id}` }
       }
       const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt"', [id,groupId,session.username,text,attachment]))[0]
-      return res.status(201).json({ message: { ...message,reactions:{} } })
+      return res.status(201).json({ message: { ...message,reactions:{},readByMe:true,allRead:false } })
     }
     if (req.method === 'PATCH') {
       const id = String(req.body?.id || '')
+      if (req.body?.action === 'mark-read') {
+        const marked = await sql.query('INSERT INTO chat_group_message_reads(message_id,username) SELECT id,$2 FROM chat_group_messages WHERE group_id=$1 AND sender_username<>$2 AND deleted_at IS NULL ON CONFLICT DO NOTHING RETURNING message_id', [groupId,session.username])
+        return res.status(200).json({ marked:marked.length })
+      }
       if (req.body?.action === 'reaction') {
         const emoji = String(req.body?.emoji || '').trim()
         if (!emoji || emoji.length > 16) return res.status(400).json({ error: 'Choose a valid emoji' })

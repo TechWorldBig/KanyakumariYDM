@@ -1,4 +1,4 @@
-import { ImagePlus, MessageCircle, Pencil, Plus, Send, Smile, Trash2, Users, X } from 'lucide-react'
+import { Check, CheckCheck, ImagePlus, MessageCircle, Pencil, Plus, Send, Smile, Trash2, Users, X } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
@@ -6,7 +6,7 @@ import { meetingNotificationsChanged } from '../components/layout/MeetingNotific
 type Group = { id: string; name: string; description: string; createdBy: string; createdAt: string; memberCount: number }
 type Person = { username: string; label: string }
 type GroupDetails = Group & { members: Array<{ username: string; name: string }> }
-type GroupMessage = { id: string; sender: string; text: string; sentAt: string; editedAt: string | null; attachment: { url: string; name: string; type: string } | null; reactions: Record<string, string[]> }
+type GroupMessage = { id: string; sender: string; text: string; sentAt: string; editedAt: string | null; attachment: { url: string; name: string; type: string } | null; reactions: Record<string, string[]>; readByMe: boolean; allRead: boolean }
 const EmojiPicker = lazy(() => import('emoji-picker-react'))
 const quickReactions = ['👍', '❤️', '😂', '🙏', '😮']
 
@@ -82,13 +82,20 @@ export function GroupMessages() {
         const response = await fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { credentials: 'include' })
         const result = await response.json()
         if (!response.ok) throw new Error(result.error || 'Could not load group messages')
-        if (live) { setMessages(result.messages || []); setError('') }
+        if (live) {
+          setMessages(result.messages || []); setError('')
+          if (document.visibilityState === 'visible' && (result.messages as GroupMessage[]).some(message => message.sender !== username && !message.readByMe)) {
+            void fetch(`/api/chat-files?mode=group-messages&groupId=${encodeURIComponent(selected)}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'mark-read' }) }).catch(() => undefined)
+          }
+        }
       } catch (cause) { if (live) setError(cause instanceof Error ? cause.message : 'Could not load group messages') }
     }
     void load()
-    const timer = window.setInterval(() => void load(), 5000)
-    return () => { live = false; window.clearInterval(timer) }
-  }, [selected])
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load() }, 5000)
+    const onVisible = () => { if (document.visibilityState === 'visible') void load() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { live = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', onVisible) }
+  }, [selected, username])
 
   const create = async (event: FormEvent) => {
     event.preventDefault()
@@ -207,7 +214,7 @@ export function GroupMessages() {
           {message.attachment && <a href={message.attachment.url} target="_blank" rel="noreferrer"><img src={message.attachment.url} alt={message.attachment.name}/></a>}
           {message.reactions && Object.keys(message.reactions).length > 0 && <div className="group-reactions">{Object.entries(message.reactions).map(([emoji, users]) => <button type="button" key={emoji} className={users.includes(username) ? 'mine' : ''} onClick={() => void reactToMessage(message, emoji)} aria-label={`${emoji} reaction from ${users.length} member${users.length === 1 ? '' : 's'}`}>{emoji} {users.length}</button>)}</div>}
           {reactionFor === message.id && <div className="group-reaction-picker">{quickReactions.map(emoji => <button type="button" key={emoji} onClick={() => void reactToMessage(message, emoji)}>{emoji}</button>)}</div>}
-          <div className="group-message-meta"><time>{new Date(message.sentAt).toLocaleString('en-IN')}{message.editedAt ? ' · edited' : ''}</time><button type="button" onClick={() => setReactionFor(current => current === message.id ? null : message.id)} aria-label="React to message"><Smile size={14}/></button>{message.sender === username && <><button type="button" onClick={() => { setEditingId(message.id); setText(message.text); setImage(null); setEmojiOpen(false) }} aria-label="Edit message"><Pencil size={14}/></button><button type="button" onClick={() => void deleteMessage(message)} aria-label="Delete message"><Trash2 size={14}/></button></>}</div>
+          <div className="group-message-meta"><time>{new Date(message.sentAt).toLocaleString('en-IN')}{message.editedAt ? ' · edited' : ''}</time>{message.sender === username && <span className={`group-read-status${message.allRead ? ' all-read' : ''}`} aria-label={message.allRead ? 'Seen by all members' : 'Not yet seen by all members'} title={message.allRead ? 'Seen by all members' : 'Not yet seen by all members'}>{message.allRead ? <CheckCheck size={15}/> : <Check size={15}/>}</span>}<button type="button" onClick={() => setReactionFor(current => current === message.id ? null : message.id)} aria-label="React to message"><Smile size={14}/></button>{message.sender === username && <><button type="button" onClick={() => { setEditingId(message.id); setText(message.text); setImage(null); setEmojiOpen(false) }} aria-label="Edit message"><Pencil size={14}/></button><button type="button" onClick={() => void deleteMessage(message)} aria-label="Delete message"><Trash2 size={14}/></button></>}</div>
         </div>) : <div className="chat-empty"><MessageCircle size={28}/><strong>{active ? 'No messages yet' : 'Choose a group'}</strong></div>}
       </div>
       <form className="group-compose" onSubmit={send}>
