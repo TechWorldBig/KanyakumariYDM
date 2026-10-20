@@ -261,6 +261,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .meeting-card-content{display:flex;align-items:center;gap:13px;min-width:0}
 .meeting-card-content>div:last-child{min-width:0}
 .meeting-card .button{flex:0 0 auto}
+.meeting-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meeting-delete{color:#a84242}
+.meeting-card-cancelled{border-color:#efcaca;background:#fff8f8}
+.meeting-card-cancelled .meeting-icon{background:#aa5454;box-shadow:none}
+.meeting-cancel-notice{margin-top:7px!important;color:#9b3636!important}
+.meeting-dialog-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:#172d5580}
+.meeting-dialog{width:min(100%,480px);display:grid;gap:16px}
+.meeting-dialog h2,.meeting-dialog p{margin:0}
+.meeting-dialog label{display:grid;gap:8px}
+.meeting-dialog textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;resize:vertical}
+.meeting-dialog-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 @media(max-width:640px){
   .meeting-card{align-items:flex-start;flex-direction:column}
   .meeting-card .button{width:100%}
