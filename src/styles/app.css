@@ -272,6 +272,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .meeting-dialog label{display:grid;gap:8px}
 .meeting-dialog textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;resize:vertical}
 .meeting-dialog-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.notification-wrap{position:relative;display:grid;place-items:center}
+.notification-trigger{min-width:40px;display:grid;place-items:center}
+.notification-count{position:absolute;top:-4px;right:-5px;min-width:17px;height:17px;padding:0 3px;display:grid;place-items:center;border-radius:999px;background:#bd4848;color:#fff;font-size:10px;font-weight:700}
+.notification-menu{position:absolute;top:calc(100% + 13px);right:-12px;width:min(370px,calc(100vw - 24px));max-height:min(470px,calc(100dvh - 95px));overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 22px 50px #172d5530;z-index:40}
+.notification-menu-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px}
+.notification-menu-head button{border:0;background:transparent;color:var(--muted);cursor:pointer}
+.notification-items{overflow-y:auto}
+.notification-item{width:100%;display:grid;gap:5px;padding:13px 16px;text-align:left;border:0;border-bottom:1px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.notification-item.unread{background:#f0f5ff;border-left:3px solid var(--blue)}
+.notification-item:hover,.notification-item:focus-visible{background:#eaf1ff}
+.notification-item strong{font-size:12px}.notification-item span{font-size:11px;line-height:1.4}.notification-item small{color:var(--muted);font-size:10px}
+.notification-empty,.notification-error{padding:16px;margin:0;font-size:11px;color:var(--muted)}.notification-error{color:#a83e3e}
 @media(max-width:640px){
   .meeting-card{align-items:flex-start;flex-direction:column}
   .meeting-card .button{width:100%}

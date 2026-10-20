@@ -149,9 +149,12 @@ export default function App() {
           }}
           profile={profile}
           onLogout={logout}
+          onOpenMeeting={() => { setPage('YDM meetings'); setProfileOpen(false); setMobile(false); }}
         />
         <main className="content">
-          {accountType !== "section" && churchId ? (
+          {page === "YDM meetings" ? (
+            <YdmMeetingsPage role={role} />
+          ) : accountType !== "section" && churchId ? (
             <ChurchAdminPage churchId={churchId} canManage={accountType === "church"} />
           ) : page === "Overview" ? (
             <OverviewPage
@@ -163,8 +166,6 @@ export default function App() {
             />
           ) : page === "Audit logs" ? (
             <AuditLogsPage role={role} />
-          ) : page === "YDM meetings" ? (
-            <YdmMeetingsPage role={role} />
           ) : page === "Messages" ? (
             <MessagesPage role={role} />
           ) : page === "Live analytics" && role === "district" ? (

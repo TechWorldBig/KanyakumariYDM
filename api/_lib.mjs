@@ -15,6 +15,7 @@ export async function ensureSchema(){
  await sql.query('ALTER TABLE ydm_meetings ADD COLUMN IF NOT EXISTS cancellation_reason text')
  await sql.query('ALTER TABLE ydm_meetings ADD COLUMN IF NOT EXISTS cancelled_at timestamptz')
  await sql.query('ALTER TABLE ydm_meetings ADD COLUMN IF NOT EXISTS cancelled_by text')
+ await sql.query('CREATE TABLE IF NOT EXISTS meeting_notification_reads (username text NOT NULL, meeting_id bigint NOT NULL REFERENCES ydm_meetings(id) ON DELETE CASCADE, read_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(username, meeting_id))')
  await sql.query('CREATE TABLE IF NOT EXISTS chat_messages (id text PRIMARY KEY, conversation_key text NOT NULL, sender_role text NOT NULL, recipient_role text NOT NULL, message text NOT NULL DEFAULT \'\', attachment jsonb, sent_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS user_profiles (username text PRIMARY KEY, display_name text NOT NULL DEFAULT \'\', phone text NOT NULL DEFAULT \'\', email text NOT NULL DEFAULT \'\', photo text NOT NULL DEFAULT \'\', updated_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS profile_role text')

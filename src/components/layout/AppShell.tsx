@@ -1,6 +1,5 @@
 import {
   Activity,
-  Bell,
   Building2,
   ChevronDown,
   Church,
@@ -26,6 +25,7 @@ import { churches, type ChurchRecord } from "../../data/churches";
 import { ChurchDialog } from "../dashboard/SectionDialog";
 import type { AccountType, Page, Section, UserRole } from "../../types";
 import type { ProfileData } from "../account/ProfileSettingsDialog";
+import { MeetingNotifications } from './MeetingNotifications';
 const navigation = [
   ["Overview", LayoutDashboard],
   ["Live analytics", Activity],
@@ -63,8 +63,8 @@ export function Sidebar({
   useEffect(() => { const refresh = () => refreshAccess((value) => value + 1); window.addEventListener(accessUpdatedEvent, refresh); return () => window.removeEventListener(accessUpdatedEvent, refresh); }, []);
   const visibleNavigation = (accountType !== "section"
     ? navigation.filter(([label]) => label === "Overview" || label === "Users" || label === "YDM meetings" || label === "Messages")
-    : navigation.filter(([label]) => (label === "Live analytics" || label === "Access control") ? role === "district" : canAccess(role, label)))
-    .filter(([label]) => accountType !== "section" || canAccess(role, label));
+    : navigation.filter(([label]) => (label === "Live analytics" || label === "Access control") ? role === "district" : label === "YDM meetings" || canAccess(role, label)))
+    .filter(([label]) => accountType !== "section" || label === "YDM meetings" || canAccess(role, label));
   const workspaceName = accountType === "church" ? "Church Admin" : accountType === "user" ? "Church Member" : isDistrictScope(role) ? "Kanyakumari" : section.name;
   return (
     <aside className={"sidebar " + (mobile ? "open" : "")}>
@@ -137,6 +137,7 @@ export function Header({
   onSettings,
   profile,
   onLogout,
+  onOpenMeeting,
 }: {
   role: UserRole;
   accountType: AccountType;
@@ -149,6 +150,7 @@ export function Header({
   onSettings: () => void;
   profile: ProfileData;
   onLogout: () => void;
+  onOpenMeeting: () => void;
 }) {
   const scope = accountType !== "section" ? "Church workspace" : role === "district" ? "All 4 sections" : isDistrictScope(role) ? "District workspace" : section.name;
   const church = churchId ? churches.find(item => item.id === churchId) : null;
@@ -168,9 +170,7 @@ export function Header({
       </div>
       <div className="header-actions">
         {accountType === "section" && <WorkspaceSearch role={role} section={section} />}
-        <button className="icon-btn" aria-label="Notifications" disabled>
-          <Bell size={18} />
-        </button>
+        <MeetingNotifications onOpenMeeting={onOpenMeeting} />
         <button
           className="header-user"
           onClick={onProfile}

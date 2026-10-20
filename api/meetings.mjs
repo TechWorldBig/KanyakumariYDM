@@ -2,7 +2,7 @@ import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export default async function handler(req,res){
  securityHeaders(res); const session=readSession(req); if(!session)return res.status(401).json({error:'Sign in to continue'}); await ensureSchema()
- if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by FROM ydm_meetings WHERE scheduled_for >= now() - interval '2 hours' OR cancelled_at >= now() - interval '7 days' ORDER BY scheduled_for ASC LIMIT 100");return res.status(200).json({meetings})}
+ if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL ORDER BY active DESC, CASE WHEN active THEN scheduled_for END ASC, cancelled_at DESC LIMIT 100");return res.status(200).json({meetings})}
  if(req.method==='DELETE'){
   if(!['district','district-ydm'].includes(session.role))return res.status(403).json({error:'Only District Super Admin or District YDM Leader can cancel a meeting'})
   const id=Number(req.body?.id),reason=String(req.body?.reason||'').trim()

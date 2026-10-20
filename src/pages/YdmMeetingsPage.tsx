@@ -2,6 +2,7 @@ import { ExternalLink, RefreshCw, Trash2, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { UserRole } from '../types'
+import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
 
 type Meeting = { id: number; title: string; meet_url: string; started_by: string; scheduled_for: string; attendee_emails: string[]; active: boolean; cancellation_reason: string | null; cancelled_by: string | null }
 const earliestMeetingTime = () => {
@@ -70,6 +71,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       if (!response.ok) throw new Error(result.error || 'Could not cancel the meeting.')
       setCancelling(null); setReason('')
       await load()
+      window.dispatchEvent(new Event(meetingNotificationsChanged))
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not cancel the meeting.') }
     finally { setSaving(false) }
   }
