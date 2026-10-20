@@ -1,5 +1,9 @@
 import { get, put } from '@vercel/blob'
+import { randomUUID } from 'node:crypto'
 import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
+
+const builtInAccounts = { admin: 'District Super Admin', headpastor: 'Head Pastor', ydmleader: 'District YDM Leader', districtydm: 'District YDM Leader', section1: 'Section 1 Admin', section2: 'Section 2 Admin', section3: 'Section 3 Admin', section4: 'Section 4 Admin' }
+const validGroupId = value => /^[0-9a-f-]{36}$/i.test(String(value || ''))
 
 export default async function handler(req, res) {
   securityHeaders(res)
@@ -7,6 +11,76 @@ export default async function handler(req, res) {
   await ensureSchema()
   const session = readSession(req)
   const partner = String(req.query?.with || req.body?.with || '').trim()
+  if (req.query?.mode === 'group-people' && req.method === 'GET') {
+    const accounts = await sql.query('SELECT username,role,section_scope FROM managed_accounts ORDER BY username')
+    const profiles = await sql.query("SELECT username,display_name FROM user_profiles WHERE display_name<>''")
+    const names = Object.fromEntries(profiles.map(row => [row.username, row.display_name]))
+    const people = [...Object.entries(builtInAccounts).map(([username, label]) => ({ username, label: names[username] || label })), ...accounts.map(row => ({ username: row.username, label: names[row.username] || `${row.username} · ${row.section_scope || row.role}` }))]
+    return res.status(200).json({ people: people.filter(person => person.username !== session.username) })
+  }
+  if (req.query?.mode === 'groups') {
+    if (req.method === 'GET') {
+      const groups = await sql.query('SELECT g.id,g.name,g.created_by AS "createdBy",g.created_at AS "createdAt",count(all_members.username)::int AS "memberCount" FROM chat_groups g JOIN chat_group_members mine ON mine.group_id=g.id AND mine.username=$1 JOIN chat_group_members all_members ON all_members.group_id=g.id GROUP BY g.id ORDER BY g.created_at DESC LIMIT 100', [session.username])
+      return res.status(200).json({ groups })
+    }
+    if (req.method === 'POST') {
+      const name = String(req.body?.name || '').trim(), members = [...new Set((Array.isArray(req.body?.members) ? req.body.members : []).map(value => String(value).trim().toLowerCase()))].filter(value => value && value !== session.username)
+      if (!name || name.length > 80 || !members.length || members.length > 20) return res.status(400).json({ error: 'Enter a group name and select 1 to 20 members' })
+      const managed = await sql.query('SELECT username FROM managed_accounts WHERE username=ANY($1::text[])', [members])
+      const allowed = new Set([...Object.keys(builtInAccounts), ...managed.map(row => row.username)])
+      if (members.some(username => !allowed.has(username))) return res.status(400).json({ error: 'One or more selected accounts no longer exist' })
+      const id = randomUUID()
+      await sql.query('INSERT INTO chat_groups(id,name,created_by) VALUES($1,$2,$3)', [id,name,session.username])
+      try { await sql.query('INSERT INTO chat_group_members(group_id,username) SELECT $1,unnest($2::text[])', [id,[session.username,...members]]) }
+      catch (error) { await sql.query('DELETE FROM chat_groups WHERE id=$1', [id]); throw error }
+      return res.status(201).json({ group: { id,name,createdBy:session.username,memberCount:members.length+1 } })
+    }
+    if (req.method === 'DELETE') {
+      const id = String(req.body?.groupId || '')
+      if (!validGroupId(id)) return res.status(400).json({ error: 'Choose a valid group' })
+      const deleted = await sql.query('DELETE FROM chat_groups WHERE id=$1 AND created_by=$2 RETURNING id', [id,session.username])
+      if (!deleted.length) return res.status(403).json({ error: 'Only the creator can delete this group' })
+      return res.status(200).json({ deleted: true })
+    }
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+  if (req.query?.mode === 'group-messages' || req.query?.mode === 'group-image') {
+    const groupId = String(req.query?.groupId || req.body?.groupId || '')
+    if (!validGroupId(groupId)) return res.status(400).json({ error: 'Choose a valid group' })
+    const member = (await sql.query('SELECT 1 FROM chat_group_members WHERE group_id=$1 AND username=$2', [groupId,session.username]))[0]
+    if (!member) return res.status(403).json({ error: 'This group is not available to your account' })
+    if (req.query?.mode === 'group-image') {
+      if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+      const row = (await sql.query('SELECT attachment FROM chat_group_messages WHERE group_id=$1 AND id=$2', [groupId,String(req.query?.messageId || '')]))[0]
+      const pathname = row?.attachment?.pathname
+      if (!pathname || !pathname.startsWith('group-chat/')) return res.status(404).json({ error: 'Image not found' })
+      const blob = await get(pathname, { access: 'private' })
+      if (!blob || blob.statusCode !== 200 || !blob.stream) return res.status(404).json({ error: 'Image not available' })
+      const data = await new Response(blob.stream).arrayBuffer()
+      res.setHeader('Content-Type', row.attachment.type)
+      res.setHeader('Content-Length', String(data.byteLength))
+      return res.status(200).end(Buffer.from(data))
+    }
+    if (req.method === 'GET') {
+      const messages = await sql.query('SELECT id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt" FROM chat_group_messages WHERE group_id=$1 ORDER BY sent_at DESC LIMIT 200', [groupId])
+      return res.status(200).json({ messages: messages.reverse() })
+    }
+    if (req.method === 'POST') {
+      const text = String(req.body?.text || '').trim(), image = req.body?.image, id = randomUUID()
+      if ((!text && !image) || text.length > 4000) return res.status(400).json({ error: 'Enter a message or choose an image' })
+      let attachment = null
+      if (image) {
+        const type = String(image.type || ''), data = String(image.data || ''), name = String(image.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '-')
+        if (!['image/jpeg','image/png','image/webp','image/gif'].includes(type) || !data.startsWith(`data:${type};base64,`) || data.length > 7_000_000) return res.status(400).json({ error: 'Choose a JPG, PNG, WebP or GIF image smaller than 5 MB' })
+        if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(503).json({ error: 'Image storage is not configured' })
+        const blob = await put(`group-chat/${groupId}/${id}-${name}`, Buffer.from(data.split(',')[1], 'base64'), { access:'private',contentType:type,addRandomSuffix:true })
+        attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-image&groupId=${groupId}&messageId=${id}` }
+      }
+      const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt"', [id,groupId,session.username,text,attachment]))[0]
+      return res.status(201).json({ message })
+    }
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
   if (req.query?.mode === 'statuses' && req.method === 'GET') {
     const rows = await sql.query("WITH active AS (SELECT role,max(last_seen) AS last_seen,bool_or(last_seen>now()-interval '60 seconds') AS online FROM active_sessions GROUP BY role),history AS (SELECT role,max(occurred_at) AS last_seen FROM session_activity GROUP BY role) SELECT coalesce(active.role,history.role) AS role,greatest(active.last_seen,history.last_seen) AS last_seen,coalesce(active.online,false) AS online FROM active FULL OUTER JOIN history ON history.role=active.role")
     const statuses = Object.fromEntries(rows.map(row => [row.role, { lastSeen: row.last_seen, online: row.online }]))

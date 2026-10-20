@@ -24,6 +24,11 @@ export async function ensureSchema(){
  await sql.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reactions jsonb NOT NULL DEFAULT \'{}\'::jsonb')
  await sql.query('ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS read_at timestamptz')
  await sql.query('CREATE INDEX IF NOT EXISTS chat_messages_conversation_idx ON chat_messages(conversation_key, sent_at DESC)')
+ await sql.query('CREATE TABLE IF NOT EXISTS chat_groups (id text PRIMARY KEY, name text NOT NULL, created_by text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())')
+ await sql.query('CREATE TABLE IF NOT EXISTS chat_group_members (group_id text NOT NULL REFERENCES chat_groups(id) ON DELETE CASCADE, username text NOT NULL, PRIMARY KEY(group_id,username))')
+ await sql.query('CREATE INDEX IF NOT EXISTS chat_group_members_username_idx ON chat_group_members(username,group_id)')
+ await sql.query('CREATE TABLE IF NOT EXISTS chat_group_messages (id text PRIMARY KEY, group_id text NOT NULL REFERENCES chat_groups(id) ON DELETE CASCADE, sender_username text NOT NULL, message text NOT NULL DEFAULT \'\', attachment jsonb, sent_at timestamptz NOT NULL DEFAULT now())')
+ await sql.query('CREATE INDEX IF NOT EXISTS chat_group_messages_group_idx ON chat_group_messages(group_id,sent_at DESC)')
 }
 export const clientIp=req=>String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'unknown').split(',')[0].trim()
 export const hashIp=ip=>{const salt=process.env.IP_HASH_SALT;if(!salt||salt.length<16)throw new Error('IP_HASH_SALT must be configured');return createHash('sha256').update(salt+ip).digest('hex')}

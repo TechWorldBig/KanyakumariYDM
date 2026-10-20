@@ -154,6 +154,8 @@ export default function App() {
         <main className="content">
           {page === "YDM meetings" ? (
             <YdmMeetingsPage role={role} />
+          ) : page === "Messages" ? (
+            <MessagesPage role={role} />
           ) : accountType !== "section" && churchId ? (
             <ChurchAdminPage churchId={churchId} canManage={accountType === "church"} />
           ) : page === "Overview" ? (
@@ -166,8 +168,6 @@ export default function App() {
             />
           ) : page === "Audit logs" ? (
             <AuditLogsPage role={role} />
-          ) : page === "Messages" ? (
-            <MessagesPage role={role} />
           ) : page === "Live analytics" && role === "district" ? (
             <AnalyticsPage />
           ) : (
