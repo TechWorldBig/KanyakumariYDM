@@ -11,7 +11,7 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
 
   const load = async () => {
     try {
-      const response = await fetch('/api/notifications', { credentials: 'include' })
+      const response = await fetch('/api/meetings?mode=notifications', { credentials: 'include' })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'Could not load notifications.')
       setNotifications(result.notifications || [])
@@ -31,7 +31,7 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
   const view = async (notification: Notification) => {
     if (!notification.read_at) {
       try {
-        const response = await fetch('/api/notifications', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meetingId: notification.id }) })
+        const response = await fetch('/api/meetings?mode=notification-read', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ meetingId: notification.id }) })
         if (!response.ok) throw new Error('Could not mark notification as read.')
         setNotifications(current => current.map(item => item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item))
       } catch { setError('Could not mark notification as read. Please try again.') }
