@@ -9,6 +9,12 @@ export default async function handler(req,res){
   return res.status(200).json({notifications})
  }
  if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL ORDER BY active DESC, CASE WHEN active THEN scheduled_for END ASC, cancelled_at DESC LIMIT 100");return res.status(200).json({meetings})}
+ if(req.method==='POST'&&req.query?.mode==='notification-read-all'){
+  await sql.query(`INSERT INTO meeting_notification_reads(username,meeting_id)
+   SELECT $1,id FROM ydm_meetings WHERE cancelled_at IS NOT NULL ORDER BY cancelled_at DESC LIMIT 50
+   ON CONFLICT DO NOTHING`,[session.username])
+  return res.status(200).json({read:true})
+ }
  if(req.method==='POST'&&req.query?.mode==='notification-read'){
   const id=Number(req.body?.meetingId)
   if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:'Choose a valid notification'})

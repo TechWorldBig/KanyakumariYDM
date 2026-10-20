@@ -9,12 +9,18 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
 
-  const load = async () => {
+  const load = async (markRead = false) => {
     try {
       const response = await fetch('/api/meetings?mode=notifications', { credentials: 'include' })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'Could not load notifications.')
-      setNotifications(result.notifications || [])
+      const items: Notification[] = result.notifications || []
+      if (markRead && items.some(item => !item.read_at)) {
+        const readResponse = await fetch('/api/meetings?mode=notification-read-all', { method: 'POST', credentials: 'include' })
+        if (!readResponse.ok) throw new Error('Could not mark notifications as read.')
+        const readAt = new Date().toISOString()
+        setNotifications(items.map(item => ({ ...item, read_at: item.read_at || readAt })))
+      } else setNotifications(items)
       setError('')
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not load notifications.') }
   }
@@ -42,7 +48,7 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
 
   const unread = notifications.filter(item => !item.read_at).length
   return <div className="notification-wrap">
-    <button className="icon-btn notification-trigger" type="button" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen(value => !value); if (!open) void load() }}><Bell size={18} />{unread > 0 && <span className="notification-count">{unread > 9 ? '9+' : unread}</span>}</button>
+    <button className="icon-btn notification-trigger" type="button" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen(value => !value); if (!open) void load(true) }}><Bell size={18} />{unread > 0 && <span className="notification-count">{unread > 9 ? '9+' : unread}</span>}</button>
     {open && <div className="notification-menu" role="dialog" aria-label="Notifications"><div className="notification-menu-head"><strong>Notifications</strong><button type="button" aria-label="Close notifications" onClick={() => setOpen(false)}><X size={16}/></button></div>{error && <p className="notification-error" role="alert">{error}</p>}<div className="notification-items">{notifications.length ? notifications.map(item => <button type="button" className={`notification-item${item.read_at ? '' : ' unread'}`} key={item.id} onClick={() => void view(item)}><strong>Meeting cancelled: {item.title}</strong><span>{new Date(item.scheduled_for).toLocaleString('en-IN')} · Cancelled by {item.cancelled_by}</span><span>Reason: {item.cancellation_reason}</span><small>{new Date(item.cancelled_at).toLocaleString('en-IN')} · View meeting</small></button>) : <p className="notification-empty">No meeting cancellation notices.</p>}</div></div>}
   </div>
 }
