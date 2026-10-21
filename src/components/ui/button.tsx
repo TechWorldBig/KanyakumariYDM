@@ -16,7 +16,7 @@ export const buttonVariants = cva(
         outline:
           'border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-district-50/70 hover:text-district-700 hover:border-district-200 dark:hover:bg-slate-800/60 dark:hover:text-district-300 dark:hover:border-slate-700 shadow-xs',
         ghost:
-          'text-[var(--muted)] hover:bg-slate-100/80 hover:text-[var(--ink)] dark:hover:bg-slate-800/60 dark:hover:text-slate-100',
+          'text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-slate-50 dark:hover:bg-slate-800/60 font-semibold',
         destructive:
           'bg-gradient-to-b from-rose-600 to-rose-700 text-white shadow-sm hover:from-rose-500 hover:to-rose-600 border border-rose-600/30',
         success:

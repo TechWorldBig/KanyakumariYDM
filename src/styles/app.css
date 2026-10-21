@@ -193,7 +193,7 @@ nav button b {
   background: var(--surface-subtle);
   padding: 2px 6px;
   border-radius: 6px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .sidebar-bottom {
@@ -353,7 +353,7 @@ body[data-theme="dark"] .avatar {
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface);
-  color: var(--muted);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -403,7 +403,7 @@ body[data-theme="dark"] .avatar {
 .page-heading p {
   margin: 0;
   font-size: 13px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .wave {
@@ -413,7 +413,7 @@ body[data-theme="dark"] .avatar {
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 /* --------------------------------------------------------------------------
@@ -646,7 +646,7 @@ body[data-theme="dark"] .section-head p {
 
 .section-card p {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   margin: 0 0 16px;
 }
 
@@ -657,7 +657,7 @@ body[data-theme="dark"] .section-head p {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .card-stats span {
@@ -674,7 +674,7 @@ body[data-theme="dark"] .section-head p {
 .health {
   padding-top: 12px;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 6px;
@@ -717,7 +717,7 @@ body[data-theme="dark"] .section-head p {
   background: transparent;
   border-radius: 16px;
   min-height: 220px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -740,7 +740,7 @@ body[data-theme="dark"] .section-head p {
   background: var(--surface-subtle);
   display: grid;
   place-items: center;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .add-card strong {
@@ -799,7 +799,7 @@ body[data-theme="dark"] .section-head p {
 
 .activity-row span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: block;
   margin-top: 2px;
 }
@@ -861,7 +861,7 @@ body[data-theme="dark"] .district-search input::placeholder {
 .search-clear {
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: var(--muted-foreground);
   font-size: 16px;
   cursor: pointer;
 }
@@ -927,7 +927,7 @@ body[data-theme="dark"] .search-result-icon {
 
 .search-result span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: block;
   margin-top: 2px;
 }
@@ -942,7 +942,7 @@ body[data-theme="dark"] .search-result-icon {
 .search-empty {
   padding: 16px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   text-align: center;
 }
 
@@ -1043,7 +1043,7 @@ body[data-theme="dark"] .notification-item.unread {
 
 .notification-item span {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   line-height: 1.4;
 }
 
@@ -1127,7 +1127,7 @@ body[data-theme="dark"] .notification-item.unread {
   display: block;
   font-size: 10px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -1164,7 +1164,7 @@ body[data-theme="dark"] .profile-scope em {
 .profile-permissions span {
   border: 1px solid var(--line);
   background: var(--surface-subtle);
-  color: var(--muted);
+  color: var(--muted-foreground);
   border-radius: 6px;
   padding: 3px 8px;
   font-size: 10px;
@@ -1206,7 +1206,7 @@ body[data-theme="dark"] .profile-scope em {
 .profile-menu-item small {
   display: block;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   margin-top: 2px;
 }
 
@@ -1276,7 +1276,7 @@ body[data-theme="dark"] .profile-menu .logout-item:hover {
 
 .management-card span {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1285,7 +1285,7 @@ body[data-theme="dark"] .profile-menu .logout-item:hover {
 
 .management-meta {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .management-meta b {
@@ -1343,7 +1343,7 @@ body[data-theme="dark"] .profile-menu .logout-item:hover {
 
 .management-row span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   display: block;
   margin-top: 2px;
 }
@@ -1354,7 +1354,7 @@ body[data-theme="dark"] .profile-menu .logout-item:hover {
 
 .management-account small {
   font-size: 10px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   display: block;
@@ -1433,7 +1433,7 @@ body[data-theme="dark"] .row-delete {
 .access-control-title p {
   margin: 4px 0 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .access-summary {
@@ -1452,7 +1452,7 @@ body[data-theme="dark"] .row-delete {
 
 .access-summary span {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .access-summary strong {
@@ -1534,7 +1534,7 @@ body[data-theme="dark"] .row-delete {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .access-matrix-head span {
@@ -1595,8 +1595,16 @@ body[data-theme="dark"] .row-delete {
 }
 
 .access-toggle.level-none select {
-  background: var(--surface-subtle);
-  color: var(--muted);
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #cbd5e1;
+  font-weight: 600;
+}
+
+body[data-theme="dark"] .access-toggle.level-none select {
+  background: #1e293b;
+  color: #f8fafc;
+  border-color: #475569;
 }
 
 body[data-theme="dark"] .access-toggle.level-manage select {
@@ -1682,7 +1690,7 @@ body[data-theme="dark"] .access-toggle.level-view select {
 .meeting-card p {
   margin: 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .meeting-actions {
@@ -2722,7 +2730,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
 
 .demo-note {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-foreground);
   background: var(--surface-subtle);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -2781,7 +2789,7 @@ body[data-theme="dark"] .form-error {
   right: 18px;
   border: 0;
   background: var(--surface-subtle);
-  color: var(--muted);
+  color: var(--muted-foreground);
   width: 32px;
   height: 32px;
   border-radius: 50%;

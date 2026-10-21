@@ -136,7 +136,7 @@ export function OverviewPage({
               </div>
               <div>
                 <strong className="block text-sm font-bold text-[var(--ink)]">Add new section</strong>
-                <span className="text-xs text-[var(--muted)]">Expand administrative zone</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Expand administrative zone</span>
               </div>
             </button>
           )}

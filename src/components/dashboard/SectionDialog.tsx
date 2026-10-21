@@ -120,7 +120,7 @@ export function SectionDialog({
 
         <div className="p-6 space-y-6">
           {editingSection && canEditSection ? (
-            <Card className="p-5 border-[var(--color-district-500)]/30 bg-[var(--muted)]/20 space-y-4">
+            <Card className="p-5 border border-district-500/30 bg-slate-50 dark:bg-slate-900 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-[var(--foreground)]">Edit Section Profile</h3>
                 <Badge variant="blue">Editing Mode</Badge>
@@ -204,7 +204,7 @@ export function SectionDialog({
             </div>
           )}
 
-          <Card className="p-4 bg-[var(--muted)]/30 border border-[var(--border)] flex items-center justify-between gap-4">
+          <Card className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold text-sm">
                 SA
@@ -241,10 +241,10 @@ export function SectionDialog({
                   type="button"
                   key={item.id}
                   onClick={() => setChurch(item)}
-                  className="group flex items-center justify-between p-3.5 rounded-xl text-left bg-[var(--card)] border border-[var(--border)] hover:border-[var(--color-district-500)]/40 hover:bg-[var(--muted)]/30 hover:shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+                  className="group flex items-center justify-between p-3.5 rounded-xl text-left bg-[var(--card)] border border-[var(--border)] hover:border-[var(--color-district-500)]/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[var(--muted)] border border-[var(--border)]">
+                    <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                       <img
                         src={item.photo}
                         alt={item.name}
@@ -400,7 +400,7 @@ export function ChurchDialog({
 
         <div className="p-6 space-y-6">
           <div className="flex flex-col md:flex-row gap-5 items-start">
-            <div className="h-28 w-28 md:h-32 md:w-32 rounded-2xl overflow-hidden shrink-0 border border-[var(--border)] shadow-xs bg-[var(--muted)]">
+            <div className="h-28 w-28 md:h-32 md:w-32 rounded-2xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 shadow-xs bg-slate-100 dark:bg-slate-800">
               <img
                 src={church.photo}
                 alt={church.name}
@@ -421,7 +421,7 @@ export function ChurchDialog({
             </div>
           </div>
 
-          <Card className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] space-y-3">
+          <Card className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-lg bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center">
@@ -597,9 +597,9 @@ function PeopleBlock({
         {people.map((person) => (
           <div
             key={person.name}
-            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-[var(--muted)]/40 transition-colors"
+            className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
           >
-            <div className="h-8 w-8 rounded-full bg-[var(--muted)] text-[var(--foreground)] flex items-center justify-center font-semibold text-xs border border-[var(--border)] shrink-0">
+            <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex items-center justify-center font-semibold text-xs border border-slate-200 dark:border-slate-700 shrink-0">
               {person.name.slice(0, 1).toUpperCase()}
             </div>
             <div className="min-w-0">

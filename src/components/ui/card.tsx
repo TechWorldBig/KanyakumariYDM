@@ -38,7 +38,7 @@ export function CardDescription({ className, ...props }: HTMLAttributes<HTMLPara
   return (
     <p
       data-slot="card-description"
-      className={cn('text-xs sm:text-sm text-[var(--muted)] leading-relaxed', className)}
+      className={cn('text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed', className)}
       {...props}
     />
   )

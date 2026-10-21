@@ -1036,7 +1036,7 @@ export function GroupMessages() {
                 {people.map((person) => (
                   <label
                     key={person.username}
-                    className="flex items-center gap-2.5 p-1.5 hover:bg-[var(--muted)]/50 rounded cursor-pointer text-xs"
+                    className="flex items-center gap-2.5 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md cursor-pointer text-xs"
                   >
                     <input
                       type="checkbox"
@@ -1121,8 +1121,8 @@ export function GroupMessages() {
                       </div>
                     </form>
                   ) : (
-                    <div className="flex items-start justify-between gap-2 p-2.5 rounded-lg bg-[var(--muted)]/40 border border-[var(--border)]">
-                      <p className="text-[var(--muted-foreground)] leading-relaxed">
+                    <div className="flex items-start justify-between gap-2 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                      <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                         {details.description || 'No description provided.'}
                       </p>
                       {details.createdBy === username && (

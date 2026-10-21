@@ -145,10 +145,10 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
           </form>
 
           <div className="mt-8 pt-4 border-t border-[var(--border)]">
-            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] bg-[var(--muted)]/40 p-3 rounded-xl border border-[var(--border)]">
-              <LockKeyhole size={15} className="shrink-0 text-[var(--color-district-600)]" />
+            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+              <LockKeyhole size={15} className="shrink-0 text-district-600 dark:text-district-400" />
               <span>
-                <strong>Demo:</strong> District: <code className="font-mono font-semibold text-[var(--foreground)]">admin</code> · Sections: <code className="font-mono font-semibold text-[var(--foreground)]">section1–section4</code>
+                <strong>Demo:</strong> District: <code className="font-mono font-semibold text-slate-900 dark:text-slate-100">admin</code> · Sections: <code className="font-mono font-semibold text-slate-900 dark:text-slate-100">section1–section4</code>
               </span>
             </div>
           </div>

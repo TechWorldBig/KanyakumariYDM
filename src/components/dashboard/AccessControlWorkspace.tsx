@@ -66,10 +66,10 @@ const levelLabels: Record<AccessLevel, string> = {
 
 const levelBadgeStyles: Record<AccessLevel, string> = {
   manage:
-    'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 font-semibold',
-  edit: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60 font-medium',
-  view: 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60 font-medium',
-  none: 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] border-transparent font-normal opacity-70',
+    'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border-emerald-400 dark:border-emerald-700 font-bold',
+  edit: 'bg-blue-100 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 border-blue-400 dark:border-blue-700 font-bold',
+  view: 'bg-purple-100 dark:bg-purple-950/70 text-purple-900 dark:text-purple-200 border-purple-400 dark:border-purple-700 font-bold',
+  none: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-600 font-semibold',
 }
 
 export function AccessControlWorkspace() {
@@ -270,32 +270,32 @@ export function AccessControlWorkspace() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 rounded-xl bg-[var(--muted)]/20 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)]">Configured Roles</span>
-          <strong className="block text-2xl font-bold text-[var(--foreground)] mt-1">
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Configured Roles</span>
+          <strong className="block text-2xl font-bold text-slate-900 dark:text-slate-50 mt-1">
             {roles.length}
           </strong>
-          <small className="text-[11px] text-[var(--muted-foreground)]">Across the district</small>
+          <small className="text-[11px] text-slate-600 dark:text-slate-400">Across the district</small>
         </div>
-        <div className="p-4 rounded-xl bg-[var(--muted)]/20 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)]">Full Management Roles</span>
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Full Management Roles</span>
           <strong className="block text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
             {managedCount}
           </strong>
-          <small className="text-[11px] text-[var(--muted-foreground)]">Can manage at least one area</small>
+          <small className="text-[11px] text-slate-600 dark:text-slate-400">Can manage at least one area</small>
         </div>
-        <div className="p-4 rounded-xl bg-[var(--muted)]/20 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)]">Controlled Features</span>
-          <strong className="block text-2xl font-bold text-[var(--foreground)] mt-1">
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Controlled Features</span>
+          <strong className="block text-2xl font-bold text-slate-900 dark:text-slate-50 mt-1">
             {features.length}
           </strong>
-          <small className="text-[11px] text-[var(--muted-foreground)]">Workspace feature scopes</small>
+          <small className="text-[11px] text-slate-600 dark:text-slate-400">Workspace feature scopes</small>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -306,7 +306,7 @@ export function AccessControlWorkspace() {
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             >
               <X size={13} />
             </button>
@@ -328,16 +328,16 @@ export function AccessControlWorkspace() {
         </div>
       </div>
 
-      <div className="p-3 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)] flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-          <SlidersHorizontal size={14} className="shrink-0" />
+      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+          <SlidersHorizontal size={14} className="shrink-0 text-slate-500 dark:text-slate-400" />
           <span>Select the permission level for each column:</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {(['manage', 'edit', 'view', 'none'] as AccessLevel[]).map((level) => (
             <span
               key={level}
-              className={`px-2 py-0.5 rounded text-[11px] border ${levelBadgeStyles[level]}`}
+              className={`px-2 py-0.5 rounded text-[11px] border font-semibold ${levelBadgeStyles[level]}`}
             >
               {levelLabels[level]}
             </span>
@@ -345,39 +345,39 @@ export function AccessControlWorkspace() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[var(--border)] shadow-xs">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="bg-[var(--muted)]/60 border-b border-[var(--border)]">
-              <th className="py-3 px-4 font-semibold text-[var(--foreground)] sticky left-0 bg-[var(--muted)]/95 backdrop-blur-sm z-10 min-w-48">
+            <tr className="bg-slate-100 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700">
+              <th className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100 sticky left-0 bg-slate-100 dark:bg-slate-800 z-10 min-w-48 border-r border-slate-300 dark:border-slate-700">
                 Role Name
               </th>
               {features.map((feature) => (
                 <th
                   key={feature}
-                  className="py-3 px-3 font-semibold text-[var(--foreground)] text-center min-w-28 whitespace-nowrap"
+                  className="py-3 px-3 font-bold text-slate-900 dark:text-slate-100 text-center min-w-28 whitespace-nowrap"
                 >
                   {feature}
                 </th>
               ))}
-              <th className="py-3 px-3 font-semibold text-[var(--foreground)] text-right min-w-20">
+              <th className="py-3 px-3 font-bold text-slate-900 dark:text-slate-100 text-right min-w-20">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--border)]">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
             {visibleRoles.length ? (
               visibleRoles.map((role) => (
                 <tr
                   key={role.name}
-                  className="hover:bg-[var(--muted)]/30 transition-colors"
+                  className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                 >
-                  <td className="py-3 px-4 sticky left-0 bg-[var(--card)] z-10 border-r border-[var(--border)]">
+                  <td className="py-3 px-4 sticky left-0 bg-white dark:bg-slate-900 z-10 border-r border-slate-200 dark:border-slate-800">
                     <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-md bg-[var(--muted)] text-[var(--foreground)] flex items-center justify-center font-bold text-[10px] shrink-0 border border-[var(--border)]">
+                      <div className="h-7 w-7 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex items-center justify-center font-bold text-[10px] shrink-0 border border-slate-300 dark:border-slate-700">
                         {role.name.slice(0, 2).toUpperCase()}
                       </div>
-                      <strong className="text-xs font-semibold text-[var(--foreground)] truncate">
+                      <strong className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                         {role.name}
                       </strong>
                     </div>
@@ -392,12 +392,12 @@ export function AccessControlWorkspace() {
                             void update(role.name, feature, e.target.value as AccessLevel)
                           }
                           aria-label={`${feature} access for ${role.name}`}
-                          className={`text-xs rounded-lg px-2 py-1 outline-none border cursor-pointer transition-all ${levelBadgeStyles[currentLevel]} focus:ring-2 focus:ring-[var(--ring)]`}
+                          className={`text-xs font-semibold rounded-lg px-2 py-1 outline-none border cursor-pointer transition-all ${levelBadgeStyles[currentLevel]} focus:ring-2 focus:ring-[var(--ring)]`}
                         >
-                          <option value="manage">Manage</option>
-                          <option value="edit">Edit</option>
-                          <option value="view">View</option>
-                          <option value="none">No access</option>
+                          <option value="manage" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">Manage</option>
+                          <option value="edit" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">Edit</option>
+                          <option value="view" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">View</option>
+                          <option value="none" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold">No access</option>
                         </select>
                       </td>
                     )
@@ -424,7 +424,7 @@ export function AccessControlWorkspace() {
               <tr>
                 <td
                   colSpan={features.length + 2}
-                  className="py-12 text-center text-sm text-[var(--muted-foreground)]"
+                  className="py-12 text-center text-sm text-slate-700 dark:text-slate-300 font-medium"
                 >
                   No roles match your search query.
                 </td>
@@ -434,7 +434,7 @@ export function AccessControlWorkspace() {
         </table>
       </div>
 
-      <p className="text-xs text-[var(--muted-foreground)]">
+      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">
         {configuredCount} of {roles.length} roles have at least one assigned permission. Changes apply instantaneously across all sessions in the district workspace.
       </p>
     </Card>

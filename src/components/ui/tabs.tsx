@@ -25,7 +25,7 @@ export function TabTrigger({ className, active, ...props }: TabTriggerProps) {
       data-slot="tab-trigger"
       data-state={active ? 'active' : 'inactive'}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold text-[var(--muted)] transition-all duration-150 select-none cursor-pointer hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-150 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500',
         active && 'bg-[var(--surface)] text-[var(--ink)] shadow-xs font-bold dark:bg-slate-900',
         className
       )}

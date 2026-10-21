@@ -282,7 +282,7 @@ export function Header({
         <button
           type="button"
           onClick={toggleTheme}
-          className="h-9 w-9 rounded-xl flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/60 transition-colors"
+          className="h-9 w-9 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           title="Toggle light and dark mode"
           aria-label="Toggle theme"
         >

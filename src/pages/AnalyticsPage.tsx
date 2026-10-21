@@ -131,13 +131,13 @@ export function AnalyticsPage() {
         />
       </div>
 
-      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
-        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20 flex items-center justify-between">
+      <Card className="p-0 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Active Sessions
             </h2>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
               Sessions seen within the last 60 seconds are designated active.
             </p>
           </div>
@@ -146,22 +146,22 @@ export function AnalyticsPage() {
           </Badge>
         </div>
 
-        <div className="divide-y divide-[var(--border)]">
+        <div className="divide-y divide-slate-200 dark:divide-slate-800">
           {data?.online.length ? (
             data.online.map((session) => (
               <div
                 key={session.username + session.last_seen}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/30 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="h-10 w-10 rounded-full bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold text-xs shrink-0">
                     {session.username.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <strong className="block text-sm font-semibold text-[var(--foreground)] truncate">
+                    <strong className="block text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                       {session.username}
                     </strong>
-                    <span className="text-xs text-[var(--muted-foreground)] truncate block mt-0.5">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 truncate block mt-0.5 font-medium">
                       {session.role === 'district'
                         ? 'District Super Admin'
                         : session.section_scope || 'Member'}
@@ -170,14 +170,14 @@ export function AnalyticsPage() {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto pl-13 sm:pl-0 flex-wrap">
-                  <code className="text-xs font-mono bg-[var(--muted)] text-[var(--muted-foreground)] px-2 py-0.5 rounded border border-[var(--border)]">
+                  <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700 font-semibold">
                     {session.ip_reference}…
                   </code>
-                  <Badge variant="outline" className="text-xs gap-1">
+                  <Badge variant="outline" className="text-xs gap-1 font-medium">
                     {getDeviceIcon(session.user_agent)}
                     {friendlyDevice(session.user_agent)}
                   </Badge>
-                  <time className="text-xs text-[var(--muted-foreground)] font-medium">
+                  <time className="text-xs text-slate-700 dark:text-slate-300 font-semibold">
                     {new Date(session.last_seen).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -187,41 +187,41 @@ export function AnalyticsPage() {
               </div>
             ))
           ) : (
-            <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
-              <Activity size={28} className="mx-auto text-[var(--muted-foreground)] mb-2" />
-              <strong className="block font-semibold text-[var(--foreground)]">No active sessions</strong>
+            <div className="py-12 text-center text-sm text-slate-700 dark:text-slate-300">
+              <Activity size={28} className="mx-auto text-slate-500 mb-2" />
+              <strong className="block font-semibold text-slate-900 dark:text-slate-100">No active sessions</strong>
               <span className="text-xs">Online administrators will appear here once authenticated.</span>
             </div>
           )}
         </div>
       </Card>
 
-      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
-        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20">
-          <h2 className="text-base font-semibold text-[var(--foreground)]">
+      <Card className="p-0 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
             Recent Authentication Activity
           </h2>
-          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+          <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
             Log of user sign-in and sign-out events across the district.
           </p>
         </div>
 
-        <div className="divide-y divide-[var(--border)]">
+        <div className="divide-y divide-slate-200 dark:divide-slate-800">
           {data?.recentActivity?.length ? (
             data.recentActivity.map((item) => (
               <div
                 key={item.username + item.occurred_at}
-                className="flex items-center justify-between p-3.5 hover:bg-[var(--muted)]/30 transition-colors"
+                className="flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-8 w-8 rounded-full bg-[var(--muted)] text-[var(--foreground)] flex items-center justify-center font-bold text-xs shrink-0 border border-[var(--border)]">
+                  <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-300 dark:border-slate-700">
                     {item.username.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <strong className="block text-xs font-semibold text-[var(--foreground)] truncate">
+                    <strong className="block text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
                       {item.username}
                     </strong>
-                    <span className="text-[11px] text-[var(--muted-foreground)] truncate block">
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400 truncate block font-medium">
                       {item.role === 'district'
                         ? 'District Super Admin'
                         : item.section_scope || 'User'}
@@ -232,18 +232,18 @@ export function AnalyticsPage() {
                 <div className="flex items-center gap-3 shrink-0">
                   <Badge
                     variant={item.action === 'Logged in' ? 'success' : 'outline'}
-                    className="text-xs"
+                    className="text-xs font-medium"
                   >
                     {item.action}
                   </Badge>
-                  <time className="text-xs text-[var(--muted-foreground)]">
+                  <time className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                     {relativeTime(item.occurred_at)}
                   </time>
                 </div>
               </div>
             ))
           ) : (
-            <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+            <div className="py-12 text-center text-sm text-slate-700 dark:text-slate-300">
               No recent authentication activity recorded.
             </div>
           )}

@@ -7,7 +7,7 @@ export function Input({ className, type = 'text', ...props }: InputHTMLAttribute
       type={type}
       data-slot="input"
       className={cn(
-        'flex h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
+        'flex h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--ink)] placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
     <textarea
       data-slot="textarea"
       className={cn(
-        'flex min-h-24 w-full resize-none rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] placeholder:text-[var(--muted)] outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
+        'flex min-h-24 w-full resize-none rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
         className
       )}
       {...props}

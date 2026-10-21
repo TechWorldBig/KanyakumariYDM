@@ -311,19 +311,19 @@ function ChurchDirectory({
   )
 
   return (
-    <Card className="p-0 overflow-hidden shadow-xs border border-[var(--border)]">
-      <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <Card className="p-0 overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Church size={18} className="text-[var(--color-district-600)] dark:text-[var(--color-district-400)]" />
-          <h2 className="text-base font-semibold text-[var(--foreground)]">
+          <Church size={18} className="text-district-600 dark:text-district-400" />
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
             Church Directory
           </h2>
-          <Badge variant="outline" className="ml-1 text-xs">
+          <Badge variant="outline" className="ml-1 text-xs font-semibold">
             {records.length + added.length} total
           </Badge>
         </div>
         <div className="relative w-full sm:w-64">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -333,14 +333,14 @@ function ChurchDirectory({
         </div>
       </div>
 
-      <div className="divide-y divide-[var(--border)]">
+      <div className="divide-y divide-slate-200 dark:divide-slate-800">
         {filteredRecords.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/40 transition-colors"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-[var(--muted)] border border-[var(--border)]">
+              <div className="h-11 w-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <img
                   src={item.photo}
                   alt={item.name}
@@ -350,14 +350,14 @@ function ChurchDirectory({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <strong className="text-sm font-semibold text-[var(--foreground)] truncate">
+                  <strong className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                     {item.name}
                   </strong>
-                  <Badge variant="blue" className="text-[11px] py-0 px-2">
+                  <Badge variant="blue" className="text-[11px] py-0 px-2 font-semibold">
                     {item.section}
                   </Badge>
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5 font-medium">
                   {item.address} · {item.distanceKm === 0 ? 'Nagercoil center' : `${item.distanceKm} km from Nagercoil`}
                 </p>
               </div>
@@ -365,10 +365,10 @@ function ChurchDirectory({
 
             <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto pl-14 sm:pl-0">
               <div className="text-right">
-                <span className="block text-[10px] uppercase font-semibold text-[var(--muted-foreground)] tracking-wider">
+                <span className="block text-[10px] uppercase font-semibold text-slate-600 dark:text-slate-400 tracking-wider">
                   Admin login
                 </span>
-                <code className="text-xs font-mono font-medium text-[var(--foreground)] bg-[var(--muted)] px-1.5 py-0.5 rounded">
+                <code className="text-xs font-mono font-semibold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
                   {item.username}
                 </code>
               </div>
@@ -379,23 +379,23 @@ function ChurchDirectory({
         {filteredAdded.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/40 transition-colors"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="h-11 w-11 rounded-lg shrink-0 bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold">
+              <div className="h-11 w-11 rounded-lg shrink-0 bg-district-100 dark:bg-district-900 text-district-700 dark:text-district-300 flex items-center justify-center font-bold">
                 <Church size={20} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <strong className="text-sm font-semibold text-[var(--foreground)] truncate">
+                  <strong className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                     {item.name}
                   </strong>
-                  <Badge variant="violet" className="text-[11px] py-0 px-2">
+                  <Badge variant="violet" className="text-[11px] py-0 px-2 font-semibold">
                     {item.section}
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] py-0">Custom Added</Badge>
+                  <Badge variant="outline" className="text-[10px] py-0 font-medium">Custom Added</Badge>
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5 font-medium">
                   {item.detail}
                 </p>
               </div>
@@ -403,10 +403,10 @@ function ChurchDirectory({
 
             <div className="flex items-center gap-4 shrink-0 self-start sm:self-auto pl-14 sm:pl-0">
               <div className="text-right">
-                <span className="block text-[10px] uppercase font-semibold text-[var(--muted-foreground)] tracking-wider">
+                <span className="block text-[10px] uppercase font-semibold text-slate-600 dark:text-slate-400 tracking-wider">
                   Username
                 </span>
-                <code className="text-xs font-mono font-medium text-[var(--foreground)] bg-[var(--muted)] px-1.5 py-0.5 rounded">
+                <code className="text-xs font-mono font-semibold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
                   {item.username}
                 </code>
               </div>
@@ -416,7 +416,7 @@ function ChurchDirectory({
         ))}
 
         {!filteredRecords.length && !filteredAdded.length && (
-          <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+          <div className="py-12 text-center text-sm text-slate-600 dark:text-slate-400">
             No churches found matching your query.
           </div>
         )}
@@ -453,19 +453,19 @@ function UserDirectory({
   )
 
   return (
-    <Card className="p-0 overflow-hidden shadow-xs border border-[var(--border)]">
-      <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <Card className="p-0 overflow-hidden shadow-xs border border-slate-200 dark:border-slate-800">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Users size={18} className="text-[var(--color-district-600)] dark:text-[var(--color-district-400)]" />
-          <h2 className="text-base font-semibold text-[var(--foreground)]">
+          <Users size={18} className="text-district-600 dark:text-district-400" />
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
             Users & Administrators
           </h2>
-          <Badge variant="outline" className="ml-1 text-xs">
+          <Badge variant="outline" className="ml-1 text-xs font-semibold">
             {sections.length + added.length} total
           </Badge>
         </div>
         <div className="relative w-full sm:w-64">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -475,11 +475,11 @@ function UserDirectory({
         </div>
       </div>
 
-      <div className="divide-y divide-[var(--border)]">
+      <div className="divide-y divide-slate-200 dark:divide-slate-800">
         {filteredSuperAdmins.map((item) => (
           <div
             key={item.admin}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/40 transition-colors"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-lg shrink-0 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
@@ -487,14 +487,14 @@ function UserDirectory({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <strong className="text-sm font-semibold text-[var(--foreground)]">
+                  <strong className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {item.admin}
                   </strong>
-                  <Badge variant="success" className="text-[11px] py-0">
+                  <Badge variant="success" className="text-[11px] py-0 font-semibold">
                     Section Super Admin
                   </Badge>
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
                   Full administrative permissions for {item.name}
                 </p>
               </div>
@@ -502,10 +502,10 @@ function UserDirectory({
 
             <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto pl-13 sm:pl-0">
               <div className="text-right">
-                <span className="block text-[10px] uppercase font-semibold text-[var(--muted-foreground)] tracking-wider">
+                <span className="block text-[10px] uppercase font-semibold text-slate-600 dark:text-slate-400 tracking-wider">
                   Scope
                 </span>
-                <span className="text-xs font-medium text-[var(--foreground)]">
+                <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                   {item.name}
                 </span>
               </div>
@@ -516,22 +516,22 @@ function UserDirectory({
         {filteredAdded.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/40 transition-colors"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-lg shrink-0 bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold">
+              <div className="h-10 w-10 rounded-lg shrink-0 bg-district-100 dark:bg-district-900 text-district-700 dark:text-district-300 flex items-center justify-center font-bold">
                 <UserRound size={18} />
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <strong className="text-sm font-semibold text-[var(--foreground)]">
+                  <strong className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {item.name}
                   </strong>
-                  <Badge variant="blue" className="text-[11px] py-0">
+                  <Badge variant="blue" className="text-[11px] py-0 font-semibold">
                     {item.section}
                   </Badge>
                 </div>
-                <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
                   {item.detail}
                 </p>
               </div>
@@ -539,10 +539,10 @@ function UserDirectory({
 
             <div className="flex items-center gap-4 shrink-0 self-start sm:self-auto pl-13 sm:pl-0">
               <div className="text-right">
-                <span className="block text-[10px] uppercase font-semibold text-[var(--muted-foreground)] tracking-wider">
+                <span className="block text-[10px] uppercase font-semibold text-slate-600 dark:text-slate-400 tracking-wider">
                   Username
                 </span>
-                <code className="text-xs font-mono font-medium text-[var(--foreground)] bg-[var(--muted)] px-1.5 py-0.5 rounded">
+                <code className="text-xs font-mono font-semibold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">
                   {item.username}
                 </code>
               </div>
@@ -552,7 +552,7 @@ function UserDirectory({
         ))}
 
         {!filteredSuperAdmins.length && !filteredAdded.length && (
-          <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+          <div className="py-12 text-center text-sm text-slate-600 dark:text-slate-400">
             No users found matching your search.
           </div>
         )}
@@ -719,14 +719,14 @@ function InfoWorkspace({
   }
   const Icon = page === 'Reports' ? Users : ShieldCheck
   return (
-    <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
-      <div className="h-14 w-14 rounded-2xl bg-[var(--muted)] flex items-center justify-center text-[var(--muted-foreground)] mb-4">
+    <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2 border-slate-300 dark:border-slate-700">
+      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 mb-4">
         <Icon size={28} />
       </div>
-      <h2 className="text-lg font-semibold text-[var(--foreground)]">
+      <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
         {page} Workspace
       </h2>
-      <p className="text-sm text-[var(--muted-foreground)] max-w-sm mt-1">
+      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-sm mt-1">
         Your current access is scoped to {role === 'district' ? 'the entire district' : section.name}.
       </p>
     </Card>

@@ -56,7 +56,7 @@ export function DialogCloseButton({ className, ...props }: DialogPrimitive.Dialo
   return (
     <DialogPrimitive.Close
       className={cn(
-        'absolute right-4 top-4 rounded-lg p-1.5 text-[var(--muted)] hover:bg-slate-100 hover:text-[var(--ink)] dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500',
+        'absolute right-4 top-4 rounded-lg p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500',
         className
       )}
       {...props}

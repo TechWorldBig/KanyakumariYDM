@@ -328,42 +328,42 @@ function ChurchDetailsSection({
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1.5">
-            <Church size={14} />
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Church size={14} className="text-slate-500 dark:text-slate-400" />
             Church Name
           </span>
-          <strong className="block text-sm font-semibold text-[var(--foreground)] mt-1.5 truncate">
+          <strong className="block text-sm font-bold text-slate-900 dark:text-slate-50 mt-1.5 truncate">
             {value.name || 'Not added'}
           </strong>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1.5">
-            <MapPin size={14} />
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <MapPin size={14} className="text-slate-500 dark:text-slate-400" />
             Location
           </span>
-          <strong className="block text-sm font-semibold text-[var(--foreground)] mt-1.5 truncate">
+          <strong className="block text-sm font-bold text-slate-900 dark:text-slate-50 mt-1.5 truncate">
             {value.location || 'Not added'}
           </strong>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1.5">
-            <Users size={14} />
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Users size={14} className="text-slate-500 dark:text-slate-400" />
             Total Members
           </span>
-          <strong className="block text-xl font-bold text-[var(--foreground)] mt-1">
+          <strong className="block text-xl font-bold text-slate-900 dark:text-slate-50 mt-1">
             {value.totalMembers}
           </strong>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--muted)]/30 border border-[var(--border)]">
-          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1.5">
-            <Users size={14} />
+        <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+            <Users size={14} className="text-slate-500 dark:text-slate-400" />
             YDM Members
           </span>
-          <strong className="block text-xl font-bold text-[var(--foreground)] mt-1">
+          <strong className="block text-xl font-bold text-slate-900 dark:text-slate-50 mt-1">
             {value.totalYdmMembers}
           </strong>
         </div>
@@ -528,10 +528,10 @@ function PersonSection({
           {list.map((person) => (
             <div
               key={person.id}
-              className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--muted)]/30 transition-colors"
+              className="flex items-center justify-between p-3.5 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center font-bold text-xs text-[var(--muted-foreground)]">
+                <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs text-slate-800 dark:text-slate-200">
                   {person.photo ? (
                     <img
                       src={person.photo}
@@ -608,7 +608,7 @@ function PersonForm({
     onChange({ ...person, [key]: value })
 
   return (
-    <Card className="p-5 border-[var(--color-district-500)]/40 bg-[var(--muted)]/20 space-y-4">
+    <Card className="p-5 border border-district-500/30 bg-slate-50 dark:bg-slate-900 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-[var(--foreground)]">
           {person.name ? `Edit ${person.name}` : 'New Member Record'}
@@ -767,7 +767,7 @@ function PastorSection({
 
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-32 w-32 rounded-2xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] shadow-xs">
+          <div className="h-32 w-32 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 shadow-xs">
             {value.photo ? (
               <img
                 src={value.photo}
@@ -906,7 +906,7 @@ function AnnouncementSection({
       </div>
 
       {canManage && (
-        <Card className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] space-y-3">
+        <Card className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]">
             Create New Announcement
           </h3>
