@@ -1733,7 +1733,9 @@ body[data-theme="dark"] .meeting-card-cancelled {
   border-radius: 16px;
   overflow: hidden;
   background: var(--surface);
-  height: 740px;
+  height: calc(100vh - 195px);
+  min-height: 520px;
+  max-height: 860px;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
 }
 
@@ -2033,22 +2035,42 @@ body[data-theme="dark"] .meeting-card-cancelled {
 .chat-message-row {
   display: flex;
   align-items: flex-end;
-  gap: 6px;
   width: 100%;
   position: relative;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+}
+
+.chat-message-row:not(.mine) {
+  justify-content: flex-start;
 }
 
 .chat-message-row.mine {
   justify-content: flex-end;
-  flex-direction: row-reverse;
+}
+
+/* Bubble Group Wrapper with Action Anchors */
+.chat-bubble-group {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  max-width: min(82%, 600px);
+}
+
+.chat-bubble-group.mine {
+  margin-left: auto;
+}
+
+.chat-bubble-group:not(.mine) {
+  margin-right: auto;
 }
 
 /* WhatsApp Message Bubbles */
 .chat-bubble, .group-bubble {
   position: relative;
-  max-width: min(76%, 560px);
-  min-width: 80px;
+  display: flow-root;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 84px;
   padding: 6px 10px 7px 11px;
   border-radius: 12px 12px 12px 3px;
   background: #ffffff;
@@ -2087,6 +2109,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
   white-space: pre-wrap;
   word-break: break-word;
   color: inherit;
+  display: inline;
 }
 
 /* Inline Float Timestamp and Read Status */
@@ -2097,7 +2120,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
   gap: 3px;
   margin-left: 10px;
   margin-top: 4px;
-  margin-bottom: -2px;
+  margin-bottom: -1px;
   font-size: 11px;
   line-height: 1;
   color: #667781;
@@ -2131,28 +2154,39 @@ body[data-theme="dark"] .meeting-card-cancelled {
 .message-hover-actions {
   opacity: 0;
   pointer-events: none;
+  visibility: hidden;
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 20px;
-  padding: 2px 4px;
+  padding: 2px 5px;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  transform: scale(0.95);
-  align-self: center;
-  flex-shrink: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  transform: scale(0.92);
+  position: absolute;
+  bottom: 4px;
+  z-index: 20;
+}
+
+.chat-bubble-group.mine .message-hover-actions {
+  right: calc(100% + 6px);
+}
+
+.chat-bubble-group:not(.mine) .message-hover-actions {
+  left: calc(100% + 6px);
 }
 
 .dark .message-hover-actions {
-  background: rgba(30, 41, 59, 0.95);
+  background: rgba(30, 41, 59, 0.96);
   border-color: rgba(51, 65, 85, 0.8);
 }
 
-.chat-message-row:hover .message-hover-actions {
+.chat-bubble-group:hover .message-hover-actions {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
   transform: scale(1);
 }
 
@@ -2206,6 +2240,14 @@ body[data-theme="dark"] .meeting-card-cancelled {
   animation: popReaction 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.message-reaction-picker.right-0 {
+  right: 0;
+}
+
+.message-reaction-picker.left-0 {
+  left: 0;
+}
+
 .dark .message-reaction-picker {
   background: #1e293b;
   border-color: rgba(51, 65, 85, 0.8);
@@ -2232,11 +2274,12 @@ body[data-theme="dark"] .meeting-card-cancelled {
 
 /* Reactions Below Bubble */
 .message-reactions {
+  clear: both;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 4px;
-  margin-bottom: -2px;
+  margin-top: 6px;
+  margin-bottom: -1px;
   position: relative;
   z-index: 2;
 }
@@ -2917,6 +2960,8 @@ body[data-theme="dark"] .form-error {
   }
   .chat-layout, .group-layout {
     grid-template-columns: 1fr;
+    height: calc(100dvh - 165px);
+    min-height: 480px;
   }
   .meeting-card {
     flex-direction: column;

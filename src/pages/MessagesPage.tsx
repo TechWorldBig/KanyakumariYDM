@@ -1,6 +1,7 @@
 import {
   Check,
   CheckCheck,
+  ChevronLeft,
   Download,
   FileText,
   MessageCircle,
@@ -133,8 +134,10 @@ export function MessagesPage({ role }: { role: UserRole }) {
     [editingId, setEditingId] = useState<string | null>(null),
     [emojiOpen, setEmojiOpen] = useState(false),
     [reactionFor, setReactionFor] = useState<string | null>(null),
-    [searchQuery, setSearchQuery] = useState("");
+    [searchQuery, setSearchQuery] = useState(""),
+    [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const conversation = useMemo(
     () =>
       messages.filter(
@@ -156,7 +159,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
       });
   }, [recipients, role, recipientProfiles, searchQuery]);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [conversation, selected]);
   const channel = () =>
     getAblyClient(selected).channels.get(
@@ -423,27 +428,17 @@ export function MessagesPage({ role }: { role: UserRole }) {
   );
   const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
+    <section className="space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2.5 border-b border-[var(--border)]">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            Realtime Communication
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)]">
             Messages & Collaboration
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Secure, encrypted real-time direct chat and district team groups.
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Secure, encrypted realtime direct chat and district team groups.
           </p>
         </div>
-      </div>
-      {view === 'people' && error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium" role="alert">
-          {error}
-        </div>
-      )}
-      <div className="border-b border-[var(--border)] pb-1">
-        <TabsList>
+        <TabsList className="self-start sm:self-center">
           <TabTrigger active={view === 'people'} onClick={() => setView('people')}>
             <UserRound size={14} className="mr-1.5" />
             Direct Messages
@@ -454,8 +449,15 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </TabTrigger>
         </TabsList>
       </div>
+
+      {view === 'people' && error && (
+        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium" role="alert">
+          {error}
+        </div>
+      )}
+
       {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
-        <aside className="chat-contacts">
+        <aside className={`chat-contacts ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}`}>
           <div className="chat-contacts-header">
             <h2>People</h2>
             <Badge variant="outline" className="text-[11px] font-semibold">
@@ -482,7 +484,10 @@ export function MessagesPage({ role }: { role: UserRole }) {
                   className={
                     selected === item.id ? "chat-contact active" : "chat-contact"
                   }
-                  onClick={() => setSelected(item.id)}
+                  onClick={() => {
+                    setSelected(item.id);
+                    setMobileView('chat');
+                  }}
                   type="button"
                 >
                   <span className="chat-avatar-with-presence">
@@ -522,9 +527,18 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </div>
         </aside>
 
-        <div className="chat-window">
+        <div className={`chat-window ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}>
           <div className="chat-window-head">
             <div className="chat-window-head-left">
+              <button
+                type="button"
+                className="md:hidden p-1.5 -ml-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg shrink-0"
+                onClick={() => setMobileView('list')}
+                aria-label="Back to contacts list"
+                title="Back to contacts"
+              >
+                <ChevronLeft size={20} />
+              </button>
               <span className="chat-avatar-with-presence">
                 <span className="chat-avatar">
                   {recipientProfiles[selected]?.photo ? (
@@ -546,7 +560,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
             </div>
           </div>
 
-          <div className="chat-messages" aria-live="polite">
+          <div className="chat-messages" ref={messagesContainerRef} aria-live="polite">
             {conversation.length ? (
               conversation.map((message, index) => {
                 const isMine = message.from === role;
@@ -564,190 +578,192 @@ export function MessagesPage({ role }: { role: UserRole }) {
                       </div>
                     )}
                     <div className={`chat-message-row ${isMine ? "mine" : ""}`}>
-                      {/* Hover action menu */}
-                      <div className="message-hover-actions">
-                        <button
-                          type="button"
-                          className="message-action-btn"
-                          onClick={() =>
-                            setReactionFor((current) =>
-                              current === message.id ? null : message.id
-                            )
-                          }
-                          title="React with emoji"
-                          aria-label="React"
-                        >
-                          <Smile size={14} />
-                        </button>
-                        {isMine && (
-                          <>
-                            <button
-                              type="button"
-                              className="message-action-btn"
-                              onClick={() => {
-                                setEditingId(message.id);
-                                setText(message.text);
-                              }}
-                              title="Edit message"
-                              aria-label="Edit"
-                            >
-                              <Pencil size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              className="message-action-btn delete"
-                              onClick={() => void deleteMessage(message)}
-                              title="Delete message"
-                              aria-label="Delete"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Quick Reaction Picker Popup */}
-                      {reactionFor === message.id && (
-                        <div
-                          className={`message-reaction-picker ${
-                            isMine ? "right-0" : "left-0"
-                          }`}
-                        >
-                          {quickReactions.map((emoji) => (
-                            <button
-                              type="button"
-                              key={emoji}
-                              onClick={() => void reactToMessage(message, emoji)}
-                              title={emoji}
-                            >
-                              {emoji}
-                            </button>
-                          ))}
+                      <div className={`chat-bubble-group ${isMine ? "mine" : ""}`}>
+                        {/* Hover action menu */}
+                        <div className="message-hover-actions">
                           <button
                             type="button"
-                            onClick={() => setReactionFor(null)}
                             className="message-action-btn"
-                            style={{ width: 22, height: 22 }}
-                            aria-label="Close reaction picker"
+                            onClick={() =>
+                              setReactionFor((current) =>
+                                current === message.id ? null : message.id
+                              )
+                            }
+                            title="React with emoji"
+                            aria-label="React"
                           >
-                            <X size={12} />
+                            <Smile size={14} />
                           </button>
+                          {isMine && (
+                            <>
+                              <button
+                                type="button"
+                                className="message-action-btn"
+                                onClick={() => {
+                                  setEditingId(message.id);
+                                  setText(message.text);
+                                }}
+                                title="Edit message"
+                                aria-label="Edit"
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                className="message-action-btn delete"
+                                onClick={() => void deleteMessage(message)}
+                                title="Delete message"
+                                aria-label="Delete"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </>
+                          )}
                         </div>
-                      )}
 
-                      {/* WhatsApp Bubble */}
-                      <div className={`chat-bubble ${isMine ? "mine" : ""}`}>
-                        {message.deletedAt ? (
-                          <span className="italic text-slate-500 text-xs flex items-center gap-1.5 py-0.5">
-                            <Trash2 size={12} /> This message was deleted
-                          </span>
-                        ) : (
-                          <>
-                            {/* Attachment */}
-                            {message.attachment && (
-                              <div className="mb-1.5">
-                                {message.attachment.type.startsWith("image/") ? (
-                                  <a
-                                    href={message.attachment.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="block overflow-hidden rounded-lg hover:opacity-95 transition-opacity"
-                                  >
-                                    <img
-                                      src={message.attachment.url}
-                                      alt={message.attachment.name}
-                                      className="chat-attachment-img"
-                                    />
-                                  </a>
-                                ) : message.attachment.type.startsWith("audio/") ? (
-                                  <audio
-                                    className="chat-audio"
-                                    controls
-                                    preload="none"
-                                    src={message.attachment.url}
-                                    aria-label="Voice message"
-                                  />
-                                ) : (
-                                  <a
-                                    className="chat-attachment"
-                                    href={message.attachment.url}
-                                    download={message.attachment.name}
-                                  >
-                                    <span className="flex items-center gap-2 truncate text-xs font-medium">
-                                      <FileText
-                                        size={16}
-                                        className="shrink-0 text-emerald-600 dark:text-emerald-400"
+                        {/* Quick Reaction Picker Popup */}
+                        {reactionFor === message.id && (
+                          <div
+                            className={`message-reaction-picker ${
+                              isMine ? "right-0" : "left-0"
+                            }`}
+                          >
+                            {quickReactions.map((emoji) => (
+                              <button
+                                type="button"
+                                key={emoji}
+                                onClick={() => void reactToMessage(message, emoji)}
+                                title={emoji}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setReactionFor(null)}
+                              className="message-action-btn"
+                              style={{ width: 22, height: 22 }}
+                              aria-label="Close reaction picker"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* WhatsApp Bubble */}
+                        <div className={`chat-bubble ${isMine ? "mine" : ""}`}>
+                          {message.deletedAt ? (
+                            <span className="italic text-slate-500 text-xs flex items-center gap-1.5 py-0.5">
+                              <Trash2 size={12} /> This message was deleted
+                            </span>
+                          ) : (
+                            <>
+                              {/* Attachment */}
+                              {message.attachment && (
+                                <div className="mb-1.5">
+                                  {message.attachment.type.startsWith("image/") ? (
+                                    <a
+                                      href={message.attachment.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="block overflow-hidden rounded-lg hover:opacity-95 transition-opacity"
+                                    >
+                                      <img
+                                        src={message.attachment.url}
+                                        alt={message.attachment.name}
+                                        className="chat-attachment-img"
                                       />
-                                      <span className="truncate max-w-[190px]">
-                                        {message.attachment.name}
+                                    </a>
+                                  ) : message.attachment.type.startsWith("audio/") ? (
+                                    <audio
+                                      className="chat-audio"
+                                      controls
+                                      preload="none"
+                                      src={message.attachment.url}
+                                      aria-label="Voice message"
+                                    />
+                                  ) : (
+                                    <a
+                                      className="chat-attachment"
+                                      href={message.attachment.url}
+                                      download={message.attachment.name}
+                                    >
+                                      <span className="flex items-center gap-2 truncate text-xs font-medium">
+                                        <FileText
+                                          size={16}
+                                          className="shrink-0 text-emerald-600 dark:text-emerald-400"
+                                        />
+                                        <span className="truncate max-w-[190px]">
+                                          {message.attachment.name}
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
-                                      <Download size={13} />
-                                      Download
-                                    </span>
-                                  </a>
+                                      <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
+                                        <Download size={13} />
+                                        Download
+                                      </span>
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Message Text */}
+                              {message.text && (
+                                <span className="chat-text-content">{message.text}</span>
+                              )}
+
+                              {/* Inline Float Timestamp and Read Receipts */}
+                              <div className="chat-meta">
+                                <time>
+                                  {new Date(message.sentAt).toLocaleTimeString("en-IN", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                  {message.editedAt ? " · edited" : ""}
+                                </time>
+                                {isMine && (
+                                  <span
+                                    className={
+                                      message.readAt
+                                        ? "message-status read"
+                                        : "message-status"
+                                    }
+                                    aria-label={message.readAt ? "Read" : "Sent"}
+                                    title={message.readAt ? "Read" : "Sent"}
+                                  >
+                                    {message.readAt ? (
+                                      <CheckCheck size={14} className="text-[#53bdeb]" />
+                                    ) : (
+                                      <Check size={14} />
+                                    )}
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+
+                          {/* Reactions Row */}
+                          {message.reactions &&
+                            Object.keys(message.reactions).length > 0 && (
+                              <div className="message-reactions">
+                                {Object.entries(message.reactions).map(
+                                  ([emoji, members]) => (
+                                    <button
+                                      type="button"
+                                      key={emoji}
+                                      onClick={() => void reactToMessage(message, emoji)}
+                                      className={`message-reaction-pill ${
+                                        members.includes(role) ? "mine" : ""
+                                      }`}
+                                      title={`Reacted by ${members.join(", ")}`}
+                                    >
+                                      <span>{emoji}</span>
+                                      <span>{members.length}</span>
+                                    </button>
+                                  )
                                 )}
                               </div>
                             )}
-
-                            {/* Message Text */}
-                            {message.text && (
-                              <span className="chat-text-content">{message.text}</span>
-                            )}
-
-                            {/* Inline Float Timestamp and Read Receipts */}
-                            <div className="chat-meta">
-                              <time>
-                                {new Date(message.sentAt).toLocaleTimeString("en-IN", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                                {message.editedAt ? " · edited" : ""}
-                              </time>
-                              {isMine && (
-                                <span
-                                  className={
-                                    message.readAt
-                                      ? "message-status read"
-                                      : "message-status"
-                                  }
-                                  aria-label={message.readAt ? "Read" : "Sent"}
-                                  title={message.readAt ? "Read" : "Sent"}
-                                >
-                                  {message.readAt ? (
-                                    <CheckCheck size={14} className="text-[#53bdeb]" />
-                                  ) : (
-                                    <Check size={14} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </>
-                        )}
-
-                        {/* Reactions Row */}
-                        {message.reactions &&
-                          Object.keys(message.reactions).length > 0 && (
-                            <div className="message-reactions">
-                              {Object.entries(message.reactions).map(
-                                ([emoji, members]) => (
-                                  <button
-                                    type="button"
-                                    key={emoji}
-                                    onClick={() => void reactToMessage(message, emoji)}
-                                    className={`message-reaction-pill ${
-                                      members.includes(role) ? "mine" : ""
-                                    }`}
-                                    title={`Reacted by ${members.join(", ")}`}
-                                  >
-                                    <span>{emoji}</span>
-                                    <span>{members.length}</span>
-                                  </button>
-                                )
-                              )}
-                            </div>
-                          )}
+                        </div>
                       </div>
                     </div>
                   </Fragment>

@@ -1,6 +1,7 @@
 import {
   Check,
   CheckCheck,
+  ChevronLeft,
   Download,
   FileText,
   ImagePlus,
@@ -167,7 +168,9 @@ export function GroupMessages() {
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [error, setError] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const active = groups.find((group) => group.id === selected)
   const editingMessage = messages.find((message) => message.id === editingId)
@@ -183,7 +186,9 @@ export function GroupMessages() {
   }, [groups, searchQuery])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
   }, [messages, selected])
 
   const loadGroups = async () => {
@@ -522,7 +527,7 @@ export function GroupMessages() {
 
   return (
     <Card className="group-layout panel">
-      <aside className="group-sidebar">
+      <aside className={`group-sidebar ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}`}>
         <div className="group-sidebar-header">
           <div>
             <h2>Groups</h2>
@@ -564,7 +569,10 @@ export function GroupMessages() {
               className={
                 selected === group.id ? 'group-contact active' : 'group-contact'
               }
-              onClick={() => setSelected(group.id)}
+              onClick={() => {
+                setSelected(group.id)
+                setMobileView('chat')
+              }}
             >
               <div className="chat-avatar">
                 <Users size={18} />
@@ -585,9 +593,18 @@ export function GroupMessages() {
         </div>
       </aside>
 
-      <div className="group-window">
+      <div className={`group-window ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}>
         <div className="group-window-head">
           <div className="group-window-head-left">
+            <button
+              type="button"
+              className="md:hidden p-1.5 -ml-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg shrink-0"
+              onClick={() => setMobileView('list')}
+              aria-label="Back to groups list"
+              title="Back to groups"
+            >
+              <ChevronLeft size={20} />
+            </button>
             {active ? (
               <>
                 <div className="chat-avatar">
@@ -636,7 +653,7 @@ export function GroupMessages() {
           </div>
         )}
 
-        <div className="group-messages" aria-live="polite">
+        <div className="group-messages" ref={messagesContainerRef} aria-live="polite">
           {messages.length ? (
             messages.map((message, index) => {
               const isMine = message.sender === username
@@ -655,7 +672,8 @@ export function GroupMessages() {
                   )}
 
                   <div className={`chat-message-row ${isMine ? 'mine' : ''}`}>
-                    {/* Hover Actions Bar */}
+                    <div className={`chat-bubble-group ${isMine ? 'mine' : ''}`}>
+                      {/* Hover Actions Bar */}
                     <div className="message-hover-actions">
                       <button
                         type="button"
@@ -826,7 +844,8 @@ export function GroupMessages() {
                         )}
                     </div>
                   </div>
-                </Fragment>
+                </div>
+              </Fragment>
               )
             })
           ) : (
