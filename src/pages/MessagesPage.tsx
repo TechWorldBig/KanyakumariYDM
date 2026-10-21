@@ -6,6 +6,7 @@ import {
   MessageCircle,
   Paperclip,
   Pencil,
+  Search,
   Send,
   Smile,
   Trash2,
@@ -131,7 +132,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
     [error, setError] = useState(""),
     [editingId, setEditingId] = useState<string | null>(null),
     [emojiOpen, setEmojiOpen] = useState(false),
-    [reactionFor, setReactionFor] = useState<string | null>(null);
+    [reactionFor, setReactionFor] = useState<string | null>(null),
+    [searchQuery, setSearchQuery] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversation = useMemo(
     () =>
       messages.filter(
@@ -142,6 +145,19 @@ export function MessagesPage({ role }: { role: UserRole }) {
       ),
     [messages, role, selected],
   );
+  const filteredRecipients = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return recipients
+      .filter((item) => item.id !== role)
+      .filter((item) => {
+        if (!query) return true;
+        const name = (recipientProfiles[item.id]?.name || item.label).toLowerCase();
+        return name.includes(query) || item.id.toLowerCase().includes(query);
+      });
+  }, [recipients, role, recipientProfiles, searchQuery]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation, selected]);
   const channel = () =>
     getAblyClient(selected).channels.get(
       conversationChannelName(role, selected),
@@ -440,190 +456,469 @@ export function MessagesPage({ role }: { role: UserRole }) {
       </div>
       {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
         <aside className="chat-contacts">
-          <h2>People</h2>
-          {recipients
-            .filter((item) => item.id !== role)
-            .map((item) => (
-              <button
-                key={item.id}
-                className={
-                  selected === item.id ? "chat-contact active" : "chat-contact"
-                }
-                onClick={() => setSelected(item.id)}
-              >
-                <span className="chat-avatar chat-avatar-with-presence">
-                  {recipientProfiles[item.id]?.photo ? <img src={recipientProfiles[item.id].photo} alt="" /> : <UserRound size={16} />}
-                  {online.includes(item.id) && (
-                    <i className="chat-presence-dot" aria-label="Active now" />
-                  )}
-                </span>
-                <span>
-                  <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
-                  <small className={online.includes(item.id) ? "online" : ""}>
-                    {statusLabel(lastSeen[item.id] || null, online.includes(item.id))}
-                  </small>
-                </span>
-                {unreadCounts[item.id] > 0 && <b className="chat-unread-count" aria-label={`${unreadCounts[item.id]} unread messages`}>{unreadCounts[item.id] > 99 ? '99+' : unreadCounts[item.id]}</b>}
-              </button>
-            ))}
-        </aside>
-        <div className="chat-window">
-          <div className="chat-window-head">
-            <span className="chat-avatar chat-avatar-with-presence">
-              {recipientProfiles[selected]?.photo ? <img src={recipientProfiles[selected].photo} alt="" /> : <MessageCircle size={17} />}
-              {online.includes(selected) && (
-                <i className="chat-presence-dot" aria-label="Active now" />
-              )}
-            </span>
-            <div>
-              <h2>{selectedLabel}</h2>
-            </div>
+          <div className="chat-contacts-header">
+            <h2>People</h2>
+            <Badge variant="outline" className="text-[11px] font-semibold">
+              {filteredRecipients.length}
+            </Badge>
           </div>
-          <div className="chat-messages">
-            {conversation.length ? (
-              conversation.map((message, index) => <Fragment key={message.id}>
-                {(index === 0 || new Date(message.sentAt).toDateString() !== new Date(conversation[index - 1].sentAt).toDateString()) && <div className="chat-date-divider" role="separator">{messageDateLabel(message.sentAt)}</div>}
-                <div
+          <div className="chat-search-wrap">
+            <Search size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] pointer-events-none" />
+            <input
+              type="text"
+              className="chat-search-input"
+              placeholder="Search people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search people"
+            />
+          </div>
+          <div className="chat-contacts-list">
+            {filteredRecipients.map((item) => {
+              const isActive = online.includes(item.id);
+              return (
+                <button
+                  key={item.id}
                   className={
-                    message.from === role ? "chat-bubble mine" : "chat-bubble"
+                    selected === item.id ? "chat-contact active" : "chat-contact"
                   }
-                  key={message.id}
+                  onClick={() => setSelected(item.id)}
+                  type="button"
                 >
-                  <span>
-                    {message.text}
-                    {message.attachment?.type.startsWith('audio/') && <audio className="chat-audio" controls preload="none" src={message.attachment.url} aria-label="Voice message"/>}
-                    {message.attachment && !message.attachment.type.startsWith('audio/') && (
-                      <a
-                        className="chat-attachment"
-                        href={message.attachment.url}
-                        download={message.attachment.name}
-                      >
-                        <span>
-                          {message.attachment.type.startsWith("image/") ? (
-                            <img
-                              src={message.attachment.url}
-                              alt={message.attachment.name}
-                            />
-                          ) : (
-                            <>
-                              <FileText size={15} />
-                              {message.attachment.name}
-                            </>
-                          )}
-                        </span>
-                        <small>
-                          <Download size={12} />
-                          Download
-                        </small>
-                      </a>
+                  <span className="chat-avatar-with-presence">
+                    <span className="chat-avatar">
+                      {recipientProfiles[item.id]?.photo ? (
+                        <img src={recipientProfiles[item.id].photo} alt="" />
+                      ) : (
+                        <UserRound size={18} />
+                      )}
+                    </span>
+                    {isActive && (
+                      <i className="chat-presence-dot" aria-label="Active now" />
                     )}
                   </span>
-                  {reactionFor === message.id && <div className="message-reaction-picker">{quickReactions.map((emoji) => <button type="button" key={emoji} onClick={() => void reactToMessage(message, emoji)}>{emoji}</button>)}</div>}
-                  {message.reactions && Object.keys(message.reactions).length > 0 && <div className="message-reactions">{Object.entries(message.reactions).map(([emoji,members]) => <button type="button" key={emoji} onClick={() => reactToMessage(message,emoji)} className={members.includes(role)?"mine":""}>{emoji} {members.length}</button>)}</div>}
-                  <div className="chat-meta">
-                    <time>
-                      {new Date(message.sentAt).toLocaleTimeString("en-IN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                      {message.editedAt ? " · edited" : ""}
-                    </time>
-                    {message.from === role && (
-                      <span className={message.readAt ? "message-status read" : "message-status"} aria-label={message.readAt ? "Read" : "Sent"} title={message.readAt ? "Read" : "Sent"}>
-                        {message.readAt ? <CheckCheck size={14} /> : <Check size={14} />}
-                      </span>
-                    )}
-                    <button className="message-react-button" onClick={() => setReactionFor((current) => current === message.id ? null : message.id)} aria-label="React to message"><Smile size={12}/></button>
-                    {message.from === role && (
-                      <span className="message-actions">
-                        <button
-                          onClick={() => {
-                            setEditingId(message.id);
-                            setText(message.text);
-                          }}
-                          aria-label="Edit message"
-                        >
-                          <Pencil size={12} />
-                        </button>
-                        <button
-                          onClick={() => deleteMessage(message)}
-                          aria-label="Delete message"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </span>
-                    )}
+                  <div className="chat-contact-info">
+                    <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
+                    <small className={isActive ? "online" : ""}>
+                      {statusLabel(lastSeen[item.id] || null, isActive)}
+                    </small>
                   </div>
-                </div>
-              </Fragment>)
-            ) : (
-              <div className="chat-empty">
-                <MessageCircle size={28} />
-                <strong>Start a conversation</strong>
-                <span>Messages are saved securely.</span>
+                  {unreadCounts[item.id] > 0 && (
+                    <span
+                      className="chat-unread-count"
+                      aria-label={`${unreadCounts[item.id]} unread messages`}
+                    >
+                      {unreadCounts[item.id] > 99 ? '99+' : unreadCounts[item.id]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            {!filteredRecipients.length && (
+              <div className="p-6 text-center text-xs text-[var(--muted-foreground)]">
+                No people matching &ldquo;{searchQuery}&rdquo;
               </div>
-            )}
-            {typing && (
-              <small className="typing-indicator">
-                {selectedLabel} is typing…
-              </small>
             )}
           </div>
-          <form className="chat-compose" onSubmit={send} noValidate>
-            {attachment && (
-              <div className={`attachment-chip${attachment.type.startsWith('audio/') ? ' voice-chip' : ''}`}>
-                {attachment.type.startsWith('audio/') ? <VoicePreview file={attachment}/> : <><Paperclip size={13} />{attachment.name}</>}
-                <button type="button" onClick={() => setAttachment(null)} aria-label="Remove attachment"><X size={13} /></button>
+        </aside>
+
+        <div className="chat-window">
+          <div className="chat-window-head">
+            <div className="chat-window-head-left">
+              <span className="chat-avatar-with-presence">
+                <span className="chat-avatar">
+                  {recipientProfiles[selected]?.photo ? (
+                    <img src={recipientProfiles[selected].photo} alt="" />
+                  ) : (
+                    <UserRound size={20} />
+                  )}
+                </span>
+                {online.includes(selected) && (
+                  <i className="chat-presence-dot" aria-label="Active now" />
+                )}
+              </span>
+              <div className="chat-window-head-info">
+                <h2>{recipientName}</h2>
+                <p className={online.includes(selected) ? "online" : ""}>
+                  {statusLabel(lastSeen[selected] || null, online.includes(selected))}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="chat-messages" aria-live="polite">
+            {conversation.length ? (
+              conversation.map((message, index) => {
+                const isMine = message.from === role;
+                const prev = index > 0 ? conversation[index - 1] : null;
+                const showDivider =
+                  index === 0 ||
+                  new Date(message.sentAt).toDateString() !==
+                    new Date(prev!.sentAt).toDateString();
+
+                return (
+                  <Fragment key={message.id}>
+                    {showDivider && (
+                      <div className="chat-date-divider" role="separator">
+                        {messageDateLabel(message.sentAt)}
+                      </div>
+                    )}
+                    <div className={`chat-message-row ${isMine ? "mine" : ""}`}>
+                      {/* Hover action menu */}
+                      <div className="message-hover-actions">
+                        <button
+                          type="button"
+                          className="message-action-btn"
+                          onClick={() =>
+                            setReactionFor((current) =>
+                              current === message.id ? null : message.id
+                            )
+                          }
+                          title="React with emoji"
+                          aria-label="React"
+                        >
+                          <Smile size={14} />
+                        </button>
+                        {isMine && (
+                          <>
+                            <button
+                              type="button"
+                              className="message-action-btn"
+                              onClick={() => {
+                                setEditingId(message.id);
+                                setText(message.text);
+                              }}
+                              title="Edit message"
+                              aria-label="Edit"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              className="message-action-btn delete"
+                              onClick={() => void deleteMessage(message)}
+                              title="Delete message"
+                              aria-label="Delete"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Quick Reaction Picker Popup */}
+                      {reactionFor === message.id && (
+                        <div
+                          className={`message-reaction-picker ${
+                            isMine ? "right-0" : "left-0"
+                          }`}
+                        >
+                          {quickReactions.map((emoji) => (
+                            <button
+                              type="button"
+                              key={emoji}
+                              onClick={() => void reactToMessage(message, emoji)}
+                              title={emoji}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setReactionFor(null)}
+                            className="message-action-btn"
+                            style={{ width: 22, height: 22 }}
+                            aria-label="Close reaction picker"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* WhatsApp Bubble */}
+                      <div className={`chat-bubble ${isMine ? "mine" : ""}`}>
+                        {message.deletedAt ? (
+                          <span className="italic text-slate-500 text-xs flex items-center gap-1.5 py-0.5">
+                            <Trash2 size={12} /> This message was deleted
+                          </span>
+                        ) : (
+                          <>
+                            {/* Attachment */}
+                            {message.attachment && (
+                              <div className="mb-1.5">
+                                {message.attachment.type.startsWith("image/") ? (
+                                  <a
+                                    href={message.attachment.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block overflow-hidden rounded-lg hover:opacity-95 transition-opacity"
+                                  >
+                                    <img
+                                      src={message.attachment.url}
+                                      alt={message.attachment.name}
+                                      className="chat-attachment-img"
+                                    />
+                                  </a>
+                                ) : message.attachment.type.startsWith("audio/") ? (
+                                  <audio
+                                    className="chat-audio"
+                                    controls
+                                    preload="none"
+                                    src={message.attachment.url}
+                                    aria-label="Voice message"
+                                  />
+                                ) : (
+                                  <a
+                                    className="chat-attachment"
+                                    href={message.attachment.url}
+                                    download={message.attachment.name}
+                                  >
+                                    <span className="flex items-center gap-2 truncate text-xs font-medium">
+                                      <FileText
+                                        size={16}
+                                        className="shrink-0 text-emerald-600 dark:text-emerald-400"
+                                      />
+                                      <span className="truncate max-w-[190px]">
+                                        {message.attachment.name}
+                                      </span>
+                                    </span>
+                                    <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
+                                      <Download size={13} />
+                                      Download
+                                    </span>
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Message Text */}
+                            {message.text && (
+                              <span className="chat-text-content">{message.text}</span>
+                            )}
+
+                            {/* Inline Float Timestamp and Read Receipts */}
+                            <div className="chat-meta">
+                              <time>
+                                {new Date(message.sentAt).toLocaleTimeString("en-IN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                {message.editedAt ? " · edited" : ""}
+                              </time>
+                              {isMine && (
+                                <span
+                                  className={
+                                    message.readAt
+                                      ? "message-status read"
+                                      : "message-status"
+                                  }
+                                  aria-label={message.readAt ? "Read" : "Sent"}
+                                  title={message.readAt ? "Read" : "Sent"}
+                                >
+                                  {message.readAt ? (
+                                    <CheckCheck size={14} className="text-[#53bdeb]" />
+                                  ) : (
+                                    <Check size={14} />
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        )}
+
+                        {/* Reactions Row */}
+                        {message.reactions &&
+                          Object.keys(message.reactions).length > 0 && (
+                            <div className="message-reactions">
+                              {Object.entries(message.reactions).map(
+                                ([emoji, members]) => (
+                                  <button
+                                    type="button"
+                                    key={emoji}
+                                    onClick={() => void reactToMessage(message, emoji)}
+                                    className={`message-reaction-pill ${
+                                      members.includes(role) ? "mine" : ""
+                                    }`}
+                                    title={`Reacted by ${members.join(", ")}`}
+                                  >
+                                    <span>{emoji}</span>
+                                    <span>{members.length}</span>
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                  </Fragment>
+                );
+              })
+            ) : (
+              <div className="chat-empty">
+                <div className="w-14 h-14 rounded-full bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
+                  <MessageCircle size={28} />
+                </div>
+                <strong>No messages yet with {recipientName}</strong>
+                <span>Send a message to start this secure realtime conversation.</span>
               </div>
             )}
-            <label className="attachment-button">
-              <Paperclip size={17} />
-              <input
-                type="file"
-                accept="image/*,.pdf,.doc,.docx,.txt"
-                onChange={(event) =>
-                  setAttachment(event.target.files?.[0] || null)
-                }
-              />
-            </label>
-            <VoiceRecordButton disabled={uploading || Boolean(editingId)} onRecorded={file => { setAttachment(file); setError('') }} onError={setError}/>
-            <div className="emoji-wrap">
-              <button
-                type="button"
-                className="emoji-button"
-                onClick={() => setEmojiOpen((value) => !value)}
-              >
-                <Smile size={17} />
-              </button>
-              {emojiOpen && (
-                <div className="emoji-picker-surface">
-                  <Suspense fallback={<div className="emoji-picker-loading">Loading emoji…</div>}><EmojiPicker width={320} height={390} searchPlaceholder="Search emoji" onEmojiClick={(emojiData) => { setText((value) => value + emojiData.emoji); setEmojiOpen(false); }} /></Suspense>
-                </div>
-              )}
-            </div>
-            <Input
-              value={text}
-              onChange={(event) => updateTyping(event.target.value)}
-              onBlur={stopTyping}
-              placeholder={
-                editingId ? "Edit message" : `Message ${selectedLabel}`
-              }
-            />
-            {editingId && (
-              <button
-                type="button"
-                className="cancel-edit"
-                onClick={() => {
-                  setEditingId(null);
-                  setText("");
-                }}
-              >
-                <X size={15} />
-              </button>
+
+            {typing && (
+              <div className="typing-indicator">
+                <span className="flex items-center gap-1">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </span>
+                <span>{recipientName} is typing…</span>
+              </div>
             )}
-            <Button type="submit" size="icon" disabled={uploading} aria-label={uploading ? "Sending message" : "Send message"}>
-              {uploading ? "…" : <Send size={16} />}
-            </Button>
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          <form className="chat-compose" onSubmit={send} noValidate>
+            {(attachment || editingId) && (
+              <div className="chat-compose-top">
+                {editingId && (
+                  <div className="attachment-chip border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200">
+                    <Pencil size={12} className="text-amber-600" />
+                    <span className="truncate max-w-[240px]">Editing message</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(null);
+                        setText("");
+                      }}
+                      aria-label="Cancel edit"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+                {attachment && (
+                  <div
+                    className={`attachment-chip ${
+                      attachment.type.startsWith("audio/") ? "voice-chip" : ""
+                    }`}
+                  >
+                    {attachment.type.startsWith("audio/") ? (
+                      <VoicePreview file={attachment} />
+                    ) : (
+                      <>
+                        <Paperclip size={13} className="text-emerald-600" />
+                        <span className="truncate max-w-[200px]">
+                          {attachment.name}
+                        </span>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      aria-label="Remove attachment"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="chat-compose-main">
+              <label
+                className="attachment-button"
+                title="Attach file or image"
+                aria-label="Attach file or image"
+              >
+                <Paperclip size={18} />
+                <input
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx,.txt"
+                  onChange={(event) =>
+                    setAttachment(event.target.files?.[0] || null)
+                  }
+                />
+              </label>
+
+              <VoiceRecordButton
+                disabled={uploading || Boolean(editingId)}
+                onRecorded={(file) => {
+                  setAttachment(file);
+                  setError("");
+                }}
+                onError={setError}
+              />
+
+              <div className="emoji-wrap">
+                <button
+                  type="button"
+                  className="emoji-button"
+                  onClick={() => setEmojiOpen((value) => !value)}
+                  title="Add emoji"
+                  aria-label="Add emoji"
+                >
+                  <Smile size={18} />
+                </button>
+                {emojiOpen && (
+                  <div className="emoji-picker-surface">
+                    <Suspense
+                      fallback={
+                        <div className="p-4 bg-white dark:bg-slate-800 text-xs">
+                          Loading emoji…
+                        </div>
+                      }
+                    >
+                      <EmojiPicker
+                        width={320}
+                        height={380}
+                        searchPlaceholder="Search emoji"
+                        onEmojiClick={(emojiData) => {
+                          setText((value) => value + emojiData.emoji);
+                          setEmojiOpen(false);
+                        }}
+                      />
+                    </Suspense>
+                  </div>
+                )}
+              </div>
+
+              <input
+                type="text"
+                className="chat-input-pill"
+                value={text}
+                onChange={(event) => updateTyping(event.target.value)}
+                onBlur={stopTyping}
+                placeholder={
+                  editingId
+                    ? "Edit message..."
+                    : `Message ${recipientName}...`
+                }
+                maxLength={4000}
+              />
+
+              <button
+                type="submit"
+                className="chat-send-btn"
+                disabled={uploading || (!text.trim() && !attachment)}
+                aria-label={uploading ? "Sending message" : "Send message"}
+                title="Send"
+              >
+                {uploading ? (
+                  <span className="animate-spin text-sm">⟳</span>
+                ) : (
+                  <Send size={16} />
+                )}
+              </button>
+            </div>
           </form>
         </div>
       </Card>}

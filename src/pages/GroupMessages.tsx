@@ -1,18 +1,21 @@
 import {
   Check,
   CheckCheck,
+  Download,
+  FileText,
   ImagePlus,
   Info,
   MessageCircle,
   Pencil,
   Plus,
+  Search,
   Send,
   Smile,
   Trash2,
   Users,
   X,
 } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
 import { VoicePreview, VoiceRecordButton } from '../components/shared/VoiceMessage'
@@ -53,6 +56,40 @@ type GroupMessage = {
 
 const EmojiPicker = lazy(() => import('emoji-picker-react'))
 const quickReactions = ['👍', '❤️', '😂', '🙏', '😮']
+
+const senderColorPalette = [
+  'text-emerald-700 dark:text-emerald-400',
+  'text-sky-700 dark:text-sky-400',
+  'text-violet-700 dark:text-violet-400',
+  'text-amber-700 dark:text-amber-400',
+  'text-indigo-700 dark:text-indigo-400',
+  'text-rose-700 dark:text-rose-400',
+  'text-teal-700 dark:text-teal-400',
+  'text-pink-700 dark:text-pink-400',
+]
+function getSenderColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % senderColorPalette.length
+  return senderColorPalette[index]
+}
+
+function messageDateLabel(value: string) {
+  const date = new Date(value)
+  const today = new Date()
+  const startOfDay = (item: Date) =>
+    new Date(item.getFullYear(), item.getMonth(), item.getDate()).getTime()
+  const daysApart = Math.round((startOfDay(today) - startOfDay(date)) / 86_400_000)
+  if (daysApart === 0) return 'Today'
+  if (daysApart === 1) return 'Yesterday'
+  return date.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
+  })
+}
 
 async function imagePayload(file: File) {
   if (
@@ -129,9 +166,25 @@ export function GroupMessages() {
   const [reactionFor, setReactionFor] = useState<string | null>(null)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const active = groups.find((group) => group.id === selected)
   const editingMessage = messages.find((message) => message.id === editingId)
+
+  const filteredGroups = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return groups
+    return groups.filter(
+      (group) =>
+        group.name.toLowerCase().includes(query) ||
+        (group.description && group.description.toLowerCase().includes(query))
+    )
+  }, [groups, searchQuery])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, selected])
 
   const loadGroups = async () => {
     try {
@@ -468,15 +521,13 @@ export function GroupMessages() {
   }
 
   return (
-    <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs flex flex-col md:flex-row h-[720px]">
-      <aside className="w-full md:w-80 border-r border-[var(--border)] flex flex-col bg-[var(--muted)]/15 shrink-0">
-        <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+    <Card className="group-layout panel">
+      <aside className="group-sidebar">
+        <div className="group-sidebar-header">
           <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">
-              Groups
-            </h2>
+            <h2>Groups</h2>
             <p className="text-[11px] text-[var(--muted-foreground)]">
-              Restricted to assigned members
+              Assigned district teams
             </p>
           </div>
           <Button
@@ -493,67 +544,74 @@ export function GroupMessages() {
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-[var(--border)]">
-          {groups.map((group) => (
+        <div className="chat-search-wrap">
+          <Search size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] pointer-events-none" />
+          <input
+            type="text"
+            className="chat-search-input"
+            placeholder="Search groups..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search groups"
+          />
+        </div>
+
+        <div className="group-contacts-list">
+          {filteredGroups.map((group) => (
             <button
               type="button"
               key={group.id}
-              className={`w-full flex items-center gap-3 p-3.5 text-left transition-colors hover:bg-[var(--muted)]/40 ${
-                selected === group.id
-                  ? 'bg-[var(--color-district-50)] dark:bg-[var(--color-district-950)]/40 border-l-2 border-l-[var(--color-district-600)]'
-                  : ''
-              }`}
+              className={
+                selected === group.id ? 'group-contact active' : 'group-contact'
+              }
               onClick={() => setSelected(group.id)}
             >
-              <div className="h-10 w-10 rounded-full bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold text-xs shrink-0">
-                <Users size={16} />
+              <div className="chat-avatar">
+                <Users size={18} />
               </div>
-              <div className="min-w-0 flex-1">
-                <strong className="block text-xs font-semibold text-[var(--foreground)] truncate">
-                  {group.name}
-                </strong>
-                <small className="block text-[11px] text-[var(--muted-foreground)] truncate mt-0.5">
-                  {group.memberCount} members
-                </small>
+              <div className="chat-contact-info">
+                <strong>{group.name}</strong>
+                <small>{group.memberCount} members</small>
               </div>
             </button>
           ))}
 
-          {!groups.length && (
+          {!filteredGroups.length && (
             <div className="py-12 px-4 text-center text-xs text-[var(--muted-foreground)]">
               <Users size={24} className="mx-auto mb-2 opacity-60" />
-              <p>No groups created yet. Create a group to collaborate with team members.</p>
+              <p>No groups found.</p>
             </div>
           )}
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col bg-[var(--card)] min-w-0">
-        <div className="p-4 border-b border-[var(--border)] flex items-center justify-between gap-3 bg-[var(--muted)]/10">
-          <div>
+      <div className="group-window">
+        <div className="group-window-head">
+          <div className="group-window-head-left">
             {active ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="text-base font-semibold text-[var(--foreground)] hover:text-[var(--color-district-600)] hover:underline flex items-center gap-1.5"
-                  onClick={() => void openDetails()}
-                  title="View group details"
-                >
-                  <span>{active.name}</span>
-                  <Info size={14} className="text-[var(--muted-foreground)]" />
-                </button>
-                <Badge variant="outline" className="text-[10px] py-0">
-                  {active.memberCount} members
-                </Badge>
-              </div>
+              <>
+                <div className="chat-avatar">
+                  <Users size={20} />
+                </div>
+                <div className="group-window-head-info">
+                  <button
+                    type="button"
+                    className="text-left hover:underline flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => void openDetails()}
+                    title="View group details"
+                  >
+                    <h2>{active.name}</h2>
+                    <Info size={14} className="text-[var(--muted-foreground)]" />
+                  </button>
+                  <p>{active.memberCount} members · Click to view details</p>
+                </div>
+              </>
             ) : (
-              <h2 className="text-base font-semibold text-[var(--foreground)]">
-                Select a group
-              </h2>
+              <div className="group-window-head-info">
+                <h2>Select a group</h2>
+                <p>Choose a group to start collaborating</p>
+              </div>
             )}
-            <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
-              {active ? 'Click name to view details & member list' : 'Choose a group from the list'}
-            </p>
           </div>
 
           {active?.createdBy === username && (
@@ -570,294 +628,364 @@ export function GroupMessages() {
         </div>
 
         {error && (
-          <div className="p-2.5 mx-4 mt-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-xs font-medium" role="alert">
+          <div
+            className="p-2.5 mx-4 mt-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-xs font-medium"
+            role="alert"
+          >
             {error}
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3" aria-live="polite">
+        <div className="group-messages" aria-live="polite">
           {messages.length ? (
-            messages.map((message) => {
+            messages.map((message, index) => {
               const isMine = message.sender === username
+              const prev = index > 0 ? messages[index - 1] : null
+              const showDivider =
+                index === 0 ||
+                new Date(message.sentAt).toDateString() !==
+                  new Date(prev!.sentAt).toDateString()
+
               return (
-                <div
-                  key={message.id}
-                  className={`flex flex-col max-w-[80%] ${
-                    isMine ? 'ml-auto items-end' : 'mr-auto items-start'
-                  }`}
-                >
-                  <span className="text-[10px] font-semibold text-[var(--muted-foreground)] px-1 mb-0.5">
-                    {message.sender}
-                  </span>
-                  <div
-                    className={`rounded-2xl px-4 py-2.5 text-xs shadow-xs space-y-2 ${
-                      isMine
-                        ? 'bg-[var(--color-district-600)] text-white rounded-br-xs'
-                        : 'bg-[var(--muted)] text-[var(--foreground)] rounded-bl-xs border border-[var(--border)]'
-                    }`}
-                  >
-                    {message.text && (
-                      <p className="leading-relaxed whitespace-pre-wrap">{message.text}</p>
-                    )}
+                <Fragment key={message.id}>
+                  {showDivider && (
+                    <div className="chat-date-divider" role="separator">
+                      {messageDateLabel(message.sentAt)}
+                    </div>
+                  )}
 
-                    {message.attachment &&
-                      (message.attachment.type.startsWith('audio/') ? (
-                        <audio
-                          controls
-                          preload="none"
-                          src={message.attachment.url}
-                          className="w-56 h-8"
-                          aria-label="Voice message"
-                        />
-                      ) : (
-                        <a
-                          href={message.attachment.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block rounded-lg overflow-hidden border border-white/20 mt-1"
-                        >
-                          <img
-                            src={message.attachment.url}
-                            alt={message.attachment.name}
-                            className="max-h-56 object-cover"
-                          />
-                        </a>
-                      ))}
+                  <div className={`chat-message-row ${isMine ? 'mine' : ''}`}>
+                    {/* Hover Actions Bar */}
+                    <div className="message-hover-actions">
+                      <button
+                        type="button"
+                        className="message-action-btn"
+                        onClick={() =>
+                          setReactionFor((current) =>
+                            current === message.id ? null : message.id
+                          )
+                        }
+                        title="React with emoji"
+                        aria-label="React"
+                      >
+                        <Smile size={14} />
+                      </button>
+                      {isMine && (
+                        <>
+                          <button
+                            type="button"
+                            className="message-action-btn"
+                            onClick={() => {
+                              setEditingId(message.id)
+                              setText(message.text)
+                              setImage(null)
+                              setEmojiOpen(false)
+                            }}
+                            title="Edit message"
+                            aria-label="Edit"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            className="message-action-btn delete"
+                            onClick={() => void deleteMessage(message)}
+                            title="Delete message"
+                            aria-label="Delete"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </>
+                      )}
+                    </div>
 
-                    {message.reactions && Object.keys(message.reactions).length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {Object.entries(message.reactions).map(([emoji, users]) => (
+                    {/* Quick Reaction Picker Popup */}
+                    {reactionFor === message.id && (
+                      <div
+                        className={`message-reaction-picker ${
+                          isMine ? 'right-0' : 'left-0'
+                        }`}
+                      >
+                        {quickReactions.map((emoji) => (
                           <button
                             type="button"
                             key={emoji}
-                            className={`px-1.5 py-0.5 rounded text-[10px] flex items-center gap-1 border ${
-                              users.includes(username)
-                                ? 'bg-white/20 border-white/40 text-white'
-                                : 'bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]'
-                            }`}
                             onClick={() => void reactToMessage(message, emoji)}
+                            title={emoji}
                           >
-                            <span>{emoji}</span>
-                            <span>{users.length}</span>
+                            {emoji}
                           </button>
                         ))}
+                        <button
+                          type="button"
+                          onClick={() => setReactionFor(null)}
+                          className="message-action-btn"
+                          style={{ width: 22, height: 22 }}
+                          aria-label="Close"
+                        >
+                          <X size={12} />
+                        </button>
                       </div>
                     )}
-                  </div>
 
-                  <div className="flex items-center gap-1.5 text-[10px] text-[var(--muted-foreground)] px-1 mt-0.5">
-                    <time>
-                      {new Date(message.sentAt).toLocaleTimeString('en-IN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                      {message.editedAt ? ' (edited)' : ''}
-                    </time>
+                    {/* WhatsApp Group Bubble */}
+                    <div className={`group-bubble ${isMine ? 'mine' : ''}`}>
+                      {/* Sender tag for incoming team messages */}
+                      {!isMine && (
+                        <span
+                          className={`text-[12px] font-bold block mb-1 tracking-tight ${getSenderColor(
+                            message.sender
+                          )}`}
+                        >
+                          {message.sender}
+                        </span>
+                      )}
 
-                    {isMine && (
-                      <span title={message.allRead ? 'Read by all' : 'Sent'}>
-                        {message.allRead ? (
-                          <CheckCheck size={12} className="text-emerald-500" />
-                        ) : (
-                          <Check size={12} />
+                      {/* Attachment: Image or Audio */}
+                      {message.attachment && (
+                        <div className="mb-1.5">
+                          {message.attachment.type.startsWith('audio/') ? (
+                            <audio
+                              controls
+                              preload="none"
+                              src={message.attachment.url}
+                              className="chat-audio"
+                              aria-label="Voice message"
+                            />
+                          ) : (
+                            <a
+                              href={message.attachment.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block rounded-lg overflow-hidden hover:opacity-95 transition-opacity"
+                            >
+                              <img
+                                src={message.attachment.url}
+                                alt={message.attachment.name}
+                                className="chat-attachment-img"
+                              />
+                            </a>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Message Text */}
+                      {message.text && (
+                        <span className="chat-text-content">{message.text}</span>
+                      )}
+
+                      {/* Inline Float Timestamp & Read Receipts */}
+                      <div className="chat-meta">
+                        <time>
+                          {new Date(message.sentAt).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                          {message.editedAt ? ' · edited' : ''}
+                        </time>
+                        {isMine && (
+                          <span
+                            className={
+                              message.allRead
+                                ? 'message-status read'
+                                : 'message-status'
+                            }
+                            title={message.allRead ? 'Read by all' : 'Sent'}
+                            aria-label={message.allRead ? 'Read by all' : 'Sent'}
+                          >
+                            {message.allRead ? (
+                              <CheckCheck size={14} className="text-[#53bdeb]" />
+                            ) : (
+                              <Check size={14} />
+                            )}
+                          </span>
                         )}
-                      </span>
-                    )}
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setReactionFor((current) =>
-                          current === message.id ? null : message.id
-                        )
-                      }
-                      className="hover:text-[var(--foreground)]"
-                      aria-label="React"
-                    >
-                      <Smile size={11} />
-                    </button>
-
-                    {isMine && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingId(message.id)
-                            setText(message.text)
-                            setImage(null)
-                            setEmojiOpen(false)
-                          }}
-                          className="hover:text-[var(--foreground)]"
-                          aria-label="Edit"
-                        >
-                          <Pencil size={11} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void deleteMessage(message)}
-                          className="hover:text-rose-500"
-                          aria-label="Delete"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {reactionFor === message.id && (
-                    <div className="flex items-center gap-1 bg-[var(--card)] border border-[var(--border)] rounded-full p-1 shadow-md my-1">
-                      {quickReactions.map((emoji) => (
-                        <button
-                          type="button"
-                          key={emoji}
-                          onClick={() => void reactToMessage(message, emoji)}
-                          className="hover:scale-125 transition-transform p-1 text-sm"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
+                      {/* Reactions Row */}
+                      {message.reactions &&
+                        Object.keys(message.reactions).length > 0 && (
+                          <div className="message-reactions">
+                            {Object.entries(message.reactions).map(
+                              ([emoji, users]) => (
+                                <button
+                                  type="button"
+                                  key={emoji}
+                                  onClick={() => void reactToMessage(message, emoji)}
+                                  className={`message-reaction-pill ${
+                                    users.includes(username) ? 'mine' : ''
+                                  }`}
+                                  title={`Reacted by ${users.join(', ')}`}
+                                >
+                                  <span>{emoji}</span>
+                                  <span>{users.length}</span>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                </Fragment>
               )
             })
           ) : (
-            <div className="py-24 text-center text-sm text-[var(--muted-foreground)]">
-              <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
-              <strong className="block font-semibold text-[var(--foreground)]">
-                {active ? 'No messages in this group yet' : 'Choose a group'}
-              </strong>
-              <span className="text-xs">
-                {active ? 'Send the first message to start the discussion.' : 'Select a group to see communications.'}
+            <div className="chat-empty">
+              <div className="w-14 h-14 rounded-full bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
+                <MessageCircle size={28} />
+              </div>
+              <strong>{active ? 'No messages in this group yet' : 'Choose a group'}</strong>
+              <span>
+                {active
+                  ? 'Send the first message to start the district team discussion.'
+                  : 'Select a group from the sidebar to view conversations.'}
               </span>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
-        <form
-          className="p-3 border-t border-[var(--border)] flex items-center gap-2 bg-[var(--muted)]/10"
-          onSubmit={send}
-          noValidate
-        >
-          <label
-            className="h-9 w-9 rounded-lg flex items-center justify-center cursor-pointer text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
-            title="Add image"
-          >
-            <ImagePlus size={17} />
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                setImage(e.target.files?.[0] || null)
-                setVoice(null)
-              }}
-              disabled={!active || busy || Boolean(editingId)}
-            />
-          </label>
-
-          <VoiceRecordButton
-            disabled={!active || busy || Boolean(editingId)}
-            onRecorded={(file) => {
-              setVoice(file)
-              setImage(null)
-              setError('')
-            }}
-            onError={setError}
-          />
-
-          <div className="relative">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              onClick={() => setEmojiOpen((current) => !current)}
-              disabled={!active || busy}
-              aria-label="Add emoji"
-            >
-              <Smile size={17} />
-            </Button>
-            {emojiOpen && (
-              <div className="absolute bottom-11 left-0 z-20 shadow-xl rounded-xl overflow-hidden border border-[var(--border)]">
-                <Suspense fallback={<div className="p-3 bg-[var(--card)] text-xs">Loading emoji…</div>}>
-                  <EmojiPicker
-                    width={300}
-                    height={350}
-                    onEmojiClick={(emoji) => {
-                      setText((current) => current + emoji.emoji)
-                      setEmojiOpen(false)
+        {/* WhatsApp Compose Bar */}
+        <form className="group-compose" onSubmit={send} noValidate>
+          {(image || voice || editingId) && (
+            <div className="chat-compose-top">
+              {editingId && (
+                <div className="attachment-chip border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200">
+                  <Pencil size={12} className="text-amber-600" />
+                  <span className="truncate max-w-[240px]">Editing message</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(null)
+                      setText('')
                     }}
-                  />
-                </Suspense>
-              </div>
-            )}
-          </div>
+                    aria-label="Cancel edit"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+              {image && (
+                <div className="attachment-chip">
+                  <ImagePlus size={13} className="text-emerald-600" />
+                  <span className="truncate max-w-[200px]">{image.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setImage(null)}
+                    aria-label="Remove image"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+              {voice && (
+                <div className="attachment-chip voice-chip">
+                  <VoicePreview file={voice} />
+                  <button
+                    type="button"
+                    onClick={() => setVoice(null)}
+                    aria-label="Remove voice note"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-          <div className="flex-1 flex items-center gap-2">
-            {image && (
-              <Badge variant="outline" className="text-xs gap-1 py-1">
-                <span className="truncate max-w-28">{image.name}</span>
-                <button type="button" onClick={() => setImage(null)}>
-                  <X size={12} />
-                </button>
-              </Badge>
-            )}
-            {voice && (
-              <div className="flex items-center gap-1">
-                <VoicePreview file={voice} />
-                <button type="button" onClick={() => setVoice(null)}>
-                  <X size={13} />
-                </button>
-              </div>
-            )}
-            <Input
+          <div className="chat-compose-main">
+            <label
+              className="attachment-button"
+              title="Add image"
+              aria-label="Add image"
+            >
+              <ImagePlus size={18} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(e) => {
+                  setImage(e.target.files?.[0] || null)
+                  setVoice(null)
+                }}
+                disabled={!active || busy || Boolean(editingId)}
+              />
+            </label>
+
+            <VoiceRecordButton
+              disabled={!active || busy || Boolean(editingId)}
+              onRecorded={(file) => {
+                setVoice(file)
+                setImage(null)
+                setError('')
+              }}
+              onError={setError}
+            />
+
+            <div className="emoji-wrap">
+              <button
+                type="button"
+                className="emoji-button"
+                onClick={() => setEmojiOpen((current) => !current)}
+                disabled={!active || busy}
+                title="Add emoji"
+                aria-label="Add emoji"
+              >
+                <Smile size={18} />
+              </button>
+              {emojiOpen && (
+                <div className="emoji-picker-surface">
+                  <Suspense
+                    fallback={
+                      <div className="p-4 bg-white dark:bg-slate-800 text-xs">
+                        Loading emoji…
+                      </div>
+                    }
+                  >
+                    <EmojiPicker
+                      width={320}
+                      height={380}
+                      onEmojiClick={(emoji) => {
+                        setText((current) => current + emoji.emoji)
+                        setEmojiOpen(false)
+                      }}
+                    />
+                  </Suspense>
+                </div>
+              )}
+            </div>
+
+            <input
+              type="text"
+              className="chat-input-pill"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={
                 editingId
-                  ? 'Edit message'
+                  ? 'Edit message...'
                   : active
                   ? `Message ${active.name}...`
                   : 'Select a group to type'
               }
               disabled={!active || busy}
               maxLength={4000}
-              className="h-9 text-xs"
             />
-          </div>
 
-          {editingId && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-xs"
-              onClick={() => {
-                setEditingId(null)
-                setText('')
-              }}
-              aria-label="Cancel editing"
+            <button
+              type="submit"
+              className="chat-send-btn"
+              disabled={
+                !active ||
+                busy ||
+                (editingId
+                  ? !text.trim() && !editingMessage?.attachment
+                  : !text.trim() && !image && !voice)
+              }
+              aria-label={editingId ? 'Save edit' : 'Send message'}
+              title={editingId ? 'Save edit' : 'Send message'}
             >
-              <X size={15} />
-            </Button>
-          )}
-
-          <Button
-            type="submit"
-            size="icon"
-            className="h-9 w-9 shrink-0"
-            disabled={
-              !active ||
-              busy ||
-              (editingId
-                ? !text.trim() && !editingMessage?.attachment
-                : !text.trim() && !image && !voice)
-            }
-            aria-label={editingId ? 'Save edit' : 'Send message'}
-          >
-            <Send size={15} />
-          </Button>
+              <Send size={16} />
+            </button>
+          </div>
         </form>
       </div>
 
