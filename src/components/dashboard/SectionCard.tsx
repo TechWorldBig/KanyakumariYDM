@@ -1,4 +1,5 @@
 import { ArrowUpRight, Church, Users } from 'lucide-react'
+import { motion } from 'motion/react'
 import type { Section } from '../../types'
 import { Badge } from '../ui/badge'
 
@@ -10,10 +11,13 @@ export function SectionCard({
   onOpen: (section: Section) => void
 }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={() => onOpen(section)}
-      className="section-card w-full text-left cursor-pointer p-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-[0_4px_20px_-4px_rgba(23,45,85,0.06)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.35)] transition-all duration-200 hover:-translate-y-1 hover:border-district-400 dark:hover:border-district-600 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500 group flex flex-col justify-between"
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="section-card w-full text-left cursor-pointer p-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] shadow-[0_4px_20px_-4px_rgba(23,45,85,0.06)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.35)] hover:border-district-400 dark:hover:border-district-600 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500 group flex flex-col justify-between"
     >
       <div className="w-full">
         <div className="flex items-center justify-between mb-4">
@@ -61,6 +65,6 @@ export function SectionCard({
         <span>Open section workspace</span>
         <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </div>
-    </button>
+    </motion.button>
   )
 }

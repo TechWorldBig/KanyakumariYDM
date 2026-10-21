@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Login } from "../components/auth/Login";
 import { SectionDialog } from "../components/dashboard/SectionDialog";
 import { AddSectionDialog } from "../components/dashboard/AddSectionDialog";
@@ -160,36 +161,45 @@ export default function App() {
           onLogout={logout}
           onOpenMeeting={() => { setPage('YDM meetings'); setProfileOpen(false); setMobile(false); }}
         />
-        <main className="content">
-          {page === "YDM meetings" ? (
-            <YdmMeetingsPage role={role} />
-          ) : page === "Messages" ? (
-            <MessagesPage role={role} />
-          ) : accountType !== "section" && churchId ? (
-            <ChurchAdminPage churchId={churchId} canManage={accountType === "church" && canWrite(role, 'Churches')} />
-          ) : page === "Overview" ? (
-            <OverviewPage
-              role={role}
-              sections={scopedSections}
-              onOpen={setSelectedSection}
-              onNavigate={setPage}
-              onAdd={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
-            />
-          ) : page === "Audit logs" ? (
-            <AuditLogsPage role={role} />
-          ) : page === "Live analytics" && role === "district" ? (
-            <AnalyticsPage />
-          ) : (
-            <WorkspacePage
-              page={page}
-              role={role}
-              section={primarySection}
-              sections={scopedSections}
-              onAddSection={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
-              onOpenSection={setSelectedSection}
-            />
-          )}
-        </main>
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={page + (accountType !== "section" ? churchId || "" : "")}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="content"
+          >
+            {page === "YDM meetings" ? (
+              <YdmMeetingsPage role={role} />
+            ) : page === "Messages" ? (
+              <MessagesPage role={role} />
+            ) : accountType !== "section" && churchId ? (
+              <ChurchAdminPage churchId={churchId} canManage={accountType === "church" && canWrite(role, 'Churches')} />
+            ) : page === "Overview" ? (
+              <OverviewPage
+                role={role}
+                sections={scopedSections}
+                onOpen={setSelectedSection}
+                onNavigate={setPage}
+                onAdd={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
+              />
+            ) : page === "Audit logs" ? (
+              <AuditLogsPage role={role} />
+            ) : page === "Live analytics" && role === "district" ? (
+              <AnalyticsPage />
+            ) : (
+              <WorkspacePage
+                page={page}
+                role={role}
+                section={primarySection}
+                sections={scopedSections}
+                onAddSection={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
+                onOpenSection={setSelectedSection}
+              />
+            )}
+          </motion.main>
+        </AnimatePresence>
       </div>
       {selectedSection && (
         <SectionDialog
