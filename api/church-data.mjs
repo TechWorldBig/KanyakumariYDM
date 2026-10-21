@@ -1,4 +1,4 @@
-import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
+import { ensureSchema, readSession, requireFeatureWrite, securityHeaders, sql } from './_lib.mjs'
 
 const catalog={
  's1-c1':{section:'Section 1',name:'Nagercoil Central Church',location:'Court Road, Nagercoil'},
@@ -27,6 +27,7 @@ export default async function handler(req,res){
   return res.status(200).json({data:row?.data||empty(church),updatedAt:row?.updated_at||null,canManage:session.role==='district'||!scopedAccount||session.managedRole==='church'})
  }
  if(req.method!=='PUT')return res.status(405).json({error:'Method not allowed'})
+ if(!await requireFeatureWrite(session,'Churches',res))return
  if(scopedAccount&&session.managedRole!=='church')return res.status(403).json({error:'Church Admin access required'})
  const data=req.body?.data
  if(!data||typeof data!=='object'||Array.isArray(data))return res.status(400).json({error:'Invalid church data'})

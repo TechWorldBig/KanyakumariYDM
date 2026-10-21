@@ -15,6 +15,7 @@ import { AuditLogsPage } from "../pages/AuditLogsPage";
 import { YdmMeetingsPage } from "../pages/YdmMeetingsPage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
+import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
     [accountType, setAccountType] = useState<AccountType>("section"),
@@ -28,6 +29,14 @@ export default function App() {
     [selectedSection, setSelectedSection] = useState<Section | null>(null),
     [addSectionOpen, setAddSectionOpen] = useState(false),
     [allSections, setAllSections] = useState<Section[]>(initialSections);
+  const [, setAccessVersion] = useState(0);
+  useEffect(() => {
+    if (!role) return;
+    const update = () => setAccessVersion(value => value + 1);
+    window.addEventListener(accessUpdatedEvent, update);
+    void refreshAccess().catch(() => undefined);
+    return () => window.removeEventListener(accessUpdatedEvent, update);
+  }, [role]);
   const scopedSections = useMemo(
     () => role && isDistrictScope(role) ? allSections : allSections.filter((_, index) => role === `section${index + 1}`),
     [role, allSections],
@@ -157,14 +166,14 @@ export default function App() {
           ) : page === "Messages" ? (
             <MessagesPage role={role} />
           ) : accountType !== "section" && churchId ? (
-            <ChurchAdminPage churchId={churchId} canManage={accountType === "church"} />
+            <ChurchAdminPage churchId={churchId} canManage={accountType === "church" && canWrite(role, 'Churches')} />
           ) : page === "Overview" ? (
             <OverviewPage
               role={role}
               sections={scopedSections}
               onOpen={setSelectedSection}
               onNavigate={setPage}
-              onAdd={() => setAddSectionOpen(true)}
+              onAdd={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
             />
           ) : page === "Audit logs" ? (
             <AuditLogsPage role={role} />
@@ -176,7 +185,7 @@ export default function App() {
               role={role}
               section={primarySection}
               sections={scopedSections}
-              onAddSection={() => setAddSectionOpen(true)}
+              onAddSection={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
               onOpenSection={setSelectedSection}
             />
           )}
@@ -187,10 +196,11 @@ export default function App() {
           section={selectedSection}
           onClose={() => setSelectedSection(null)}
           isDistrict={role === "district"}
-          canManageCredentials={role === "district" || /^section[1-4]$/.test(role)}
-          canEditSection={role === "district" || selectedSection.name === scopedSections[0]?.name}
-          onSaveSection={(nextSection) => { setAllSections((current) => current.map((item) => item.name === selectedSection.name ? nextSection : item)); setSelectedSection(nextSection); }}
-          onRemove={() => {
+          canManageCredentials={(role === "district" || /^section[1-4]$/.test(role)) && canWrite(role, 'Sections') && canWrite(role, 'Churches')}
+          canEditSection={(role === "district" || selectedSection.name === scopedSections[0]?.name) && canWrite(role, 'Sections')}
+          canDeleteSection={role === 'district' && canWrite(role, 'Sections')}
+          onSaveSection={(nextSection) => { if (!canWrite(role, 'Sections')) return; setAllSections((current) => current.map((item) => item.name === selectedSection.name ? nextSection : item)); setSelectedSection(nextSection); }}
+          onRemove={() => { if (!canWrite(role, 'Sections')) return;
             setAllSections((current) =>
               current.filter((item) => item.name !== selectedSection.name),
             );
@@ -198,7 +208,7 @@ export default function App() {
           }}
         />
       )}
-      {addSectionOpen && (
+      {addSectionOpen && canWrite(role, 'Sections') && (
         <AddSectionDialog
           onClose={() => setAddSectionOpen(false)}
           onCreate={(section) => {

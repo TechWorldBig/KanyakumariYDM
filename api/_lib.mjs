@@ -1,12 +1,13 @@
 import { neon } from '@neondatabase/serverless'
 import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 export const sql = neon(process.env.DATABASE_URL || process.env.POSTGRES_URL)
-export function securityHeaders(res){res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()')}
+export function securityHeaders(res){res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('X-Frame-Options','DENY');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Permissions-Policy','camera=(), microphone=(self), geolocation=()')}
 export async function ensureSchema(){
  await sql.query('CREATE TABLE IF NOT EXISTS active_sessions (id text PRIMARY KEY, username text NOT NULL, role text NOT NULL, section_scope text, ip_hash text NOT NULL, user_agent text, last_seen timestamptz NOT NULL DEFAULT now(), created_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS traffic_events (id bigserial PRIMARY KEY, ip_hash text NOT NULL, path text NOT NULL, visited_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS session_activity (id bigserial PRIMARY KEY, username text NOT NULL, role text NOT NULL, section_scope text, action text NOT NULL, occurred_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS managed_accounts (username text PRIMARY KEY, password_hash text NOT NULL, role text NOT NULL, section_scope text, created_at timestamptz NOT NULL DEFAULT now())')
+ await sql.query("CREATE TABLE IF NOT EXISTS access_permissions (role text NOT NULL, feature text NOT NULL, level text NOT NULL CHECK (level IN ('manage','edit','view','none')), PRIMARY KEY(role,feature))")
  await sql.query('ALTER TABLE managed_accounts ADD COLUMN IF NOT EXISTS church_id text')
  await sql.query('CREATE TABLE IF NOT EXISTS church_workspaces (church_id text PRIMARY KEY, section_scope text NOT NULL, data jsonb NOT NULL DEFAULT \'{}\'::jsonb, updated_at timestamptz NOT NULL DEFAULT now())')
  await sql.query('CREATE TABLE IF NOT EXISTS ydm_meetings (id bigserial PRIMARY KEY, title text NOT NULL, meet_url text NOT NULL, started_by text NOT NULL, started_role text NOT NULL, started_at timestamptz NOT NULL DEFAULT now(), scheduled_for timestamptz NOT NULL DEFAULT now(), attendee_emails text[] NOT NULL DEFAULT ARRAY[]::text[], active boolean NOT NULL DEFAULT true)')
@@ -36,6 +37,19 @@ export async function ensureSchema(){
  await sql.query('CREATE INDEX IF NOT EXISTS chat_group_messages_group_idx ON chat_group_messages(group_id,sent_at DESC)')
  await sql.query('CREATE TABLE IF NOT EXISTS chat_group_notifications (id bigserial PRIMARY KEY, username text NOT NULL, group_name text NOT NULL, deleted_by text NOT NULL, deleted_at timestamptz NOT NULL DEFAULT now(), read_at timestamptz)')
  await sql.query('CREATE INDEX IF NOT EXISTS chat_group_notifications_user_idx ON chat_group_notifications(username,deleted_at DESC)')
+}
+const accessRoleName=role=>({district:'District Super Admin','head-pastor':'Head Pastor','think-tank':'Think Tank Admin','section-pastor':'Section Pastor Admin','church-pastor':'Pastor of Church','district-ydm':'District YDM Leader','district-women':'District Women Leader'}[role]||(/^section[1-4]$/.test(role)?'Section Super Admin':role))
+export async function serverAccessLevel(role,feature){
+ const names=[accessRoleName(role)]
+ if(/^section[1-4]$/.test(role))names.push(`Section ${role.slice(-1)} Super Admin`)
+ const rows=await sql.query('SELECT level FROM access_permissions WHERE role=ANY($1::text[]) AND feature=$2 ORDER BY CASE WHEN role=$3 THEN 0 ELSE 1 END LIMIT 1',[names,feature,names[0]])
+ return rows[0]?.level||(role==='district'||/^section[1-4]$/.test(role)?'manage':role==='head-pastor'?'view':'view')
+}
+export async function requireFeatureWrite(session,feature,res){
+ const level=await serverAccessLevel(session.role,feature)
+ if(level==='manage'||level==='edit')return true
+ res.status(403).json({error:`${feature} is view only for your role`})
+ return false
 }
 export const clientIp=req=>String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'unknown').split(',')[0].trim()
 export const hashIp=ip=>{const salt=process.env.IP_HASH_SALT;if(!salt||salt.length<16)throw new Error('IP_HASH_SALT must be configured');return createHash('sha256').update(salt+ip).digest('hex')}

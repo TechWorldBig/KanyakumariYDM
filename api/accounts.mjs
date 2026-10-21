@@ -1,4 +1,4 @@
-import { ensureSchema, hashPassword, readSession, securityHeaders, sql } from './_lib.mjs'
+import { ensureSchema, hashPassword, readSession, requireFeatureWrite, securityHeaders, sql } from './_lib.mjs'
 
 const sectionName = role => /^section[1-4]$/.test(role) ? `Section ${role.slice(-1)}` : null
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -8,6 +8,17 @@ export default async function handler(req,res){
  const session=readSession(req)
  if(!session)return res.status(401).json({error:'Sign in to manage accounts'})
  await ensureSchema()
+ if(req.query?.mode==='access'){
+  if(req.method==='GET'){
+   const rows=await sql.query('SELECT role,feature,level FROM access_permissions ORDER BY role,feature')
+   return res.status(200).json({permissions:rows})
+  }
+  if(req.method!=='PUT'||session.role!=='district')return res.status(403).json({error:'District administration required'})
+  const role=String(req.body?.role||''),feature=String(req.body?.feature||''),level=String(req.body?.level||'')
+  if(role.length>80||!role||!['Overview','Sections','Churches','Users','Reports','Audit logs','Live analytics','YDM meetings'].includes(feature)||!['manage','edit','view','none'].includes(level))return res.status(400).json({error:'Invalid permission'})
+  await sql.query('INSERT INTO access_permissions(role,feature,level) VALUES($1,$2,$3) ON CONFLICT(role,feature) DO UPDATE SET level=EXCLUDED.level',[role,feature,level])
+  return res.status(200).json({role,feature,level})
+ }
  if(req.query?.mode==='profile'){
   if(req.method==='GET'){
    await sql.query("UPDATE user_profiles SET profile_role=$2 WHERE username=$1 AND (profile_role IS NULL OR profile_role='')",[session.username,session.role])
@@ -38,15 +49,17 @@ export default async function handler(req,res){
   const username=String(req.body?.username||'').trim().toLowerCase()
   if(!username)return res.status(400).json({error:'Username is required'})
   const rows=session.role==='district'
-   ? await sql.query('SELECT username,section_scope FROM managed_accounts WHERE username=$1',[username])
-   : await sql.query('SELECT username,section_scope FROM managed_accounts WHERE username=$1 AND section_scope=$2',[username,administratorScope])
+   ? await sql.query('SELECT username,section_scope,role FROM managed_accounts WHERE username=$1',[username])
+   : await sql.query('SELECT username,section_scope,role FROM managed_accounts WHERE username=$1 AND section_scope=$2',[username,administratorScope])
   if(!rows.length)return res.status(404).json({error:'Account not found in your scope'})
+  if(!await requireFeatureWrite(session,rows[0].role==='church'?'Churches':'Users',res))return
   await sql.query('DELETE FROM managed_accounts WHERE username=$1',[username])
   await sql.query('DELETE FROM active_sessions WHERE username=$1',[username])
   await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,rows[0].section_scope,`Deleted account ${username}`])
   return res.status(204).end()
  }
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'})
+ if(!await requireFeatureWrite(session,req.body?.role==='church'?'Churches':'Users',res))return
  const body=req.body||{}
  const username=String(body.username||'').trim().toLowerCase()
  const password=String(body.password||'')

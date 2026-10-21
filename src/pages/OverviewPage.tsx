@@ -12,6 +12,7 @@ import { dashboardDate, greeting } from "../utils/date";
 import { Metric } from "../components/shared/Metric";
 import { SectionCard } from "../components/dashboard/SectionCard";
 import type { Page, Section, UserRole } from "../types";
+import { canWrite } from '../domain/access';
 export function OverviewPage({
   role,
   sections,
@@ -98,7 +99,7 @@ export function OverviewPage({
         {sections.map((section) => (
           <SectionCard key={section.name} section={section} onOpen={onOpen} />
         ))}
-        {district && (
+        {district && canWrite(role, 'Sections') && (
           <button className="add-card" onClick={onAdd}>
             <div>
               <Plus size={19} />

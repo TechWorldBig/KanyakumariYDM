@@ -4,6 +4,7 @@ import { churches } from '../data/churches'
 import type { Page, Section, UserRole } from '../types'
 import { isDistrictScope } from '../domain/permissions'
 import { AccessControlWorkspace } from '../components/dashboard/AccessControlWorkspace'
+import { canWrite } from '../domain/access'
 
 type AddedRecord = { id: string; name: string; detail: string; section: string; username: string }
 type ManagedPage = 'Churches' | 'Users'
@@ -16,7 +17,7 @@ export function WorkspacePage({ page, role, section, sections, onAddSection, onO
   const [deleted, setDeleted] = useState<string[]>([])
   const [actionError, setActionError] = useState('')
   const visibleChurches = churches.filter((church) => (isDistrictScope(role) || church.section === section.name) && !deleted.includes(church.id))
-  const canManage = role !== 'head-pastor'
+  const canManage = role !== 'head-pastor' && canWrite(role, page)
   const add = () => page === 'Sections' ? onAddSection() : (page === 'Churches' || page === 'Users') && setAdding(page)
   const remove = async (username: string, id: string, kind: ManagedPage) => { setActionError(''); try { const response = await fetch('/api/accounts', { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }); if (!response.ok) { const result = await response.json().catch(() => ({})); throw new Error(result.error || 'Could not delete this account.'); } if (kind === 'Churches') { setAddedChurches((items) => items.filter((item) => item.id !== id)); setDeleted((items) => [...items, id]) } else setAddedUsers((items) => items.filter((item) => item.id !== id)) } catch (reason) { setActionError(reason instanceof Error ? reason.message : 'Could not reach the account service.'); } }
   const create = async (record: AddedRecord, password: string) => { setActionError(''); try { const response = await fetch('/api/accounts', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: record.username, password, role: adding === 'Churches' ? 'church' : 'user', section_scope: record.section }) }); if (!response.ok) { const result = await response.json().catch(() => ({})); setActionError(result.error || 'Could not save this account.'); return false; } const setter = adding === 'Churches' ? setAddedChurches : setAddedUsers; setter((current) => { const next = [...current, record]; localStorage.setItem(`district_added_${adding?.toLowerCase()}`, JSON.stringify(next)); return next }); setAdding(null); return true } catch { setActionError('Could not reach the account service. Try again.'); return false; } }
