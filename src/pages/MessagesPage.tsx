@@ -17,6 +17,9 @@ import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 import { GroupMessages } from './GroupMessages';
 import { VoicePreview, VoiceRecordButton } from '../components/shared/VoiceMessage';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { Input } from '../components/ui/input';
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
 const quickReactions = ["\u{1F44D}", "\u{2764}\u{FE0F}", "\u{1F602}", "\u{1F64F}", "\u{1F62E}"];
@@ -410,7 +413,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       </div>
       {view === 'people' && error && <div className="form-error">{error}</div>}
       <div className="message-view-tabs" role="tablist" aria-label="Messages view"><button type="button" role="tab" aria-selected={view === 'people'} className={view === 'people' ? 'active' : ''} onClick={() => setView('people')}>People</button><button type="button" role="tab" aria-selected={view === 'groups'} className={view === 'groups' ? 'active' : ''} onClick={() => setView('groups')}>Groups</button></div>
-      {view === 'groups' ? <GroupMessages /> : <div className="chat-layout panel">
+      {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
         <aside className="chat-contacts">
           <h2>People</h2>
           {recipients
@@ -573,7 +576,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 </div>
               )}
             </div>
-            <input
+            <Input
               value={text}
               onChange={(event) => updateTyping(event.target.value)}
               onBlur={stopTyping}
@@ -593,12 +596,12 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 <X size={15} />
               </button>
             )}
-            <button className="primary" disabled={uploading}>
+            <Button type="submit" size="icon" disabled={uploading} aria-label={uploading ? "Sending message" : "Send message"}>
               {uploading ? "…" : <Send size={16} />}
-            </button>
+            </Button>
           </form>
         </div>
-      </div>}
+      </Card>}
     </section>
   );
 }

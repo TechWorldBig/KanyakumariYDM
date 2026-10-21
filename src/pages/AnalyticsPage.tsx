@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Activity, Eye, Globe2, RefreshCw, Users } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Metric } from "../components/shared/Metric";
 type Session = {
   username: string;
   role: string;
@@ -55,39 +58,39 @@ export function AnalyticsPage() {
             salted hashes.
           </p>
         </div>
-        <button className="subtle" onClick={load}>
+        <Button variant="outline" onClick={load}>
           <RefreshCw size={15} />
           Refresh
-        </button>
+        </Button>
       </div>
       {error && <div className="form-error analytics-error">{error}</div>}
       <div className="metrics">
-        <AnalyticsMetric
+        <Metric
           icon={Activity}
           label="Online now"
           value={String(data?.onlineCount ?? 0)}
           tone="green"
         />
-        <AnalyticsMetric
+        <Metric
           icon={Eye}
           label="Visits today"
           value={String(data?.visitsToday ?? 0)}
           tone="blue"
         />
-        <AnalyticsMetric
+        <Metric
           icon={Globe2}
           label="Unique visitors"
           value={String(data?.uniqueVisitorsToday ?? 0)}
           tone="orange"
         />
-        <AnalyticsMetric
+        <Metric
           icon={Users}
           label="Tracked sessions"
           value={String(data?.online.length ?? 0)}
           tone="violet"
         />
       </div>
-      <div className="panel live-panel">
+      <Card className="panel live-panel">
         <div className="panel-heading">
           <div>
             <h2>Currently online</h2>
@@ -138,8 +141,8 @@ export function AnalyticsPage() {
             </div>
           )}
         </div>
-      </div>
-      <div className="panel activity-panel">
+      </Card>
+      <Card className="panel activity-panel">
         <div className="panel-heading">
           <div>
             <h2>Last activity</h2>
@@ -156,32 +159,8 @@ export function AnalyticsPage() {
             </div>
           )) : <div className="empty-live"><Activity size={24}/><strong>No activity yet</strong><span>Login and logout activity will appear here.</span></div>}
         </div>
-      </div>
+      </Card>
     </>
-  );
-}
-function AnalyticsMetric({
-  icon: Icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  tone: string;
-}) {
-  return (
-    <div className="metric">
-      <div className={"metric-icon " + tone}>
-        <Icon size={18} />
-      </div>
-      <div>
-        <span>{label}</span>
-        <strong>{value}</strong>
-        <small>Updates automatically</small>
-      </div>
-    </div>
   );
 }
 function friendlyDevice(agent: string) {
