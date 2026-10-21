@@ -1,5 +1,5 @@
-import { ExternalLink, RefreshCw, Trash2, Video } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Calendar, ExternalLink, RefreshCw, Search, Trash2, Video, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { canWrite } from '../domain/access'
 import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
@@ -49,6 +49,27 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
   const [reason, setReason] = useState('')
   const [profileEmail, setProfileEmail] = useState('')
   const [minimumTime, setMinimumTime] = useState(earliestMeetingTime)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'cancelled'>('all')
+
+  const activeCount = useMemo(() => meetings.filter((m) => m.active).length, [meetings])
+  const cancelledCount = useMemo(() => meetings.filter((m) => !m.active).length, [meetings])
+
+  const filteredMeetings = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    return meetings.filter((m) => {
+      if (statusFilter === 'active' && !m.active) return false
+      if (statusFilter === 'cancelled' && m.active) return false
+      if (!query) return true
+      return (
+        m.title.toLowerCase().includes(query) ||
+        m.started_by.toLowerCase().includes(query) ||
+        (m.attendee_emails &&
+          m.attendee_emails.some((email) => email.toLowerCase().includes(query)))
+      )
+    })
+  }, [meetings, statusFilter, searchQuery])
+
   const canSchedule =
     role === 'district' || role === 'district-ydm' || canWrite(role, 'YDM meetings')
 
@@ -240,31 +261,113 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
         </Card>
       )}
 
-      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
-        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">
-              Scheduled Meetings
-            </h2>
-            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-              Current active and past district video conferences.
-            </p>
+      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs flex flex-col">
+        {/* Sticky Header with Search and Quick Filters */}
+        <div className="p-4 border-b border-[var(--border)] bg-[var(--card)] sticky top-0 z-10 shadow-xs flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-[var(--color-district-600)] dark:text-[var(--color-district-400)]" />
+                <h2 className="text-base font-semibold text-[var(--foreground)]">
+                  Scheduled Meetings
+                </h2>
+              </div>
+              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                Current active and past district video conferences.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <Badge variant="success" className="text-xs font-semibold">
+                {activeCount} Active
+              </Badge>
+              <Badge variant="blue" className="text-xs font-semibold">
+                {meetings.length} Total
+              </Badge>
+            </div>
           </div>
-          <Badge variant="blue" className="text-xs">
-            {meetings.length} Total
-          </Badge>
+
+          {meetings.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1 border-t border-[var(--border)]/70">
+              <div className="relative flex-1">
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] pointer-events-none"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Filter meetings by title or host..."
+                  className="w-full h-8 pl-8 pr-7 text-xs rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--foreground)] outline-none focus:border-[var(--color-district-500)] focus:ring-1 focus:ring-[var(--color-district-500)]"
+                  aria-label="Filter meetings"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    aria-label="Clear search"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('all')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                    statusFilter === 'all'
+                      ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
+                      : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
+                  }`}
+                >
+                  All ({meetings.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('active')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                    statusFilter === 'active'
+                      ? 'bg-emerald-600 text-white dark:bg-emerald-700'
+                      : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
+                  }`}
+                >
+                  Active ({activeCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('cancelled')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                    statusFilter === 'cancelled'
+                      ? 'bg-rose-600 text-white dark:bg-rose-700'
+                      : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
+                  }`}
+                >
+                  Cancelled ({cancelledCount})
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="divide-y divide-[var(--border)]" role="region" aria-label="Meeting notifications list" tabIndex={0}>
+        {/* Fixed Scrollable Meeting Events Container */}
+        <div
+          className="divide-y divide-[var(--border)] max-h-[520px] overflow-y-auto"
+          role="region"
+          aria-label="Scheduled meetings list"
+          tabIndex={0}
+        >
           {loading && !meetings.length ? (
-            <div className="py-12 text-center text-xs text-[var(--muted-foreground)]">
+            <div className="py-16 text-center text-xs text-[var(--muted-foreground)]">
+              <RefreshCw size={20} className="mx-auto mb-2 animate-spin opacity-50" />
               Loading meeting notifications…
             </div>
-          ) : meetings.length ? (
-            meetings.map((meeting) => (
+          ) : filteredMeetings.length ? (
+            filteredMeetings.map((meeting) => (
               <article
                 className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                  meeting.active ? 'hover:bg-[var(--muted)]/30' : 'bg-[var(--muted)]/15 opacity-75'
+                  meeting.active ? 'hover:bg-[var(--muted)]/30' : 'bg-[var(--muted)]/15 opacity-80'
                 }`}
                 key={meeting.id}
               >
@@ -296,7 +399,10 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       })}{' '}
-                      · Initiated by <strong className="text-[var(--foreground)] font-medium">{meeting.started_by}</strong>
+                      · Initiated by{' '}
+                      <strong className="text-[var(--foreground)] font-medium">
+                        {meeting.started_by}
+                      </strong>
                     </p>
 
                     {meeting.active ? (
@@ -308,7 +414,8 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                       )
                     ) : (
                       <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
-                        <strong>Cancelled by {meeting.cancelled_by}:</strong> {meeting.cancellation_reason}
+                        <strong>Cancelled by {meeting.cancelled_by}:</strong>{' '}
+                        {meeting.cancellation_reason}
                       </p>
                     )}
                   </div>
@@ -345,9 +452,29 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 )}
               </article>
             ))
+          ) : meetings.length ? (
+            <div className="py-12 text-center text-xs text-[var(--muted-foreground)]">
+              No meetings found matching your filter.
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('')
+                  setStatusFilter('all')
+                }}
+                className="block mx-auto mt-2 text-xs font-medium text-[var(--color-district-600)] dark:text-[var(--color-district-400)] hover:underline"
+              >
+                Clear filter
+              </button>
+            </div>
           ) : (
-            <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
-              No upcoming YDM meetings scheduled.
+            <div className="py-14 text-center text-sm text-[var(--muted-foreground)]">
+              <Video size={28} className="mx-auto mb-2 opacity-40" />
+              <strong className="block font-semibold text-[var(--foreground)]">
+                No scheduled meetings
+              </strong>
+              <span className="text-xs">
+                Schedule a meeting above to notify district leaders with a Google Meet link.
+              </span>
             </div>
           )}
         </div>
