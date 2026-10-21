@@ -1,179 +1,280 @@
-import { useEffect, useState } from "react";
-import { Activity, Eye, Globe2, RefreshCw, Users } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
-import { Metric } from "../components/shared/Metric";
+import { useEffect, useState } from 'react'
+import {
+  Activity,
+  CheckCircle2,
+  Eye,
+  Globe2,
+  Laptop,
+  Monitor,
+  RefreshCw,
+  Smartphone,
+  Users,
+} from 'lucide-react'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Card } from '../components/ui/card'
+import { Metric } from '../components/shared/Metric'
+
 type Session = {
-  username: string;
-  role: string;
-  section_scope: string | null;
-  ip_reference: string;
-  user_agent: string;
-  last_seen: string;
-};
+  username: string
+  role: string
+  section_scope: string | null
+  ip_reference: string
+  user_agent: string
+  last_seen: string
+}
+
 type Analytics = {
-  onlineCount: number;
-  visitsToday: number;
-  uniqueVisitorsToday: number;
-  online: Session[];
-  recentActivity: ActivityRecord[];
-};
+  onlineCount: number
+  visitsToday: number
+  uniqueVisitorsToday: number
+  online: Session[]
+  recentActivity: ActivityRecord[]
+}
+
 type ActivityRecord = {
-  username: string;
-  role: string;
-  section_scope: string | null;
-  action: string;
-  occurred_at: string;
-};
+  username: string
+  role: string
+  section_scope: string | null
+  action: string
+  occurred_at: string
+}
+
 export function AnalyticsPage() {
-  const [data, setData] = useState<Analytics | null>(null),
-    [error, setError] = useState("");
+  const [data, setData] = useState<Analytics | null>(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
   async function load() {
+    setLoading(true)
     try {
-      const response = await fetch("/api/analytics", {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error();
-      setData(await response.json());
-      setError("");
+      const response = await fetch('/api/analytics', {
+        credentials: 'include',
+      })
+      if (!response.ok) throw new Error()
+      setData(await response.json())
+      setError('')
     } catch {
       setError(
-        "Live analytics are unavailable. Check the Vercel environment variables and deployment.",
-      );
+        'Live analytics are unavailable. Check the Vercel environment variables and deployment.'
+      )
+    } finally {
+      setLoading(false)
     }
   }
+
   useEffect(() => {
-    load();
-    const timer = window.setInterval(load, 30000);
-    return () => window.clearInterval(timer);
-  }, []);
+    load()
+    const timer = window.setInterval(load, 30000)
+    return () => window.clearInterval(timer)
+  }, [])
+
   return (
-    <>
-      <div className="page-heading">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="eyebrow">District Super Admin only</span>
-          <h1>Live usage</h1>
-          <p className="muted">
-            Current sessions and today’s traffic. IP addresses are stored as
-            salted hashes.
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            District Super Admin Only
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
+            Live Usage & Sessions
+          </h1>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            Real-time active sessions and traffic metrics. IP addresses are cryptographically hashed for privacy.
           </p>
         </div>
-        <Button variant="outline" onClick={load}>
-          <RefreshCw size={15} />
-          Refresh
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={load}
+          disabled={loading}
+          className="shrink-0"
+        >
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
         </Button>
       </div>
-      {error && <div className="form-error analytics-error">{error}</div>}
-      <div className="metrics">
+
+      {error && (
+        <div
+          className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Metric
           icon={Activity}
-          label="Online now"
+          label="Online Now"
           value={String(data?.onlineCount ?? 0)}
           tone="green"
         />
         <Metric
           icon={Eye}
-          label="Visits today"
+          label="Visits Today"
           value={String(data?.visitsToday ?? 0)}
           tone="blue"
         />
         <Metric
           icon={Globe2}
-          label="Unique visitors"
+          label="Unique Visitors"
           value={String(data?.uniqueVisitorsToday ?? 0)}
           tone="orange"
         />
         <Metric
           icon={Users}
-          label="Tracked sessions"
+          label="Tracked Sessions"
           value={String(data?.online.length ?? 0)}
           tone="violet"
         />
       </div>
-      <Card className="panel live-panel">
-        <div className="panel-heading">
+
+      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
+        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20 flex items-center justify-between">
           <div>
-            <h2>Currently online</h2>
-            <p className="muted">
-              A session is online when seen within the last minute.
+            <h2 className="text-base font-semibold text-[var(--foreground)]">
+              Active Sessions
+            </h2>
+            <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+              Sessions seen within the last 60 seconds are designated active.
             </p>
           </div>
-          <span className="live-badge">
-            <i />
+          <Badge variant="success" dot className="animate-pulse">
             Live
-          </span>
+          </Badge>
         </div>
-        <div className="session-list">
+
+        <div className="divide-y divide-[var(--border)]">
           {data?.online.length ? (
             data.online.map((session) => (
               <div
-                className="session-row"
                 key={session.username + session.last_seen}
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 hover:bg-[var(--muted)]/30 transition-colors"
               >
-                <div className="avatar">
-                  {session.username.slice(0, 2).toUpperCase()}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold text-xs shrink-0">
+                    {session.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <strong className="block text-sm font-semibold text-[var(--foreground)] truncate">
+                      {session.username}
+                    </strong>
+                    <span className="text-xs text-[var(--muted-foreground)] truncate block mt-0.5">
+                      {session.role === 'district'
+                        ? 'District Super Admin'
+                        : session.section_scope || 'Member'}
+                    </span>
+                  </div>
                 </div>
-                <div className="session-person">
-                  <strong>{session.username}</strong>
-                  <span>
-                    {session.role === "district"
-                      ? "District Super Admin"
-                      : session.section_scope}
-                  </span>
+
+                <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto pl-13 sm:pl-0 flex-wrap">
+                  <code className="text-xs font-mono bg-[var(--muted)] text-[var(--muted-foreground)] px-2 py-0.5 rounded border border-[var(--border)]">
+                    {session.ip_reference}…
+                  </code>
+                  <Badge variant="outline" className="text-xs gap-1">
+                    {getDeviceIcon(session.user_agent)}
+                    {friendlyDevice(session.user_agent)}
+                  </Badge>
+                  <time className="text-xs text-[var(--muted-foreground)] font-medium">
+                    {new Date(session.last_seen).toLocaleTimeString('en-IN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </time>
                 </div>
-                <code>{session.ip_reference}…</code>
-                <span className="session-device">
-                  {friendlyDevice(session.user_agent)}
-                </span>
-                <time>
-                  {new Date(session.last_seen).toLocaleTimeString("en-IN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </time>
               </div>
             ))
           ) : (
-            <div className="empty-live">
-              <Activity size={24} />
-              <strong>No active sessions</strong>
-              <span>Online users will appear here after they sign in.</span>
+            <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+              <Activity size={28} className="mx-auto text-[var(--muted-foreground)] mb-2" />
+              <strong className="block font-semibold text-[var(--foreground)]">No active sessions</strong>
+              <span className="text-xs">Online administrators will appear here once authenticated.</span>
             </div>
           )}
         </div>
       </Card>
-      <Card className="panel activity-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Last activity</h2>
-            <p className="muted">Who logged in or out and when.</p>
-          </div>
+
+      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
+        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/20">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">
+            Recent Authentication Activity
+          </h2>
+          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+            Log of user sign-in and sign-out events across the district.
+          </p>
         </div>
-        <div className="activity-table">
-          {data?.recentActivity?.length ? data.recentActivity.map((item) => (
-            <div className="activity-table-row" key={item.username + item.occurred_at}>
-              <div className="avatar">{item.username.slice(0, 2).toUpperCase()}</div>
-              <div><strong>{item.username}</strong><span>{item.role === "district" ? "District Super Admin" : item.section_scope}</span></div>
-              <b className={item.action === "Logged in" ? "activity-in" : "activity-out"}>{item.action}</b>
-              <time>{relativeTime(item.occurred_at)}</time>
+
+        <div className="divide-y divide-[var(--border)]">
+          {data?.recentActivity?.length ? (
+            data.recentActivity.map((item) => (
+              <div
+                key={item.username + item.occurred_at}
+                className="flex items-center justify-between p-3.5 hover:bg-[var(--muted)]/30 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-8 w-8 rounded-full bg-[var(--muted)] text-[var(--foreground)] flex items-center justify-center font-bold text-xs shrink-0 border border-[var(--border)]">
+                    {item.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <strong className="block text-xs font-semibold text-[var(--foreground)] truncate">
+                      {item.username}
+                    </strong>
+                    <span className="text-[11px] text-[var(--muted-foreground)] truncate block">
+                      {item.role === 'district'
+                        ? 'District Super Admin'
+                        : item.section_scope || 'User'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <Badge
+                    variant={item.action === 'Logged in' ? 'success' : 'outline'}
+                    className="text-xs"
+                  >
+                    {item.action}
+                  </Badge>
+                  <time className="text-xs text-[var(--muted-foreground)]">
+                    {relativeTime(item.occurred_at)}
+                  </time>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-12 text-center text-sm text-[var(--muted-foreground)]">
+              No recent authentication activity recorded.
             </div>
-          )) : <div className="empty-live"><Activity size={24}/><strong>No activity yet</strong><span>Login and logout activity will appear here.</span></div>}
+          )}
         </div>
       </Card>
-    </>
-  );
+    </div>
+  )
 }
+
 function friendlyDevice(agent: string) {
-  if (/mobile|android|iphone/i.test(agent)) return "Mobile";
-  if (/windows/i.test(agent)) return "Windows";
-  if (/macintosh/i.test(agent)) return "Mac";
-  return "Web browser";
+  if (/mobile|android|iphone/i.test(agent)) return 'Mobile'
+  if (/windows/i.test(agent)) return 'Windows PC'
+  if (/macintosh/i.test(agent)) return 'macOS'
+  return 'Web Browser'
 }
+
+function getDeviceIcon(agent: string) {
+  if (/mobile|android|iphone/i.test(agent)) return <Smartphone size={12} />
+  if (/windows/i.test(agent)) return <Monitor size={12} />
+  if (/macintosh/i.test(agent)) return <Laptop size={12} />
+  return <Globe2 size={12} />
+}
+
 function relativeTime(value: string) {
-  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
-  if (minutes < 1) return "This minute";
-  if (minutes === 1) return "1 minute ago";
-  if (minutes < 60) return minutes + " minutes ago";
-  const hours = Math.floor(minutes / 60);
-  return hours === 1 ? "1 hour ago" : hours + " hours ago";
+  const minutes = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(value).getTime()) / 60000)
+  )
+  if (minutes < 1) return 'This minute'
+  if (minutes === 1) return '1 minute ago'
+  if (minutes < 60) return `${minutes} minutes ago`
+  const hours = Math.floor(minutes / 60)
+  return hours === 1 ? '1 hour ago' : `${hours} hours ago`
 }

@@ -10,6 +10,7 @@ import {
   Smile,
   Trash2,
   UserRound,
+  Users,
   X,
 } from "lucide-react";
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -17,9 +18,11 @@ import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 import { GroupMessages } from './GroupMessages';
 import { VoicePreview, VoiceRecordButton } from '../components/shared/VoiceMessage';
+import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
+import { TabsList, TabTrigger } from '../components/ui/tabs';
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
 const quickReactions = ["\u{1F44D}", "\u{2764}\u{FE0F}", "\u{1F602}", "\u{1F64F}", "\u{1F62E}"];
@@ -404,15 +407,37 @@ export function MessagesPage({ role }: { role: UserRole }) {
   );
   const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
-    <section className="messages-page">
-      <div className="page-heading">
+    <section className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="eyebrow">Realtime communication</span>
-          <h1>Messages</h1>
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            Realtime Communication
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
+            Messages & Collaboration
+          </h1>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            Secure, encrypted real-time direct chat and district team groups.
+          </p>
         </div>
       </div>
-      {view === 'people' && error && <div className="form-error">{error}</div>}
-      <div className="message-view-tabs" role="tablist" aria-label="Messages view"><button type="button" role="tab" aria-selected={view === 'people'} className={view === 'people' ? 'active' : ''} onClick={() => setView('people')}>People</button><button type="button" role="tab" aria-selected={view === 'groups'} className={view === 'groups' ? 'active' : ''} onClick={() => setView('groups')}>Groups</button></div>
+      {view === 'people' && error && (
+        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium" role="alert">
+          {error}
+        </div>
+      )}
+      <div className="border-b border-[var(--border)] pb-1">
+        <TabsList>
+          <TabTrigger active={view === 'people'} onClick={() => setView('people')}>
+            <UserRound size={14} className="mr-1.5" />
+            Direct Messages
+          </TabTrigger>
+          <TabTrigger active={view === 'groups'} onClick={() => setView('groups')}>
+            <Users size={14} className="mr-1.5" />
+            Team Groups
+          </TabTrigger>
+        </TabsList>
+      </div>
       {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
         <aside className="chat-contacts">
           <h2>People</h2>
