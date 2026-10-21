@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Login } from "../components/auth/Login";
 import { SectionDialog } from "../components/dashboard/SectionDialog";
 import { AddSectionDialog } from "../components/dashboard/AddSectionDialog";
@@ -7,7 +7,6 @@ import { sections as initialSections } from "../data/sections";
 import { OverviewPage } from "../pages/OverviewPage";
 import { WorkspacePage } from "../pages/WorkspacePage";
 import { AnalyticsPage } from "../pages/AnalyticsPage";
-import { ProfileSettingsDialog } from "../components/account/ProfileSettingsDialog";
 import type { ProfileData } from "../components/account/ProfileSettingsDialog";
 import type { AccountType, Page, Section, UserRole } from "../types";
 import { ChurchAdminPage } from "../pages/ChurchAdminPage";
@@ -16,6 +15,7 @@ import { YdmMeetingsPage } from "../pages/YdmMeetingsPage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
 import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
+const ProfileSettingsDialog = lazy(() => import('../components/account/ProfileSettingsDialog').then((module) => ({ default: module.ProfileSettingsDialog })));
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
     [accountType, setAccountType] = useState<AccountType>("section"),
@@ -217,20 +217,18 @@ export default function App() {
           }}
         />
       )}
-      {settingsOpen && (
-        <ProfileSettingsDialog
-          role={role}
-          profile={profile}
-          onClose={() => setSettingsOpen(false)}
-          onSave={async (nextProfile) => {
-            const response = await fetch("/api/accounts?mode=profile", { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || "Profile could not be saved");
-            setProfile(result.profile);
-            setSettingsOpen(false);
-          }}
-        />
-      )}
+      {settingsOpen && <Suspense fallback={null}><ProfileSettingsDialog
+        role={role}
+        profile={profile}
+        onClose={() => setSettingsOpen(false)}
+        onSave={async (nextProfile) => {
+          const response = await fetch("/api/accounts?mode=profile", { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Profile could not be saved");
+          setProfile(result.profile);
+          setSettingsOpen(false);
+        }}
+      /></Suspense>}
     </div>
   );
 }
