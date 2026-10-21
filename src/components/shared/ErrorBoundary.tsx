@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from '../ui/button';
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -22,7 +23,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <span className="eyebrow">District OS</span>
           <h1>We couldn’t load this workspace.</h1>
           <p>Refresh the page to reconnect to your secure workspace. Your saved data is safe.</p>
-          <button className="primary" onClick={() => window.location.reload()}>Refresh workspace</button>
+          <Button onClick={() => window.location.reload()}>Refresh workspace</Button>
         </div>
       </main>
     );
