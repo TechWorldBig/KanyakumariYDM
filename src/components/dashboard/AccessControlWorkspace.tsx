@@ -1,6 +1,7 @@
 import { CheckCircle2, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { accessUpdatedEvent, refreshAccess } from '../../domain/access'
+import { Card } from '../ui/card'
 
 const features = ['Overview', 'Sections', 'Churches', 'Users', 'Reports', 'Audit logs', 'Live analytics', 'YDM meetings']
 type AccessLevel = 'manage' | 'edit' | 'view' | 'none'
@@ -62,7 +63,7 @@ export function AccessControlWorkspace() {
   const managedCount = roles.filter((role) => Object.values(role.permissions).some((level) => level === 'manage')).length
   const configuredCount = roles.filter((role) => Object.values(role.permissions).some((level) => level !== 'none')).length
 
-  return <section className="access-control panel">
+  return <Card className="access-control panel">
     {error && <div className="form-error" role="alert">{error}</div>}
     <div className="access-control-hero">
       <div className="access-control-title">
@@ -90,5 +91,5 @@ export function AccessControlWorkspace() {
       </div>) : <div className="access-empty"><Search size={22} /><strong>No roles found</strong><span>Try a different role name.</span></div>}
     </div>
     <p className="access-control-footnote">{configuredCount} of {roles.length} roles have at least one assigned permission. Changes apply across the district workspace.</p>
-  </section>
+  </Card>
 }

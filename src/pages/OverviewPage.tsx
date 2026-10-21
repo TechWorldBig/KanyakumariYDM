@@ -11,6 +11,8 @@ import { roleName } from "../domain/permissions";
 import { dashboardDate, greeting } from "../utils/date";
 import { Metric } from "../components/shared/Metric";
 import { SectionCard } from "../components/dashboard/SectionCard";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 import type { Page, Section, UserRole } from "../types";
 import { canWrite } from '../domain/access';
 export function OverviewPage({
@@ -51,10 +53,10 @@ export function OverviewPage({
               : "Only your assigned section is shown."}
           </p>
         </div>
-        <button className="primary" onClick={() => onNavigate("Reports")}>
+        <Button onClick={() => onNavigate("Reports")}>
           <FileText size={16} />
           View reports
-        </button>
+        </Button>
         {district && <img className="overview-3d-visual" src="/assets/district-network-3d.png" alt="" aria-hidden="true" />}
       </div>
       <div className="metrics">
@@ -109,7 +111,7 @@ export function OverviewPage({
         )}
       </div>
       <div className="bottom-grid">
-        <div className="panel">
+        <Card className="panel">
           <h2>Recent activity</h2>
           <div className="activity-list">
             {activity.map((item) => (
@@ -124,15 +126,15 @@ export function OverviewPage({
               </div>
             ))}
           </div>
-        </div>
-        <div className="panel">
+        </Card>
+        <Card className="panel">
           <h2>Access scope</h2>
           <p className="muted">
             {district
               ? "Read, write, edit and manage all four sections."
               : "Read, write, edit and manage " + sections[0].name + " only."}
           </p>
-        </div>
+        </Card>
       </div>
     </>
   );

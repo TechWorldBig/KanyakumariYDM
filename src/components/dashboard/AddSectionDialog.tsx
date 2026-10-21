@@ -1,3 +1,34 @@
-import{useState}from'react'
-import type{Section}from'../../types'
-export function AddSectionDialog({onClose,onCreate}:{onClose:()=>void;onCreate:(section:Section)=>void}){const[name,setName]=useState(''),[town,setTown]=useState(''),[admin,setAdmin]=useState(''),[error,setError]=useState('');function submit(event:React.FormEvent){event.preventDefault();if(!name.trim()||!town.trim()||!admin.trim()){setError('Complete all fields before creating the section.');return}onCreate({name:name.trim(),town:town.trim(),admin:admin.trim(),churches:0,users:1,tone:'blue',health:100})}return <div className="section-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-section-title" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="section-modal add-section-dialog"><button className="section-modal-close" onClick={onClose} aria-label="Close">×</button><span className="eyebrow">District administration</span><h2 id="add-section-title">Create a section</h2><p className="modal-town">Set the section identity and its first Super Admin.</p><form onSubmit={submit} noValidate><label>Section name<input value={name} onChange={e=>setName(e.target.value)} placeholder="Example: Section 5"/></label><label>Location / area<input value={town} onChange={e=>setTown(e.target.value)} placeholder="Example: Colachel East"/></label><label>Super Admin username<input value={admin} onChange={e=>setAdmin(e.target.value)} placeholder="Example: section5"/></label>{error&&<div className="form-error">{error}</div>}<div className="dialog-actions"><button type="button" className="subtle" onClick={onClose}>Cancel</button><button className="primary" type="submit">Create section</button></div></form></div></div>}
+import { useState } from 'react'
+import type { Section } from '../../types'
+import { Button } from '../ui/button'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '../ui/dialog'
+import { Input } from '../ui/input'
+
+export function AddSectionDialog({ onClose, onCreate }: { onClose: () => void; onCreate: (section: Section) => void }) {
+  const [name, setName] = useState('')
+  const [town, setTown] = useState('')
+  const [admin, setAdmin] = useState('')
+  const [error, setError] = useState('')
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!name.trim() || !town.trim() || !admin.trim()) { setError('Complete all fields before creating the section.'); return }
+    onCreate({ name: name.trim(), town: town.trim(), admin: admin.trim(), churches: 0, users: 1, tone: 'blue', health: 100 })
+  }
+
+  return <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
+    <DialogContent className="add-section-dialog">
+      <DialogClose />
+      <span className="eyebrow">District administration</span>
+      <DialogTitle className="text-2xl font-semibold tracking-tight">Create a section</DialogTitle>
+      <DialogDescription className="modal-town">Set the section identity and its first Super Admin.</DialogDescription>
+      <form onSubmit={submit} noValidate className="grid gap-4">
+        <label>Section name<Input value={name} onChange={event => setName(event.target.value)} placeholder="Example: Section 5" /></label>
+        <label>Location / area<Input value={town} onChange={event => setTown(event.target.value)} placeholder="Example: Colachel East" /></label>
+        <label>Super Admin username<Input value={admin} onChange={event => setAdmin(event.target.value)} placeholder="Example: section5" /></label>
+        {error && <div className="form-error" role="alert">{error}</div>}
+        <div className="dialog-actions"><Button type="button" variant="outline" onClick={onClose}>Cancel</Button><Button type="submit">Create section</Button></div>
+      </form>
+    </DialogContent>
+  </Dialog>
+}
