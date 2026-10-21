@@ -132,12 +132,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 
 .workspace-switch small, .profile small {
   display: block;
-  color: var(--muted);
+  color: #64748b;
   font-size: 11px;
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+body[data-theme="dark"] .workspace-switch small, body[data-theme="dark"] .profile small {
+  color: #94a3b8;
 }
 
 nav {
@@ -149,7 +153,7 @@ nav {
 nav button {
   border: 0;
   background: transparent;
-  color: var(--muted);
+  color: #475569;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -160,6 +164,10 @@ nav button {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+body[data-theme="dark"] nav button {
+  color: #94a3b8;
 }
 
 nav button:hover {
@@ -213,8 +221,12 @@ nav button b {
 
 .help-card span {
   font-size: 11px;
-  color: var(--muted);
+  color: #64748b;
   grid-column: 2;
+}
+
+body[data-theme="dark"] .help-card span {
+  color: #94a3b8;
 }
 
 .profile {
@@ -266,7 +278,11 @@ header {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: var(--muted);
+  color: #64748b;
+}
+
+body[data-theme="dark"] .breadcrumb {
+  color: #94a3b8;
 }
 
 .breadcrumb strong {
@@ -515,9 +531,13 @@ body[data-theme="dark"] .metric-icon.violet { background: rgba(124, 58, 237, 0.2
 
 .metric span {
   font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
+  font-weight: 600;
+  color: #475569;
   display: block;
+}
+
+body[data-theme="dark"] .metric span {
+  color: #94a3b8;
 }
 
 .metric strong {
@@ -532,7 +552,12 @@ body[data-theme="dark"] .metric-icon.violet { background: rgba(124, 58, 237, 0.2
 
 .metric small {
   font-size: 11px;
-  color: var(--muted);
+  color: #64748b;
+  font-weight: 500;
+}
+
+body[data-theme="dark"] .metric small {
+  color: #94a3b8;
 }
 
 /* --------------------------------------------------------------------------
@@ -556,7 +581,11 @@ body[data-theme="dark"] .metric-icon.violet { background: rgba(124, 58, 237, 0.2
 .section-head p {
   font-size: 12px;
   margin: 0;
-  color: var(--muted);
+  color: #64748b;
+}
+
+body[data-theme="dark"] .section-head p {
+  color: #94a3b8;
 }
 
 .section-grid {
@@ -798,8 +827,12 @@ body[data-theme="dark"] .metric-icon.violet { background: rgba(124, 58, 237, 0.2
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface-subtle);
-  color: var(--muted);
+  color: #64748b;
   transition: all 0.15s ease;
+}
+
+body[data-theme="dark"] .district-search {
+  color: #94a3b8;
 }
 
 .district-search:focus-within {
@@ -815,6 +848,14 @@ body[data-theme="dark"] .metric-icon.violet { background: rgba(124, 58, 237, 0.2
   background: transparent;
   font-size: 12px;
   color: var(--ink);
+}
+
+.district-search input::placeholder {
+  color: #64748b;
+}
+
+body[data-theme="dark"] .district-search input::placeholder {
+  color: #94a3b8;
 }
 
 .search-clear {

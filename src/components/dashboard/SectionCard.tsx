@@ -32,11 +32,11 @@ export function SectionCard({
         <h3 className="text-lg font-bold text-[var(--ink)] tracking-tight mb-1">
           {section.name}
         </h3>
-        <p className="text-xs text-[var(--muted)] mb-5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 font-medium">
           {section.town}
         </p>
 
-        <div className="grid grid-cols-2 gap-3 py-3 border-y border-[var(--line)] mb-4 text-xs text-[var(--muted)]">
+        <div className="grid grid-cols-2 gap-3 py-3 border-y border-[var(--line)] mb-4 text-xs text-slate-600 dark:text-slate-300">
           <span className="flex items-center gap-1.5 truncate">
             <Church size={14} className="text-district-500 shrink-0" />
             <b className="font-semibold text-[var(--ink)]">{section.churches}</b> churches
@@ -49,7 +49,7 @@ export function SectionCard({
 
         <div className="space-y-1.5 mb-5">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[var(--muted)] font-medium">Access health</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">Access health</span>
             <b className="font-mono font-bold text-[var(--ink)]">{section.health}%</b>
           </div>
           <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">

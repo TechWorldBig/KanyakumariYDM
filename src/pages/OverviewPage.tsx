@@ -52,7 +52,7 @@ export function OverviewPage({
           <h1>
             {greeting()}, {roleName(role)} <span className="wave">✦</span>
           </h1>
-          <p className="muted">
+          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-normal">
             {district
               ? "Comprehensive overview of the Kanyakumari district church network."
               : "Administrative dashboard for your assigned section."}
@@ -112,7 +112,7 @@ export function OverviewPage({
             <h2>
               {district ? "District Sections" : `${sections[0]?.name || 'Section'} Overview`}
             </h2>
-            <p className="muted">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
               {district
                 ? "Administrative sections governing local church assemblies."
                 : "Limited to your authorized administrative scope."}
@@ -151,7 +151,7 @@ export function OverviewPage({
               <CardTitle>Recent administrative activity</CardTitle>
               <Badge variant="blue">Live logs</Badge>
             </div>
-            <p className="text-xs text-[var(--muted)]">Recent operations and verification events across the network.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Recent operations and verification events across the network.</p>
           </CardHeader>
           <CardContent className="p-0">
             <div className="activity-list space-y-1">
@@ -165,7 +165,7 @@ export function OverviewPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <strong className="text-xs font-semibold text-[var(--ink)] block truncate">{item.title}</strong>
-                    <span className="text-[11px] text-[var(--muted)] block">{item.detail}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">{item.detail}</span>
                   </div>
                 </div>
               ))}
@@ -181,7 +181,7 @@ export function OverviewPage({
                 {district ? "Full District" : "Section Restricted"}
               </Badge>
             </div>
-            <p className="text-xs text-[var(--muted)]">Your security and delegation boundaries.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Your security and delegation boundaries.</p>
           </CardHeader>
           <CardContent className="p-0 space-y-4">
             <div className="p-4 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)]">
@@ -189,7 +189,7 @@ export function OverviewPage({
                 <ShieldCheck size={16} className="text-district-600" />
                 <span>Security Clearance: {roleName(role)}</span>
               </div>
-              <p className="text-xs text-[var(--muted)] leading-relaxed m-0">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed m-0">
                 {district
                   ? "You have administrative permission to create, edit, audit, and manage churches, users, section boundaries, and meetings across the entire Kanyakumari district."
                   : `Your access is scoped specifically to ${sections[0]?.name || 'your section'}. Cross-section mutations and global logs are isolated.`}

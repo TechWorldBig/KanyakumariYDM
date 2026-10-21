@@ -26,11 +26,11 @@ export function Metric({ icon: Icon, label, value, tone, subtext = 'Within your 
         <Icon size={20} strokeWidth={2} />
       </div>
       <div className="min-w-0 flex-1">
-        <span className="text-xs font-medium text-[var(--muted)] block truncate">{label}</span>
+        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 block truncate">{label}</span>
         <strong className="text-2xl font-bold font-mono tracking-tight text-[var(--ink)] block tabular-nums my-0.5">
           {value}
         </strong>
-        <small className="text-[11px] text-[var(--muted)]/80 block truncate">{subtext}</small>
+        <small className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block truncate">{subtext}</small>
       </div>
     </Card>
   )
