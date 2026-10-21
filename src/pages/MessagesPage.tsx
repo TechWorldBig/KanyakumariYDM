@@ -16,6 +16,7 @@ import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from "
 import type { UserRole } from "../types";
 import { conversationChannelName, getAblyClient } from "../services/ably";
 import { GroupMessages } from './GroupMessages';
+import { VoicePreview, VoiceRecordButton } from '../components/shared/VoiceMessage';
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
 const quickReactions = ["\u{1F44D}", "\u{2764}\u{FE0F}", "\u{1F602}", "\u{1F64F}", "\u{1F62E}"];
@@ -462,7 +463,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 >
                   <span>
                     {message.text}
-                    {message.attachment && (
+                    {message.attachment?.type.startsWith('audio/') && <audio className="chat-audio" controls preload="none" src={message.attachment.url} aria-label="Voice message"/>}
+                    {message.attachment && !message.attachment.type.startsWith('audio/') && (
                       <a
                         className="chat-attachment"
                         href={message.attachment.url}
@@ -541,12 +543,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </div>
           <form className="chat-compose" onSubmit={send} noValidate>
             {attachment && (
-              <div className="attachment-chip">
-                <Paperclip size={13} />
-                {attachment.name}
-                <button type="button" onClick={() => setAttachment(null)}>
-                  <X size={13} />
-                </button>
+              <div className={`attachment-chip${attachment.type.startsWith('audio/') ? ' voice-chip' : ''}`}>
+                {attachment.type.startsWith('audio/') ? <VoicePreview file={attachment}/> : <><Paperclip size={13} />{attachment.name}</>}
+                <button type="button" onClick={() => setAttachment(null)} aria-label="Remove attachment"><X size={13} /></button>
               </div>
             )}
             <label className="attachment-button">
@@ -559,6 +558,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
                 }
               />
             </label>
+            <VoiceRecordButton disabled={uploading || Boolean(editingId)} onRecorded={file => { setAttachment(file); setError('') }} onError={setError}/>
             <div className="emoji-wrap">
               <button
                 type="button"

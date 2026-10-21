@@ -64,18 +64,18 @@ export default async function handler(req, res) {
     const members = await sql.query("SELECT m.username,coalesce(nullif(p.display_name,''),m.username) AS name FROM chat_group_members m LEFT JOIN user_profiles p ON p.username=m.username WHERE m.group_id=$1 ORDER BY m.username", [groupId])
     return res.status(200).json({ group: { ...group,members } })
   }
-  if (req.query?.mode === 'group-messages' || req.query?.mode === 'group-image') {
+  if (['group-messages', 'group-image', 'group-attachment'].includes(req.query?.mode)) {
     const groupId = String(req.query?.groupId || req.body?.groupId || '')
     if (!validGroupId(groupId)) return res.status(400).json({ error: 'Choose a valid group' })
     const member = (await sql.query('SELECT 1 FROM chat_group_members WHERE group_id=$1 AND username=$2', [groupId,session.username]))[0]
     if (!member) return res.status(403).json({ error: 'This group is not available to your account' })
-    if (req.query?.mode === 'group-image') {
+    if (req.query?.mode === 'group-image' || req.query?.mode === 'group-attachment') {
       if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
       const row = (await sql.query('SELECT attachment FROM chat_group_messages WHERE group_id=$1 AND id=$2 AND deleted_at IS NULL', [groupId,String(req.query?.messageId || '')]))[0]
       const pathname = row?.attachment?.pathname
-      if (!pathname || !pathname.startsWith('group-chat/')) return res.status(404).json({ error: 'Image not found' })
+      if (!pathname || !pathname.startsWith('group-chat/')) return res.status(404).json({ error: 'Attachment not found' })
       const blob = await get(pathname, { access: 'private' })
-      if (!blob || blob.statusCode !== 200 || !blob.stream) return res.status(404).json({ error: 'Image not available' })
+      if (!blob || blob.statusCode !== 200 || !blob.stream) return res.status(404).json({ error: 'Attachment not available' })
       const data = await new Response(blob.stream).arrayBuffer()
       res.setHeader('Content-Type', row.attachment.type)
       res.setHeader('Content-Length', String(data.byteLength))
@@ -96,8 +96,8 @@ export default async function handler(req, res) {
       }) })
     }
     if (req.method === 'POST') {
-      const text = String(req.body?.text || '').trim(), image = req.body?.image, id = randomUUID()
-      if ((!text && !image) || text.length > 4000) return res.status(400).json({ error: 'Enter a message or choose an image' })
+      const text = String(req.body?.text || '').trim(), image = req.body?.image, voice = req.body?.voice, id = randomUUID()
+      if ((!text && !image && !voice) || (image && voice) || text.length > 4000) return res.status(400).json({ error: 'Enter a message with one attachment' })
       let attachment = null
       if (image) {
         const type = String(image.type || ''), data = String(image.data || ''), name = String(image.name || 'image').replace(/[^a-zA-Z0-9._-]/g, '-')
@@ -105,6 +105,15 @@ export default async function handler(req, res) {
         if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(503).json({ error: 'Image storage is not configured' })
         const blob = await put(`group-chat/${groupId}/${id}-${name}`, Buffer.from(data.split(',')[1], 'base64'), { access:'private',contentType:type,addRandomSuffix:true })
         attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-image&groupId=${groupId}&messageId=${id}` }
+      }
+      if (voice) {
+        const type = String(voice.type || ''), data = String(voice.data || ''), name = String(voice.name || 'voice-message').replace(/[^a-zA-Z0-9._-]/g, '-')
+        if (!['audio/webm','audio/mp4','audio/ogg'].includes(type) || !data.startsWith(`data:${type};base64,`) || data.length > 4_100_000) return res.status(400).json({ error: 'Voice message must be smaller than 3 MB' })
+        const bytes = Buffer.from(data.slice(data.indexOf(',') + 1), 'base64')
+        if (bytes.length > 3_000_000) return res.status(400).json({ error: 'Voice message must be smaller than 3 MB' })
+        if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(503).json({ error: 'Voice storage is not configured' })
+        const blob = await put(`group-chat/${groupId}/${id}-${name}`, bytes, { access:'private',contentType:type,addRandomSuffix:true })
+        attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-attachment&groupId=${groupId}&messageId=${id}` }
       }
       const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt"', [id,groupId,session.username,text,attachment]))[0]
       return res.status(201).json({ message: { ...message,reactions:{},readByMe:true,allRead:false } })
@@ -172,13 +181,15 @@ export default async function handler(req, res) {
     const data = await new Response(blob.stream).arrayBuffer()
     res.setHeader('Content-Type', blob.blob.contentType || 'application/octet-stream')
     res.setHeader('Content-Length', String(data.byteLength))
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.setHeader('Content-Disposition', `${(blob.blob.contentType || '').startsWith('audio/') ? 'inline' : 'attachment'}; filename="${filename}"`)
     return res.status(200).end(Buffer.from(data))
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const body = req.body || {}, name = String(body.name || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '-'), type = String(body.type || 'application/octet-stream'), data = String(body.data || '')
-  const allowedType = type.startsWith('image/') || ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(type)
-  if (!allowedType || type.startsWith('video/')) return res.status(400).json({ error: 'Only images and documents can be shared' })
+  const audioType = ['audio/webm','audio/mp4','audio/ogg'].includes(type)
+  const allowedType = type.startsWith('image/') || audioType || ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(type)
+  if (!allowedType || type.startsWith('video/')) return res.status(400).json({ error: 'Only images, documents and voice messages can be shared' })
+  if (audioType && (!data.startsWith(`data:${type};base64,`) || data.length > 4_100_000 || Buffer.from(data.slice(data.indexOf(',') + 1), 'base64').length > 3_000_000)) return res.status(400).json({ error: 'Voice message must be smaller than 3 MB' })
   if (!data.startsWith('data:') || data.length > 7_000_000) return res.status(400).json({ error: 'Attachment must be smaller than 5 MB' })
   const blob = await put(`chat/${Date.now()}-${name}`, Buffer.from(data.split(',')[1], 'base64'), { access: 'private', contentType: type, addRandomSuffix: true })
   return res.status(201).json({ url: `/api/chat-files?pathname=${encodeURIComponent(blob.pathname)}`, name, type })
