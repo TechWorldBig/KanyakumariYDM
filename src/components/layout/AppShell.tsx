@@ -17,7 +17,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isDistrictScope, roleName } from "../../domain/permissions";
 import { accessUpdatedEvent, canAccess } from "../../domain/access";
 import { sections } from "../../data/sections";
@@ -158,6 +158,14 @@ export function Header({
   const displayName = profile.name || roleLabel;
   const initials = (profile.name || roleLabel).split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   const permissionLabels = role === "district" ? ["Read", "Write", "Edit", "Manage"] : accountType === "church" ? ["Read", "Write", "Edit", "Manage"] : role === "head-pastor" ? ["Read"] : ["Read", "Write"];
+  const profileRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const closeOnOutside = (event: PointerEvent) => { if (profileOpen && profileRef.current && !profileRef.current.contains(event.target as Node)) onProfile(); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape" && profileOpen) onProfile(); };
+    document.addEventListener("pointerdown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => { document.removeEventListener("pointerdown", closeOnOutside); document.removeEventListener("keydown", closeOnEscape); };
+  }, [profileOpen, onProfile]);
   return (
     <header>
       <button className="mobile-menu" onClick={onMenu} aria-label="Open menu">
@@ -171,17 +179,18 @@ export function Header({
       <div className="header-actions">
         {accountType === "section" && <WorkspaceSearch role={role} section={section} />}
         <MeetingNotifications onOpenMeeting={onOpenMeeting} />
-        <button
-          className="header-user"
-          onClick={onProfile}
-          aria-expanded={profileOpen}
-          aria-haspopup="menu"
-        >
+        <div className="profile-menu-anchor" ref={profileRef}>
+          <button
+            className="header-user"
+            onClick={onProfile}
+            aria-expanded={profileOpen}
+            aria-haspopup="menu"
+          >
           <div className="avatar">{profile.photo ? <img src={profile.photo} alt="" /> : initials}</div>
           <span>{displayName}</span>
           <ChevronDown size={14} />
-        </button>
-        {profileOpen && (
+          </button>
+          {profileOpen && (
           <div className="profile-menu" role="menu">
             <div className="profile-menu-head">
               <div className="profile-menu-avatar">
@@ -225,7 +234,8 @@ export function Header({
               </button>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );

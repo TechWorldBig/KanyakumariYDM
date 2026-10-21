@@ -237,6 +237,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .section-modal{max-height:calc(100dvh - 8px);border-radius:18px 18px 0 0;padding:22px 16px 28px}
   .church-detail-modal,.section-detail-modal{max-height:calc(100dvh - 8px)}
   .profile-menu{position:fixed;top:58px;right:10px;width:min(320px,calc(100vw - 20px));max-height:calc(100dvh - 70px);overflow:auto}
+  .notification-menu{position:fixed;top:58px;right:10px;width:min(370px,calc(100vw - 20px));max-height:calc(100dvh - 74px);border-radius:14px}
+  .notification-items{max-height:calc(100dvh - 132px)}
+  .notification-item{height:auto;min-height:96px;padding:12px 14px;align-content:start;white-space:normal}
+  .notification-item strong,.notification-item span,.notification-item small{white-space:normal;overflow:visible;text-overflow:clip}
   .search-results{border-radius:12px}
 }
 @media(max-width:380px){
