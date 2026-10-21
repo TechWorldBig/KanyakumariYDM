@@ -183,6 +183,36 @@ header{box-shadow:0 8px 22px #1a345d12,0 1px 0 #fff inset!important;background:l
 html{scrollbar-color:#b9c8dc #f4f6f8;scrollbar-width:thin}html:focus-within{scroll-behavior:smooth}.app-error{min-height:100dvh;display:grid;place-items:center;padding:24px;background:#f4f6f8;color:var(--ink)}.app-error-card{width:min(460px,100%);padding:32px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-md)}.app-error-card h1{margin:12px 0 8px;font-size:28px;letter-spacing:-.04em}.app-error-card p{margin:0 0 22px;color:var(--muted);font-size:13px;line-height:1.6}.app-error-card .primary{min-height:44px}
 @media(prefers-reduced-motion:reduce){html:focus-within{scroll-behavior:auto}}
 
+/* Modern interaction foundation: shared motion, surfaces, controls and touch targets. */
+:root{
+  --surface-hover:#f5f8fd;
+  --surface-active:#eaf1ff;
+  --focus-ring:#88aef0;
+  --shadow-focus:0 0 0 3px #dce8ff;
+}
+*{scrollbar-gutter:auto}
+button,a,input,select,textarea{transition:background-color var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast),color var(--motion-fast),transform var(--motion-fast)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--focus-ring);outline-offset:2px}
+button:disabled{cursor:not-allowed}
+input,select,textarea{color:var(--text-primary);background:var(--surface)}
+input::placeholder,textarea::placeholder{color:var(--text-muted)}
+.panel,.metric,.section-card,.management-list,.live-panel{box-shadow:var(--shadow-sm)}
+.panel:hover,.metric:hover,.section-card:hover{box-shadow:var(--shadow-md)}
+.primary:hover,.subtle:hover{transform:translateY(-1px)}
+.primary:active,.subtle:active,.header-user:active,.icon-btn:active{transform:translateY(0)}
+.primary:focus-visible,.subtle:focus-visible,.header-user:focus-visible,.icon-btn:focus-visible{box-shadow:var(--shadow-focus)}
+.section-modal-backdrop,.meeting-dialog-backdrop{animation:overlay-in var(--motion-standard) ease both}
+.section-modal,.meeting-dialog,.group-dialog,.profile-settings-dialog{animation:dialog-in var(--motion-standard) ease both}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes dialog-in{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:700px){
+  .primary,.subtle,.header-user,.icon-btn,.mobile-menu,.close-mobile{min-height:44px}
+  .page-heading>.primary{width:100%}
+  .section-card,.metric{box-shadow:var(--shadow-sm)}
+  .section-card:hover,.metric:hover,.panel:hover{box-shadow:var(--shadow-sm);transform:none}
+}
+@media(prefers-reduced-motion:reduce){button,a,input,select,textarea,.section-modal-backdrop,.meeting-dialog-backdrop,.section-modal,.meeting-dialog,.group-dialog,.profile-settings-dialog{transition:none!important;animation:none!important}}
+
 /* Responsive product polish: preserve a calm desktop canvas and a touch-first mobile rhythm. */
 html{background:#f4f6f8;scroll-behavior:smooth}
 body{overflow-x:hidden}
