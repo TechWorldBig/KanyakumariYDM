@@ -236,7 +236,7 @@ export function AccessControlWorkspace() {
   ).length
 
   return (
-    <Card className="p-6 space-y-6">
+    <Card className="p-4 sm:p-6 space-y-5 sm:space-y-6">
       {error && (
         <div
           className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium"
@@ -313,12 +313,12 @@ export function AccessControlWorkspace() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <Input
             value={newRole}
             onChange={(e) => setNewRole(e.target.value)}
             placeholder="New role name"
-            className="h-9 text-xs w-48"
+            className="h-9 text-xs w-full sm:w-48"
             onKeyDown={(e) => e.key === 'Enter' && addRole()}
           />
           <Button size="sm" onClick={addRole} className="h-9 shrink-0">

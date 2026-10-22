@@ -129,6 +129,14 @@ export default function App() {
     };
   return (
     <div className="app">
+      {mobile && (
+        <button
+          type="button"
+          className="mobile-nav-backdrop"
+          onClick={() => setMobile(false)}
+          aria-label="Close navigation menu"
+        />
+      )}
       <Sidebar
         role={role}
         accountType={accountType}
@@ -143,7 +151,7 @@ export default function App() {
         onClose={() => setMobile(false)}
         onLogout={logout}
       />
-      <div className="main">
+      <div className={page === "Messages" ? "main messages-main" : "main"}>
         <Header
           role={role}
           accountType={accountType}

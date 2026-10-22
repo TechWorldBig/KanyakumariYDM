@@ -371,6 +371,7 @@ function ChurchDetailsSection({
 
       {canManage && (
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault()
             onSave(value)
