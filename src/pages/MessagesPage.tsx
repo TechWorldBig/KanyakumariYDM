@@ -163,7 +163,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
-  }, [conversation, selected]);
+  }, [conversation, selected, typing]);
   const channel = () =>
     getAblyClient(selected).channels.get(
       conversationChannelName(role, selected),
@@ -522,13 +522,20 @@ export function MessagesPage({ role }: { role: UserRole }) {
                   </span>
                   <div className="chat-contact-info min-w-0 flex-1">
                     <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
-                    <small className={isActive ? "online" : ""}>
-                      {recipientProfiles[item.id]?.name &&
-                      recipientProfiles[item.id]?.name !== item.label
-                        ? `${item.label} · `
-                        : ''}
-                      {statusLabel(lastSeen[item.id] || null, isActive)}
-                    </small>
+                    {typing && item.id === selected ? (
+                      <small className="online font-semibold flex items-center gap-1">
+                        <span>typing</span>
+                        <span className="typing-dots-animated"><span>.</span><span>.</span><span>.</span></span>
+                      </small>
+                    ) : (
+                      <small className={isActive ? "online" : ""}>
+                        {recipientProfiles[item.id]?.name &&
+                        recipientProfiles[item.id]?.name !== item.label
+                          ? `${item.label} · `
+                          : ''}
+                        {statusLabel(lastSeen[item.id] || null, isActive)}
+                      </small>
+                    )}
                   </div>
                   {unreadCounts[item.id] > 0 ? (
                     <span
@@ -577,9 +584,18 @@ export function MessagesPage({ role }: { role: UserRole }) {
               </span>
               <div className="chat-window-head-info min-w-0 flex-1 overflow-hidden">
                 <h2 className="truncate">{recipientName}</h2>
-                <p className={`truncate ${online.includes(selected) ? "online" : ""}`}>
-                  {statusLabel(lastSeen[selected] || null, online.includes(selected))}
-                </p>
+                {typing ? (
+                  <p className="typing-header-status truncate">
+                    <span>typing</span>
+                    <span className="typing-dots-animated">
+                      <span>.</span><span>.</span><span>.</span>
+                    </span>
+                  </p>
+                ) : (
+                  <p className={`truncate ${online.includes(selected) ? "online" : ""}`}>
+                    {statusLabel(lastSeen[selected] || null, online.includes(selected))}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -804,22 +820,19 @@ export function MessagesPage({ role }: { role: UserRole }) {
             )}
 
             {typing && (
-              <div className="typing-indicator">
-                <span className="flex items-center gap-1">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  />
-                  <span
-                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                    style={{ animationDelay: "150ms" }}
-                  />
-                  <span
-                    className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
-                    style={{ animationDelay: "300ms" }}
-                  />
-                </span>
-                <span>{recipientName} is typing…</span>
+              <div className="chat-message-row typing-row">
+                <div
+                  className="chat-bubble typing-bubble"
+                  role="status"
+                  aria-label={`${recipientName} is typing`}
+                >
+                  <div className="typing-wave" aria-hidden="true">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </div>
+                  <span className="typing-sender-name">{recipientName} is typing…</span>
+                </div>
               </div>
             )}
 
