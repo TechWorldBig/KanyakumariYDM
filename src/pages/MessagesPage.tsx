@@ -2,6 +2,7 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  ChevronRight,
   Download,
   FileText,
   MessageCircle,
@@ -429,7 +430,11 @@ export function MessagesPage({ role }: { role: UserRole }) {
   const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
     <section className="messages-page space-y-3">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2.5 border-b border-[var(--border)]">
+      <div
+        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--border)] ${
+          mobileView === 'chat' ? 'hidden md:flex' : ''
+        }`}
+      >
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)]">
             Messages & Collaboration
@@ -439,11 +444,23 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </p>
         </div>
         <TabsList className="self-start sm:self-center">
-          <TabTrigger active={view === 'people'} onClick={() => setView('people')}>
+          <TabTrigger
+            active={view === 'people'}
+            onClick={() => {
+              setView('people');
+              setMobileView('list');
+            }}
+          >
             <UserRound size={14} className="mr-1.5" />
             Direct Messages
           </TabTrigger>
-          <TabTrigger active={view === 'groups'} onClick={() => setView('groups')}>
+          <TabTrigger
+            active={view === 'groups'}
+            onClick={() => {
+              setView('groups');
+              setMobileView('list');
+            }}
+          >
             <Users size={14} className="mr-1.5" />
             Team Groups
           </TabTrigger>
@@ -456,7 +473,10 @@ export function MessagesPage({ role }: { role: UserRole }) {
         </div>
       )}
 
-      {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
+      {view === 'groups' ? (
+        <GroupMessages onMobileViewChange={setMobileView} />
+      ) : (
+        <Card className="chat-layout panel">
         <aside className={`chat-contacts ${mobileView === 'chat' ? 'mobile-pane-hidden' : ''}`}>
           <div className="chat-contacts-header">
             <h2>People</h2>
@@ -481,40 +501,44 @@ export function MessagesPage({ role }: { role: UserRole }) {
               return (
                 <button
                   key={item.id}
-                  className={
-                    selected === item.id ? "chat-contact active" : "chat-contact"
-                  }
+                  className={`chat-contact ${selected === item.id ? "active" : ""}`}
                   onClick={() => {
                     setSelected(item.id);
                     setMobileView('chat');
                   }}
                   type="button"
                 >
-                  <span className="chat-avatar-with-presence">
+                  <span className="chat-avatar-with-presence shrink-0">
                     <span className="chat-avatar">
                       {recipientProfiles[item.id]?.photo ? (
                         <img src={recipientProfiles[item.id].photo} alt="" />
                       ) : (
-                        <UserRound size={18} />
+                        <UserRound size={19} />
                       )}
                     </span>
                     {isActive && (
                       <i className="chat-presence-dot" aria-label="Active now" />
                     )}
                   </span>
-                  <div className="chat-contact-info">
+                  <div className="chat-contact-info min-w-0 flex-1">
                     <strong>{recipientProfiles[item.id]?.name || item.label}</strong>
                     <small className={isActive ? "online" : ""}>
+                      {recipientProfiles[item.id]?.name &&
+                      recipientProfiles[item.id]?.name !== item.label
+                        ? `${item.label} · `
+                        : ''}
                       {statusLabel(lastSeen[item.id] || null, isActive)}
                     </small>
                   </div>
-                  {unreadCounts[item.id] > 0 && (
+                  {unreadCounts[item.id] > 0 ? (
                     <span
-                      className="chat-unread-count"
+                      className="chat-unread-count shrink-0"
                       aria-label={`${unreadCounts[item.id]} unread messages`}
                     >
                       {unreadCounts[item.id] > 99 ? '99+' : unreadCounts[item.id]}
                     </span>
+                  ) : (
+                    <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 shrink-0 md:hidden ml-auto" />
                   )}
                 </button>
               );
@@ -529,17 +553,17 @@ export function MessagesPage({ role }: { role: UserRole }) {
 
         <div className={`chat-window ${mobileView === 'list' ? 'mobile-pane-hidden' : ''}`}>
           <div className="chat-window-head">
-            <div className="chat-window-head-left">
+            <div className="chat-window-head-left min-w-0 flex-1 overflow-hidden">
               <button
                 type="button"
-                className="md:hidden p-1.5 -ml-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg shrink-0"
+                className="md:hidden p-2 -ml-1 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full shrink-0 flex items-center justify-center cursor-pointer transition-colors"
                 onClick={() => setMobileView('list')}
                 aria-label="Back to contacts list"
                 title="Back to contacts"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={22} />
               </button>
-              <span className="chat-avatar-with-presence">
+              <span className="chat-avatar-with-presence shrink-0">
                 <span className="chat-avatar">
                   {recipientProfiles[selected]?.photo ? (
                     <img src={recipientProfiles[selected].photo} alt="" />
@@ -551,9 +575,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
                   <i className="chat-presence-dot" aria-label="Active now" />
                 )}
               </span>
-              <div className="chat-window-head-info">
-                <h2>{recipientName}</h2>
-                <p className={online.includes(selected) ? "online" : ""}>
+              <div className="chat-window-head-info min-w-0 flex-1 overflow-hidden">
+                <h2 className="truncate">{recipientName}</h2>
+                <p className={`truncate ${online.includes(selected) ? "online" : ""}`}>
                   {statusLabel(lastSeen[selected] || null, online.includes(selected))}
                 </p>
               </div>
@@ -937,7 +961,8 @@ export function MessagesPage({ role }: { role: UserRole }) {
             </div>
           </form>
         </div>
-      </Card>}
+      </Card>
+      )}
     </section>
   );
 }

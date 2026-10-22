@@ -2,6 +2,7 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  ChevronRight,
   Download,
   FileText,
   ImagePlus,
@@ -186,7 +187,11 @@ async function voicePayload(file: File) {
   return { name: file.name, type: file.type, data }
 }
 
-export function GroupMessages() {
+export function GroupMessages({
+  onMobileViewChange,
+}: {
+  onMobileViewChange?: (view: 'list' | 'chat') => void
+} = {}) {
   const [groups, setGroups] = useState<Group[]>([])
   const [people, setPeople] = useState<Person[]>([])
   const [directory, setDirectory] = useState<Record<string, string>>({ ...BUILT_IN_SENDER_NAMES })
@@ -641,15 +646,17 @@ export function GroupMessages() {
               onClick={() => {
                 setSelected(group.id)
                 setMobileView('chat')
+                onMobileViewChange?.('chat')
               }}
             >
-              <div className="chat-avatar">
-                <Users size={18} />
+              <div className="chat-avatar shrink-0">
+                <Users size={19} />
               </div>
               <div className="chat-contact-info">
                 <strong>{group.name}</strong>
                 <small>{group.memberCount} members</small>
               </div>
+              <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 shrink-0 md:hidden ml-auto" />
             </button>
           ))}
 
@@ -664,15 +671,18 @@ export function GroupMessages() {
 
       <div className={`group-window ${mobileView === 'list' ? 'mobile-pane-hidden' : ''}`}>
         <div className="group-window-head">
-          <div className="group-window-head-left">
+          <div className="group-window-head-left min-w-0 flex-1 overflow-hidden">
             <button
               type="button"
-              className="md:hidden p-1.5 -ml-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg shrink-0"
-              onClick={() => setMobileView('list')}
+              className="md:hidden p-2 -ml-1 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full shrink-0 flex items-center justify-center cursor-pointer transition-colors"
+              onClick={() => {
+                setMobileView('list')
+                onMobileViewChange?.('list')
+              }}
               aria-label="Back to groups list"
               title="Back to groups"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={22} />
             </button>
             {active ? (
               <>
