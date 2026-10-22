@@ -816,12 +816,23 @@ body[data-theme="dark"] .section-head p {
 }
 
 .overview-3d-visual {
-  width: 140px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  width: auto;
+  height: 86px;
+  max-width: 175px;
+  object-fit: contain;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  pointer-events: none;
+  user-select: none;
+  filter: saturate(0.95);
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+body[data-theme="dark"] .overview-3d-visual {
+  filter: saturate(0.9) brightness(0.96);
+  opacity: 0.92;
 }
 
 /* --------------------------------------------------------------------------
