@@ -219,8 +219,21 @@ export function Header({
       : section.name
   const church = churchId ? churches.find((item) => item.id === churchId) : null
   const roleLabel = roleName(role)
-  const displayName = profile.name || roleLabel
-  const initials = (profile.name || roleLabel)
+  const hasCustomName = Boolean(
+    profile.name &&
+    profile.name.trim().toLowerCase() !== roleLabel.trim().toLowerCase()
+  )
+  const displayName = hasCustomName ? profile.name.trim() : roleLabel
+  const secondaryLabel = hasCustomName
+    ? roleLabel
+    : profile.email ||
+      profile.phone ||
+      (role === 'district'
+        ? 'Executive Administrator'
+        : accountType === 'church'
+        ? church?.name || 'Local Church Admin'
+        : `${section.name} Administrator`)
+  const initials = displayName
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0])
@@ -313,9 +326,11 @@ export function Header({
                   {profile.photo ? <img src={profile.photo} alt="" /> : initials}
                   <i />
                 </div>
-                <div>
+                <div className="profile-menu-info">
                   <strong>{displayName}</strong>
-                  <span>{roleLabel}</span>
+                  {secondaryLabel && secondaryLabel !== displayName && (
+                    <span>{secondaryLabel}</span>
+                  )}
                 </div>
               </div>
               <div className="profile-scope">
