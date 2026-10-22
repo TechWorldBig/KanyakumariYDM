@@ -128,7 +128,7 @@ export default function App() {
       setProfileOpen(false);
     };
   return (
-    <div className="app">
+    <div className={page === "Messages" ? "app messages-app" : "app"}>
       {mobile && (
         <button
           type="button"
