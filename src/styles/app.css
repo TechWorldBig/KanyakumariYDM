@@ -1724,6 +1724,19 @@ body[data-theme="dark"] .meeting-card-cancelled {
    -------------------------------------------------------------------------- */
 .messages-page {
   max-width: 1140px;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-content {
+  height: calc(100dvh - 70px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .chat-layout, .group-layout {
@@ -1733,9 +1746,10 @@ body[data-theme="dark"] .meeting-card-cancelled {
   border-radius: 16px;
   overflow: hidden;
   background: var(--surface);
-  height: calc(100vh - 195px);
-  min-height: 520px;
+  height: auto;
+  min-height: 0;
   max-height: 860px;
+  flex: 1;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
 }
 
@@ -1927,6 +1941,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
   flex-direction: column;
   min-width: 0;
   height: 100%;
+  min-height: 0;
   background: var(--surface);
 }
 
@@ -1987,6 +2002,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
   padding: 16px 20px;
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
   background-color: #efeae2;
   background-image: 
     radial-gradient(#d5cebe 1.1px, transparent 1.1px),
@@ -2923,6 +2939,32 @@ body[data-theme="dark"] .form-error {
   header {
     padding: 0 16px;
     height: 64px;
+    gap: 8px;
+  }
+  .breadcrumb {
+    min-width: 0;
+    gap: 5px;
+  }
+  .breadcrumb span:first-child {
+    display: none;
+  }
+  .breadcrumb strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .district-search {
+    display: none;
+  }
+  .header-user {
+    padding: 3px;
+  }
+  .header-user > span,
+  .header-user > svg {
+    display: none;
   }
   .mobile-menu {
     display: grid;
@@ -2937,6 +2979,11 @@ body[data-theme="dark"] .form-error {
   }
   .content {
     padding: 20px 16px 44px;
+  }
+  .messages-content {
+    height: calc(100dvh - 64px);
+    padding: 14px 12px max(10px, env(safe-area-inset-bottom));
+    overflow: hidden;
   }
   .metrics {
     grid-template-columns: 1fr 1fr;
@@ -2960,8 +3007,50 @@ body[data-theme="dark"] .form-error {
   }
   .chat-layout, .group-layout {
     grid-template-columns: 1fr;
-    height: calc(100dvh - 165px);
-    min-height: 480px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    border-radius: 12px;
+  }
+  .chat-contacts, .group-sidebar,
+  .chat-window, .group-window {
+    min-height: 0;
+  }
+  .chat-window-head, .group-window-head {
+    height: 56px;
+    padding: 8px 10px;
+  }
+  .chat-messages, .group-messages {
+    padding: 12px 10px;
+  }
+  .chat-bubble-group {
+    max-width: 90%;
+  }
+  .chat-compose, .group-compose {
+    padding: 7px 8px max(7px, env(safe-area-inset-bottom));
+  }
+  .chat-compose-main {
+    gap: 3px;
+  }
+  .chat-icon-btn, .attachment-button, .emoji-button,
+  .voice-record-button {
+    width: 36px;
+    height: 36px;
+  }
+  .chat-input-pill {
+    min-width: 0;
+    padding: 8px 12px;
+  }
+  .emoji-picker-surface {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: min(420px, calc(100dvh - 150px));
+  }
+  .emoji-picker-surface > * {
+    width: 100% !important;
   }
   .meeting-card {
     flex-direction: column;

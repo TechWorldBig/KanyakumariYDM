@@ -168,7 +168,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.16, ease: "easeOut" }}
-            className="content"
+            className={page === "Messages" ? "content messages-content" : "content"}
           >
             {page === "YDM meetings" ? (
               <YdmMeetingsPage role={role} />

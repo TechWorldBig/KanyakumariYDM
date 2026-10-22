@@ -428,7 +428,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
   );
   const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
-    <section className="space-y-3">
+    <section className="messages-page space-y-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2.5 border-b border-[var(--border)]">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)]">
