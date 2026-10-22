@@ -3123,6 +3123,9 @@ body[data-theme="dark"] .form-error {
     max-height: none;
     border-radius: 12px;
   }
+  .mobile-pane-hidden {
+    display: none !important;
+  }
   .chat-contacts, .group-sidebar,
   .chat-window, .group-window {
     min-height: 0;

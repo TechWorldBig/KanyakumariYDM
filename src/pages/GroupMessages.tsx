@@ -527,7 +527,7 @@ export function GroupMessages() {
 
   return (
     <Card className="group-layout panel">
-      <aside className={`group-sidebar ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}`}>
+      <aside className={`group-sidebar ${mobileView === 'chat' ? 'mobile-pane-hidden' : ''}`}>
         <div className="group-sidebar-header">
           <div>
             <h2>Groups</h2>
@@ -593,7 +593,7 @@ export function GroupMessages() {
         </div>
       </aside>
 
-      <div className={`group-window ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`group-window ${mobileView === 'list' ? 'mobile-pane-hidden' : ''}`}>
         <div className="group-window-head">
           <div className="group-window-head-left">
             <button

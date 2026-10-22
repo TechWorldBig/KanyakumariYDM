@@ -457,7 +457,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       )}
 
       {view === 'groups' ? <GroupMessages /> : <Card className="chat-layout panel">
-        <aside className={`chat-contacts ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}`}>
+        <aside className={`chat-contacts ${mobileView === 'chat' ? 'mobile-pane-hidden' : ''}`}>
           <div className="chat-contacts-header">
             <h2>People</h2>
             <Badge variant="outline" className="text-[11px] font-semibold">
@@ -527,7 +527,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
           </div>
         </aside>
 
-        <div className={`chat-window ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`chat-window ${mobileView === 'list' ? 'mobile-pane-hidden' : ''}`}>
           <div className="chat-window-head">
             <div className="chat-window-head-left">
               <button
