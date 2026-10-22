@@ -46,6 +46,7 @@ type GroupDetails = Group & { members: Array<{ username: string; name: string }>
 type GroupMessage = {
   id: string
   sender: string
+  senderDisplayName?: string
   text: string
   sentAt: string
   editedAt: string | null
@@ -57,6 +58,46 @@ type GroupMessage = {
 
 const EmojiPicker = lazy(() => import('emoji-picker-react'))
 const quickReactions = ['👍', '❤️', '😂', '🙏', '😮']
+
+const BUILT_IN_SENDER_NAMES: Record<string, string> = {
+  admin: 'District Super Admin',
+  district: 'District Super Admin',
+  headpastor: 'Head Pastor',
+  'head-pastor': 'Head Pastor',
+  ydmleader: 'District YDM Leader',
+  districtydm: 'District YDM Leader',
+  'district-ydm': 'District YDM Leader',
+  'district-women': 'District Women Leader',
+  'think-tank': 'Think Tank Admin',
+  'section-pastor': 'Section Pastor Admin',
+  'church-pastor': 'Pastor of Church',
+  section1: 'Section 1 Admin',
+  section2: 'Section 2 Admin',
+  section3: 'Section 3 Admin',
+  section4: 'Section 4 Admin',
+}
+
+function resolveSenderLabel(
+  sender: string,
+  senderDisplayName?: string,
+  directory?: Record<string, string>
+): string {
+  if (senderDisplayName && senderDisplayName.trim() && senderDisplayName !== sender) {
+    return senderDisplayName.trim()
+  }
+  if (directory) {
+    if (directory[sender]) return directory[sender]
+    if (directory[sender.toLowerCase()]) return directory[sender.toLowerCase()]
+  }
+  const lower = sender.toLowerCase()
+  if (BUILT_IN_SENDER_NAMES[lower]) {
+    return BUILT_IN_SENDER_NAMES[lower]
+  }
+  if (/^section\d+$/i.test(sender)) {
+    return `Section ${sender.replace(/^section/i, '')} Admin`
+  }
+  return sender
+}
 
 const senderColorPalette = [
   'text-emerald-700 dark:text-emerald-400',
@@ -148,6 +189,7 @@ async function voicePayload(file: File) {
 export function GroupMessages() {
   const [groups, setGroups] = useState<Group[]>([])
   const [people, setPeople] = useState<Person[]>([])
+  const [directory, setDirectory] = useState<Record<string, string>>({ ...BUILT_IN_SENDER_NAMES })
   const [selected, setSelected] = useState<string | null>(null)
   const [messages, setMessages] = useState<GroupMessage[]>([])
   const [username, setUsername] = useState('')
@@ -217,7 +259,24 @@ export function GroupMessages() {
         if (!response.ok) throw new Error(result.error || 'Could not load members')
         return result
       })
-      .then((result) => setPeople(result.people || []))
+      .then((result) => {
+        setPeople(result.people || [])
+        setDirectory((prev) => {
+          const next = { ...prev }
+          const all = Array.isArray(result.allPeople)
+            ? result.allPeople
+            : Array.isArray(result.people)
+            ? result.people
+            : []
+          for (const person of all) {
+            if (person?.username && person?.label) {
+              next[person.username] = person.label
+              next[person.username.toLowerCase()] = person.label
+            }
+          }
+          return next
+        })
+      })
       .catch((cause) =>
         setError(cause instanceof Error ? cause.message : 'Could not load members')
       )
@@ -483,6 +542,16 @@ export function GroupMessages() {
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || 'Could not load group details')
       setDetails({ ...result.group, memberCount: result.group.members.length })
+      setDirectory((prev) => {
+        const next = { ...prev }
+        for (const member of result.group.members || []) {
+          if (member?.username && member?.name) {
+            next[member.username] = member.name
+            next[member.username.toLowerCase()] = member.name
+          }
+        }
+        return next
+      })
       setDescriptionDraft(result.group.description || '')
       setEditingDescription(false)
     } catch (cause) {
@@ -636,7 +705,9 @@ export function GroupMessages() {
               variant="ghost"
               size="sm"
               onClick={() => setDeleting(true)}
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 gap-1.5"
+              className="group-delete-button text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 gap-1.5"
+              aria-label={`Delete group ${active.name}`}
+              title="Delete group"
             >
               <Trash2 size={13} />
               <span>Delete Group</span>
@@ -656,7 +727,14 @@ export function GroupMessages() {
         <div className="group-messages" ref={messagesContainerRef} aria-live="polite">
           {messages.length ? (
             messages.map((message, index) => {
-              const isMine = message.sender === username
+              const isMine =
+                message.sender === username ||
+                Boolean(username && message.sender.toLowerCase() === username.toLowerCase())
+              const senderLabel = resolveSenderLabel(
+                message.sender,
+                message.senderDisplayName,
+                directory
+              )
               const prev = index > 0 ? messages[index - 1] : null
               const showDivider =
                 index === 0 ||
@@ -748,16 +826,14 @@ export function GroupMessages() {
 
                     {/* WhatsApp Group Bubble */}
                     <div className={`group-bubble ${isMine ? 'mine' : ''}`}>
-                      {/* Sender tag for incoming team messages */}
-                      {!isMine && (
-                        <span
-                          className={`text-[12px] font-bold block mb-1 tracking-tight ${getSenderColor(
-                            message.sender
-                          )}`}
-                        >
-                          {message.sender}
-                        </span>
-                      )}
+                      {/* Sender identity stays visible for every group message */}
+                      <span
+                        className={`group-sender-tag ${
+                          isMine ? 'mine' : getSenderColor(message.sender)
+                        }`}
+                      >
+                        {senderLabel}{isMine ? ' (You)' : ''}
+                      </span>
 
                       {/* Attachment: Image or Audio */}
                       {message.attachment && (

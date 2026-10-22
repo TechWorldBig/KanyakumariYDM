@@ -2,7 +2,7 @@ import { get, put } from '@vercel/blob'
 import { randomUUID } from 'node:crypto'
 import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
 
-const builtInAccounts = { admin: 'District Super Admin', headpastor: 'Head Pastor', ydmleader: 'District YDM Leader', districtydm: 'District YDM Leader', section1: 'Section 1 Admin', section2: 'Section 2 Admin', section3: 'Section 3 Admin', section4: 'Section 4 Admin' }
+const builtInAccounts = { admin: 'District Super Admin', district: 'District Super Admin', headpastor: 'Head Pastor', 'head-pastor': 'Head Pastor', ydmleader: 'District YDM Leader', districtydm: 'District YDM Leader', 'district-ydm': 'District YDM Leader', 'district-women': 'District Women Leader', section1: 'Section 1 Admin', section2: 'Section 2 Admin', section3: 'Section 3 Admin', section4: 'Section 4 Admin' }
 const validGroupId = value => /^[0-9a-f-]{36}$/i.test(String(value || ''))
 
 export default async function handler(req, res) {
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const profiles = await sql.query("SELECT username,display_name FROM user_profiles WHERE display_name<>''")
     const names = Object.fromEntries(profiles.map(row => [row.username, row.display_name]))
     const people = [...Object.entries(builtInAccounts).map(([username, label]) => ({ username, label: names[username] || label })), ...accounts.map(row => ({ username: row.username, label: names[row.username] || `${row.username} · ${row.section_scope || row.role}` }))]
-    return res.status(200).json({ people: people.filter(person => person.username !== session.username) })
+    return res.status(200).json({ people: people.filter(person => person.username !== session.username), allPeople: people })
   }
   if (req.query?.mode === 'groups') {
     if (req.method === 'GET') {
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
       return res.status(200).end(Buffer.from(data))
     }
     if (req.method === 'GET') {
-      const messages = await sql.query('SELECT id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt" FROM chat_group_messages WHERE group_id=$1 AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 200', [groupId])
+      const messages = await sql.query('SELECT m.id,m.sender_username AS "sender",coalesce(nullif(p.display_name,\'\'),\'\') AS "senderDisplayName",m.message AS text,m.attachment,m.sent_at AS "sentAt",m.edited_at AS "editedAt" FROM chat_group_messages m LEFT JOIN user_profiles p ON p.username=m.sender_username WHERE m.group_id=$1 AND m.deleted_at IS NULL ORDER BY m.sent_at DESC LIMIT 200', [groupId])
       const reactions = messages.length ? await sql.query('SELECT message_id,emoji,array_agg(username) AS members FROM chat_group_message_reactions WHERE message_id=ANY($1::text[]) GROUP BY message_id,emoji', [messages.map(message => message.id)]) : []
       const reads = messages.length ? await sql.query('SELECT message_id,username FROM chat_group_message_reads WHERE message_id=ANY($1::text[])', [messages.map(message => message.id)]) : []
       const members = await sql.query('SELECT username FROM chat_group_members WHERE group_id=$1', [groupId])
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
         const blob = await put(`group-chat/${groupId}/${id}-${name}`, bytes, { access:'private',contentType:type,addRandomSuffix:true })
         attachment = { name,type,pathname:blob.pathname,url:`/api/chat-files?mode=group-attachment&groupId=${groupId}&messageId=${id}` }
       }
-      const message = (await sql.query('INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username AS "sender",message AS text,attachment,sent_at AS "sentAt",edited_at AS "editedAt"', [id,groupId,session.username,text,attachment]))[0]
+      const message = (await sql.query('WITH inserted AS (INSERT INTO chat_group_messages(id,group_id,sender_username,message,attachment) VALUES($1,$2,$3,$4,$5) RETURNING id,sender_username,message,attachment,sent_at,edited_at) SELECT i.id,i.sender_username AS "sender",coalesce(nullif(p.display_name,\'\'),\'\') AS "senderDisplayName",i.message AS text,i.attachment,i.sent_at AS "sentAt",i.edited_at AS "editedAt" FROM inserted i LEFT JOIN user_profiles p ON p.username=i.sender_username', [id,groupId,session.username,text,attachment]))[0]
       return res.status(201).json({ message: { ...message,reactions:{},readByMe:true,allRead:false } })
     }
     if (req.method === 'PATCH') {

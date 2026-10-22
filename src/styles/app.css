@@ -1993,6 +1993,16 @@ body[data-theme="dark"] .meeting-card-cancelled {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 1;
+}
+
+.chat-window-head-info, .group-window-head-info,
+.group-window-head-info > button {
+  min-width: 0;
+}
+
+.group-window-head-info > button {
+  max-width: 100%;
 }
 
 .chat-window-head-info h2, .group-window-head-info h2 {
@@ -2127,6 +2137,24 @@ body[data-theme="dark"] .meeting-card-cancelled {
   box-shadow: 0 1px 1px rgba(11, 20, 26, 0.12);
   border: 1px solid rgba(226, 232, 240, 0.75);
   word-break: break-word;
+}
+
+.group-sender-tag {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+  user-select: none;
+}
+
+.group-sender-tag.mine {
+  color: #166534;
+}
+
+.dark .group-sender-tag.mine {
+  color: #86efac;
 }
 
 .dark .chat-bubble, .dark .group-bubble {
@@ -3145,6 +3173,35 @@ body[data-theme="dark"] .form-error {
   .chat-window-head, .group-window-head {
     height: 56px;
     padding: 8px 10px;
+    gap: 6px;
+  }
+  .group-window-head-left {
+    gap: 7px;
+    overflow: hidden;
+  }
+  .group-window-head .chat-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  .group-window-head-info {
+    overflow: hidden;
+  }
+  .group-window-head-info > button h2 {
+    min-width: 0;
+  }
+  .group-window-head-info > button svg {
+    flex-shrink: 0;
+  }
+  .group-delete-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .group-delete-button > span {
+    display: none;
   }
   .chat-messages, .group-messages {
     padding: 12px 10px;
