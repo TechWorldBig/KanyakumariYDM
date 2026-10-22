@@ -676,26 +676,29 @@ export function GroupMessages() {
             </button>
             {active ? (
               <>
-                <div className="chat-avatar">
+                <div className="chat-avatar shrink-0">
                   <Users size={20} />
                 </div>
-                <div className="group-window-head-info">
+                <div className="group-window-head-info min-w-0 flex-1 overflow-hidden">
                   <button
                     type="button"
-                    className="text-left hover:underline flex items-center gap-1.5 cursor-pointer"
+                    className="text-left hover:underline flex items-center gap-1.5 cursor-pointer max-w-full min-w-0"
                     onClick={() => void openDetails()}
                     title="View group details"
                   >
-                    <h2>{active.name}</h2>
-                    <Info size={14} className="text-[var(--muted-foreground)]" />
+                    <h2 className="truncate">{active.name}</h2>
+                    <Info size={14} className="text-[var(--muted-foreground)] shrink-0" />
                   </button>
-                  <p>{active.memberCount} members · Click to view details</p>
+                  <p className="truncate">
+                    {active.memberCount} members
+                    <span className="hidden sm:inline"> · Click to view details</span>
+                  </p>
                 </div>
               </>
             ) : (
-              <div className="group-window-head-info">
-                <h2>Select a group</h2>
-                <p>Choose a group to start collaborating</p>
+              <div className="group-window-head-info min-w-0 flex-1 overflow-hidden">
+                <h2 className="truncate">Select a group</h2>
+                <p className="truncate">Choose a group to start collaborating</p>
               </div>
             )}
           </div>
@@ -705,12 +708,12 @@ export function GroupMessages() {
               variant="ghost"
               size="sm"
               onClick={() => setDeleting(true)}
-              className="group-delete-button text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 gap-1.5"
+              className="group-delete-button shrink-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 w-8 sm:w-auto p-0 sm:px-2.5 gap-1.5"
               aria-label={`Delete group ${active.name}`}
               title="Delete group"
             >
-              <Trash2 size={13} />
-              <span>Delete Group</span>
+              <Trash2 size={15} className="shrink-0" />
+              <span className="hidden sm:inline">Delete Group</span>
             </Button>
           )}
         </div>
@@ -1256,7 +1259,22 @@ export function GroupMessages() {
                 </div>
               </div>
 
-              <DialogFooter>
+              <DialogFooter className="flex flex-row items-center justify-between gap-2 sm:justify-between w-full">
+                {details.createdBy === username ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => {
+                      setDetails(null)
+                      setDeleting(true)
+                    }}
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete Group</span>
+                  </Button>
+                ) : <span />}
                 <Button variant="outline" onClick={() => setDetails(null)}>
                   Close
                 </Button>

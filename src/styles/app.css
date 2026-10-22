@@ -3196,12 +3196,12 @@ body[data-theme="dark"] .form-error {
     width: 36px;
     min-width: 36px;
     height: 36px;
-    padding: 0;
+    padding: 0 !important;
     justify-content: center;
     flex-shrink: 0;
   }
   .group-delete-button > span {
-    display: none;
+    display: none !important;
   }
   .chat-messages, .group-messages {
     padding: 12px 10px;
