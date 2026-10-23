@@ -78,8 +78,8 @@ export function OverviewPage({
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="metrics">
+      {/* Metrics Row (2x2 on mobile, 4 columns on desktop) */}
+      <div className="metrics grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         <Metric
           icon={Building2}
           label="Active sections"

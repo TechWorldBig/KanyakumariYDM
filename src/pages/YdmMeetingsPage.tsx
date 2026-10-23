@@ -35,7 +35,9 @@ import type { UserRole } from '../types'
 import type { Meeting, MeetingMOM } from '../domain/meetings'
 import {
   getLocalMOMStore,
+  isMeetingInFuture,
   isMeetingOrganiser,
+  isMeetingOver,
   saveLocalMOM,
 } from '../domain/meetings'
 import { MomViewerDialog } from '../components/meetings/MomViewerDialog'
@@ -82,30 +84,39 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
     setTimeout(() => setToastMessage(''), 3500)
   }
 
+  // Lifecycle helper:
+  // 1. 'cancelled': has cancellation reason
+  // 2. 'mom_published': mom_published is true and has mom details
+  // 3. 'active': meeting scheduled date and time is in the future (> now) and not cancelled
+  // 4. 'completed': meeting scheduled date and time has arrived/passed (<= now), awaiting MOM
+  const getMeetingState = (m: Meeting): 'active' | 'completed' | 'mom_published' | 'cancelled' => {
+    if (m.cancellation_reason || m.cancelled_at) return 'cancelled'
+    if (m.mom_published && m.mom) return 'mom_published'
+    if (isMeetingInFuture(m.scheduled_for)) return 'active'
+    return 'completed'
+  }
+
   // Calculate status counts
   const activeCount = useMemo(
-    () => meetings.filter((m) => m.active && !m.mom_published && !m.cancellation_reason).length,
+    () => meetings.filter((m) => getMeetingState(m) === 'active').length,
     [meetings]
   )
   const completedCount = useMemo(
-    () => meetings.filter((m) => m.mom_published || m.status === 'completed' || (!m.active && !m.cancellation_reason)).length,
+    () => meetings.filter((m) => getMeetingState(m) === 'completed' || getMeetingState(m) === 'mom_published').length,
     [meetings]
   )
   const cancelledCount = useMemo(
-    () => meetings.filter((m) => Boolean(m.cancellation_reason || m.cancelled_at)).length,
+    () => meetings.filter((m) => getMeetingState(m) === 'cancelled').length,
     [meetings]
   )
 
   const filteredMeetings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return meetings.filter((m) => {
-      const isCancelled = Boolean(m.cancellation_reason || m.cancelled_at)
-      const isCompleted = m.mom_published || m.status === 'completed' || (!m.active && !isCancelled)
-      const isActive = m.active && !isCompleted && !isCancelled
-
-      if (statusFilter === 'active' && !isActive) return false
-      if (statusFilter === 'completed' && !isCompleted) return false
-      if (statusFilter === 'cancelled' && !isCancelled) return false
+      const state = getMeetingState(m)
+      if (statusFilter === 'active' && state !== 'active') return false
+      if (statusFilter === 'completed' && state !== 'completed' && state !== 'mom_published') return false
+      if (statusFilter === 'cancelled' && state !== 'cancelled') return false
 
       if (!query) return true
       return (
@@ -132,7 +143,8 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       const localMomStore = getLocalMOMStore()
       const serverMeetings: Meeting[] = result.meetings || []
 
-      // Merge any local MOM store entries if available
+      // Merge any local MOM store entries & ensure future meetings stay active
+      const now = Date.now()
       const merged: Meeting[] = serverMeetings.map((m) => {
         const localMom = localMomStore[m.id]
         if (localMom && !m.mom_published) {
@@ -142,6 +154,16 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
             mom_published: true,
             status: 'completed',
             active: false,
+          }
+        }
+        // Future meeting without published MOM must be active
+        if (!m.cancellation_reason && !m.mom_published && new Date(m.scheduled_for).getTime() > now) {
+          return {
+            ...m,
+            active: true,
+            status: 'active' as const,
+            completed_at: null,
+            completed_by: null,
           }
         }
         return m
@@ -161,11 +183,16 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
         if (backupRaw) {
           const backupMeetings: Meeting[] = JSON.parse(backupRaw)
           const localMomStore = getLocalMOMStore()
-          const merged: Meeting[] = backupMeetings.map((m) =>
-            localMomStore[m.id]
-              ? { ...m, mom: localMomStore[m.id], mom_published: true, status: 'completed' as const }
-              : m
-          )
+          const now = Date.now()
+          const merged: Meeting[] = backupMeetings.map((m) => {
+            if (localMomStore[m.id]) {
+              return { ...m, mom: localMomStore[m.id], mom_published: true, status: 'completed' as const }
+            }
+            if (!m.cancellation_reason && new Date(m.scheduled_for).getTime() > now) {
+              return { ...m, active: true, status: 'active' as const, completed_at: null }
+            }
+            return m
+          })
           setMeetings(merged)
         }
       } catch {
@@ -519,16 +546,20 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 </h2>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Current active, past concluded conferences, and published Minutes of Meeting.
+                {completedCount > 0
+                  ? 'Current active, past concluded conferences, and published Minutes of Meeting.'
+                  : 'Current active and past district video conferences.'}
               </p>
             </div>
-            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+            <div className="flex items-center gap-1.5 self-start sm:self-auto flex-wrap">
               <Badge variant="success" className="text-xs font-semibold">
                 {activeCount} Active
               </Badge>
-              <Badge variant="violet" className="text-xs font-semibold">
-                {completedCount} Completed / MOM
-              </Badge>
+              {completedCount > 0 && (
+                <Badge variant="violet" className="text-xs font-semibold">
+                  {completedCount} Completed / MOM
+                </Badge>
+              )}
               <Badge variant="blue" className="text-xs font-semibold">
                 {meetings.length} Total
               </Badge>
@@ -546,7 +577,11 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter meetings by title, host, or MOM topic..."
+                  placeholder={
+                    completedCount > 0
+                      ? 'Filter meetings by title, host, or MOM topic...'
+                      : 'Filter meetings by title or host...'
+                  }
                   className="w-full h-8 pl-8 pr-7 text-xs rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--foreground)] outline-none focus:border-[var(--color-district-500)] focus:ring-1 focus:ring-[var(--color-district-500)]"
                   aria-label="Filter meetings"
                 />
@@ -584,17 +619,19 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 >
                   Active ({activeCount})
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setStatusFilter('completed')}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                    statusFilter === 'completed'
-                      ? 'bg-purple-600 text-white dark:bg-purple-700 shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  Completed / MOM ({completedCount})
-                </button>
+                {completedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter('completed')}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                      statusFilter === 'completed'
+                        ? 'bg-purple-600 text-white dark:bg-purple-700 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    Completed / MOM ({completedCount})
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setStatusFilter('cancelled')}
@@ -625,19 +662,22 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
             </div>
           ) : filteredMeetings.length ? (
             filteredMeetings.map((meeting) => {
-              const isCancelled = Boolean(meeting.cancellation_reason || meeting.cancelled_at)
-              const hasMom = Boolean(meeting.mom || meeting.mom_published)
-              const isCompleted = hasMom || meeting.status === 'completed' || (!meeting.active && !isCancelled)
-              const isActive = meeting.active && !isCompleted && !isCancelled
+              const state = getMeetingState(meeting)
+              const isCancelled = state === 'cancelled'
+              const hasMom = state === 'mom_published'
+              const isActive = state === 'active'
+              const isCompletedAwaitingMom = state === 'completed'
               const isOrganiser = isMeetingOrganiser(meeting, currentUsername, role)
 
               return (
                 <article
-                  className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                  className={`p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 transition-colors ${
                     hasMom
                       ? 'bg-emerald-50/20 dark:bg-emerald-950/10 hover:bg-emerald-50/40'
                       : isActive
                       ? 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      : isCompletedAwaitingMom
+                      ? 'bg-purple-50/20 dark:bg-purple-950/10 hover:bg-purple-50/40'
                       : 'bg-slate-50/80 dark:bg-slate-900/60 opacity-90'
                   }`}
                   key={meeting.id}
@@ -673,7 +713,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                             <FileCheck2 size={10} />
                             <span>MOM Published</span>
                           </Badge>
-                        ) : isCompleted ? (
+                        ) : isCompletedAwaitingMom ? (
                           <Badge variant="violet" className="text-[10px] py-0">
                             Completed · Awaiting MOM
                           </Badge>
@@ -730,9 +770,9 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                     </div>
                   </div>
 
-                  {/* Actions Column */}
+                  {/* Actions Column (Clean Responsive on Mobile & Laptop) */}
                   {!isCancelled && (
-                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto pl-13 sm:pl-0 flex-wrap">
+                    <div className="w-full sm:w-auto flex items-center justify-start sm:justify-end gap-2 shrink-0 flex-wrap pt-2 sm:pt-0 border-t border-slate-100 dark:border-slate-800 sm:border-0">
                       {/* MOM View button: Available to ALL ROLES when MOM is published! */}
                       {hasMom && meeting.mom && (
                         <Button
@@ -764,7 +804,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                         </Button>
                       )}
 
-                      {/* If meeting is Active: Join Meet button for everyone */}
+                      {/* If meeting is Active (Future / Current): Join Meet button for everyone */}
                       {isActive && (
                         <a
                           className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] shadow-xs hover:opacity-95 transition-all"
@@ -777,23 +817,8 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                         </a>
                       )}
 
-                      {/* If meeting is Active and user is Organiser: 'Meeting Over & Tell MOM' button */}
-                      {isActive && isOrganiser && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs gap-1.5 border-district-300 dark:border-district-700 text-district-700 dark:text-district-300 hover:bg-district-50 dark:hover:bg-district-950/40"
-                          onClick={() => void handleConcludeMeeting(meeting)}
-                          title="Conclude meeting and document Minutes of Meeting (MOM)"
-                        >
-                          <FileCheck2 size={13} />
-                          <span>Meeting Over · Record MOM</span>
-                        </Button>
-                      )}
-
                       {/* If meeting is Over / Completed without MOM: Organiser button to Record MOM */}
-                      {isCompleted && !hasMom && isOrganiser && (
+                      {isCompletedAwaitingMom && isOrganiser && (
                         <Button
                           type="button"
                           size="sm"

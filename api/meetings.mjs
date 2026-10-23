@@ -24,7 +24,11 @@ export default async function handler(req,res){
    ) notices ORDER BY occurred_at DESC LIMIT 50`,[session.username])
   return res.status(200).json({notifications})
  }
- if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by,status,completed_at,completed_by,mom,mom_published,mom_published_at,mom_published_by FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL OR mom_published=true OR completed_at IS NOT NULL ORDER BY active DESC, CASE WHEN active THEN scheduled_for END ASC, cancelled_at DESC, id DESC LIMIT 100");return res.status(200).json({meetings})}
+ if(req.method==='GET'){
+  await sql.query("UPDATE ydm_meetings SET active=true,status='active',completed_at=NULL,completed_by=NULL WHERE scheduled_for > now() AND mom_published=false AND cancellation_reason IS NULL AND active=false").catch(()=>undefined);
+  const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by,status,completed_at,completed_by,mom,mom_published,mom_published_at,mom_published_by FROM ydm_meetings WHERE (scheduled_for >= now() - interval '90 days') OR active=true OR cancelled_at IS NOT NULL OR mom_published=true OR completed_at IS NOT NULL ORDER BY CASE WHEN active AND scheduled_for > now() THEN 0 WHEN active OR (mom_published=false AND cancelled_at IS NULL) THEN 1 ELSE 2 END, scheduled_for DESC, id DESC LIMIT 100");
+  return res.status(200).json({meetings})
+ }
  if(req.method==='POST'&&req.query?.mode==='notification-read-all'){
   await sql.query(`INSERT INTO meeting_notification_reads(username,meeting_id,read_at)
    SELECT $1,id,now() FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL OR mom_published=true ORDER BY id DESC LIMIT 100
@@ -54,6 +58,7 @@ export default async function handler(req,res){
   if(!meeting)return res.status(404).json({error:'Meeting not found'})
   const isOrganiser=meeting.started_by===session.username||['district','district-ydm'].includes(session.role)
   if(!isOrganiser)return res.status(403).json({error:'Only the meeting organiser can mark the meeting as concluded'})
+  if(new Date(meeting.scheduled_for).getTime()>Date.now())return res.status(400).json({error:'Cannot conclude a meeting before its scheduled date and time'})
   const updated=(await sql.query('UPDATE ydm_meetings SET active=false,status=\'completed\',completed_at=coalesce(completed_at,now()),completed_by=$2 WHERE id=$1 RETURNING id,title,active,status,completed_at,completed_by',[id,session.username]))[0]
   await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,null,`Concluded meeting: ${meeting.title}`])
   return res.status(200).json({meeting:updated})
@@ -65,6 +70,7 @@ export default async function handler(req,res){
   if(!meeting)return res.status(404).json({error:'Meeting not found'})
   const isOrganiser=meeting.started_by===session.username||['district','district-ydm'].includes(session.role)
   if(!isOrganiser)return res.status(403).json({error:'Only the meeting organiser can record and publish the Minutes of Meeting (MOM)'})
+  if(new Date(meeting.scheduled_for).getTime()>Date.now())return res.status(400).json({error:'Cannot record minutes of meeting before its scheduled date and time has arrived'})
   const momData=req.body?.mom||{}
   if(!momData.discussionPoints||!Array.isArray(momData.discussionPoints)||!momData.discussionPoints.length){
    return res.status(400).json({error:'Please add discussion points from the meeting'})

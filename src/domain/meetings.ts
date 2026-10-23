@@ -127,6 +127,24 @@ export function saveLocalMOM(meetingId: number, mom: MeetingMOM): void {
   }
 }
 
+export function isMeetingInFuture(scheduledFor: string): boolean {
+  try {
+    const time = new Date(scheduledFor).getTime()
+    return !Number.isNaN(time) && time > Date.now()
+  } catch {
+    return false
+  }
+}
+
+export function isMeetingOver(meeting: Meeting): boolean {
+  if (meeting.cancellation_reason || meeting.cancelled_at) return false
+  if (meeting.mom_published || meeting.mom) return true
+  // If scheduled time is in the future, it is NOT over yet
+  if (isMeetingInFuture(meeting.scheduled_for)) return false
+  // Once the scheduled date/time has arrived or passed, the meeting is over
+  return true
+}
+
 export function isMeetingOrganiser(
   meeting: Meeting,
   currentUsername: string,
