@@ -733,30 +733,49 @@ body[data-theme="dark"] .section-head p {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .add-card:hover {
   background: var(--surface-hover);
-  border-color: var(--color-district-300);
+  border-color: var(--color-district-400);
   color: var(--brand);
 }
 
-.add-card div {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+.add-card .add-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: var(--surface-subtle);
   display: grid;
   place-items: center;
-  color: var(--muted-foreground);
+  color: var(--color-district-600);
+  transition: transform 0.2s ease;
+}
+
+.add-card:hover .add-card-icon {
+  transform: scale(1.08);
+}
+
+.add-card .add-card-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
 }
 
 .add-card strong {
-  font-size: 13px;
-  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.add-card span {
+  font-size: 12px;
+  color: var(--muted-foreground);
 }
 
 /* --------------------------------------------------------------------------

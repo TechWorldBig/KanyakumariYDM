@@ -136,10 +136,10 @@ export function OverviewPage({
               className="add-card group p-6 rounded-2xl border-2 border-dashed border-[var(--line)] hover:border-district-400 dark:hover:border-district-600 hover:bg-district-50/50 dark:hover:bg-slate-800/40 transition-all flex flex-col items-center justify-center gap-3 text-center cursor-pointer min-h-[220px]"
               onClick={onAdd}
             >
-              <div className="size-12 rounded-xl bg-district-50 dark:bg-district-950/60 text-district-600 dark:text-district-400 flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
+              <div className="add-card-icon size-12 rounded-xl bg-district-50 dark:bg-district-950/60 text-district-600 dark:text-district-400 flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
                 <Plus size={22} strokeWidth={2.5} />
               </div>
-              <div>
+              <div className="add-card-text">
                 <strong className="block text-sm font-bold text-[var(--ink)]">Add new section</strong>
                 <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Expand administrative zone</span>
               </div>
