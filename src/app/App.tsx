@@ -13,6 +13,7 @@ import type { AccountType, Page, Section, UserRole } from "../types";
 import { ChurchAdminPage } from "../pages/ChurchAdminPage";
 import { AuditLogsPage } from "../pages/AuditLogsPage";
 import { YdmMeetingsPage } from "../pages/YdmMeetingsPage";
+import { YdmAttendancePage } from "../pages/YdmAttendancePage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
 import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
@@ -180,6 +181,8 @@ export default function App() {
           >
             {page === "YDM meetings" ? (
               <YdmMeetingsPage role={role} />
+            ) : page === "YDM attendance" ? (
+              <YdmAttendancePage role={role} />
             ) : page === "Messages" ? (
               <MessagesPage role={role} />
             ) : accountType !== "section" && churchId ? (

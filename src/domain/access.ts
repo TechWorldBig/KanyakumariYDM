@@ -14,8 +14,10 @@ export function accessLevel(role: UserRole, feature: string): AccessLevel {
     if (typeof saved === 'boolean') return saved ? 'view' : 'none'
   } catch { /* use the safe default below */ }
   if (role === 'district') return 'manage'
+  if (role === 'district-ydm' && (feature === 'YDM meetings' || feature === 'YDM attendance')) return 'manage'
   if (role === 'head-pastor') return feature === 'Live analytics' ? 'none' : 'view'
   if (/^section[1-4]$/.test(role)) return 'manage'
+  if (feature === 'YDM attendance') return 'none'
   return 'view'
 }
 

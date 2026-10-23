@@ -8,6 +8,7 @@ export type Page =
   | "Audit logs"
   | "Access control"
   | "YDM meetings"
+  | "YDM attendance"
   | "Messages";
 export type UserRole =
   | "district"

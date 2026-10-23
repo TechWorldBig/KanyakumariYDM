@@ -1,6 +1,7 @@
 import {
   Activity,
   Building2,
+  CalendarCheck,
   ChevronDown,
   Church,
   ClipboardList,
@@ -40,6 +41,7 @@ const navigation = [
   ['Audit logs', ClipboardList],
   ['Access control', ShieldCheck],
   ['YDM meetings', Video],
+  ['YDM attendance', CalendarCheck],
   ['Messages', MessageCircle],
 ] as const
 
@@ -78,6 +80,7 @@ export function Sidebar({
             label === 'Overview' ||
             label === 'Users' ||
             label === 'YDM meetings' ||
+            (label === 'YDM attendance' && canAccess(role, label)) ||
             label === 'Messages'
         )
       : navigation.filter(([label]) =>
@@ -87,7 +90,11 @@ export function Sidebar({
         )
   ).filter(
     ([label]) =>
-      accountType !== 'section' || label === 'YDM meetings' || canAccess(role, label)
+      accountType !== 'section'
+        ? label === 'YDM attendance'
+          ? canAccess(role, label)
+          : true
+        : label === 'YDM meetings' || canAccess(role, label)
   )
 
   const workspaceName =
