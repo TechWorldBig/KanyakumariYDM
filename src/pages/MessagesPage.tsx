@@ -429,9 +429,9 @@ export function MessagesPage({ role }: { role: UserRole }) {
   );
   const selectedLabel = `${recipientName} · ${recipientStatus.replace(/^Inactive · /, "")}`;
   return (
-    <section className="messages-page space-y-3">
+    <section className="messages-page flex flex-col h-full min-h-0 flex-1">
       <div
-        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[var(--border)] ${
+        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-2 border-b border-[var(--border)] shrink-0 ${
           mobileView === 'chat' ? 'hidden md:flex' : ''
         }`}
       >
@@ -468,7 +468,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       </div>
 
       {view === 'people' && error && (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium" role="alert">
+        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 text-sm font-medium shrink-0 mb-2" role="alert">
           {error}
         </div>
       )}
@@ -478,7 +478,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
       ) : (
         <>
           {/* Mobile View Switcher */}
-          <div className="md:hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-1 shrink-0">
+          <div className={`md:hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-2 shrink-0 ${mobileView === 'chat' ? 'hidden' : ''}`}>
             <button
               type="button"
               onClick={() => setMobileView('list')}
@@ -505,7 +505,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
             </button>
           </div>
 
-          <Card className="chat-layout panel">
+          <Card className="chat-layout panel flex-1 min-h-0 h-full">
         <aside className={`chat-contacts ${mobileView === 'chat' ? 'mobile-pane-hidden' : ''}`}>
           <div className="chat-contacts-header">
             <h2>People</h2>

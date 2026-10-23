@@ -1829,11 +1829,11 @@ body[data-theme="dark"] .meeting-card-cancelled {
   border-radius: 16px;
   overflow: hidden;
   background: var(--surface);
-  height: calc(100dvh - 145px);
-  min-height: 560px;
-  max-height: calc(100dvh - 135px);
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
   flex: 1;
-  padding: 0;
+  padding: 0 !important;
   box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
 }
 
@@ -2672,6 +2672,9 @@ body[data-theme="dark"] .meeting-card-cancelled {
   background: #f0f2f5;
   flex-shrink: 0;
   gap: 6px;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
 }
 
 .dark .chat-compose, .dark .group-compose {
@@ -3344,6 +3347,7 @@ body[data-theme="dark"] .form-error {
     min-height: 0;
     height: 100%;
     max-height: 100%;
+    padding: 0 !important;
     border-radius: 14px;
     display: flex;
     flex-direction: column;
@@ -3503,6 +3507,9 @@ body[data-theme="dark"] .form-error {
     flex-shrink: 0;
     padding: 7px 8px max(7px, env(safe-area-inset-bottom));
     gap: 4px;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
   }
   .chat-compose-main {
     gap: 3px;

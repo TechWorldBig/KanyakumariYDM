@@ -602,7 +602,7 @@ export function GroupMessages({
   return (
     <>
       {/* Mobile View Switcher */}
-      <div className="md:hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-1 shrink-0">
+      <div className={`md:hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-2 shrink-0 ${mobileView === 'chat' ? 'hidden' : ''}`}>
         <button
           type="button"
           onClick={() => {
@@ -635,7 +635,7 @@ export function GroupMessages({
         </button>
       </div>
 
-      <Card className="group-layout panel">
+      <Card className="group-layout panel flex-1 min-h-0 h-full">
       <aside className={`group-sidebar ${mobileView === 'chat' ? 'mobile-pane-hidden' : ''}`}>
         <div className="group-sidebar-header">
           <div>
