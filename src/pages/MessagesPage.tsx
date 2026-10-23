@@ -92,6 +92,8 @@ const recipients: Array<{ id: UserRole; label: string }> = [
   { id: "head-pastor", label: "Head Pastor" },
   { id: "district-ydm", label: "District YDM Leader" },
   { id: "district-women", label: "District Women Leader" },
+  { id: "headmaster-admin", label: "Headmaster Admin" },
+  { id: "teacher-admin", label: "Teacher Admin" },
   { id: "section1", label: "Section 1 Admin" },
   { id: "section2", label: "Section 2 Admin" },
   { id: "section3", label: "Section 3 Admin" },

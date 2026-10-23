@@ -20,6 +20,8 @@ export type UserRole =
   | "church-pastor"
   | "district-ydm"
   | "district-women"
+  | "headmaster-admin"
+  | "teacher-admin"
   | "section1"
   | "section2"
   | "section3"

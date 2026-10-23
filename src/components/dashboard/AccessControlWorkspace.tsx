@@ -42,6 +42,8 @@ const defaultRoleNames = [
   'District YDM Leader',
   'District Women Leader',
   'Head Pastor',
+  'Headmaster Admin',
+  'Teacher Admin',
 ]
 
 const defaults: AccessRole[] = defaultRoleNames.map((name) => ({
@@ -55,6 +57,14 @@ const defaults: AccessRole[] = defaultRoleNames.map((name) => ({
         ? 'manage'
         : name === 'District YDM Leader' && (feature === 'YDM meetings' || feature === 'YDM attendance')
         ? 'manage'
+        : name === 'Headmaster Admin' && (feature === 'Sunday school' || feature === 'Overview')
+        ? 'manage'
+        : name === 'Headmaster Admin' && feature === 'Messages'
+        ? 'manage'
+        : name === 'Teacher Admin' && (feature === 'Sunday school' || feature === 'Messages')
+        ? 'manage'
+        : name === 'Teacher Admin' && feature === 'Overview'
+        ? 'view'
         : name === 'Head Pastor' && feature !== 'Live analytics'
         ? 'view'
         : 'none',

@@ -1107,6 +1107,10 @@ function roleName(role: UserRole): string {
       return 'District YDM Leader'
     case 'district-women':
       return 'District Women Leader'
+    case 'headmaster-admin':
+      return 'Headmaster Admin'
+    case 'teacher-admin':
+      return 'Teacher Admin'
     default:
       return /^section[1-4]$/.test(role) ? `Section ${role.replace('section', '')} Super Admin` : 'Administrator'
   }

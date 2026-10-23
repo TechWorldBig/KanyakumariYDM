@@ -45,7 +45,7 @@ export async function ensureSchema(){
  await sql.query('CREATE TABLE IF NOT EXISTS chat_group_notifications (id bigserial PRIMARY KEY, username text NOT NULL, group_name text NOT NULL, deleted_by text NOT NULL, deleted_at timestamptz NOT NULL DEFAULT now(), read_at timestamptz)')
  await sql.query('CREATE INDEX IF NOT EXISTS chat_group_notifications_user_idx ON chat_group_notifications(username,deleted_at DESC)')
 }
-const accessRoleName=role=>({district:'District Super Admin','head-pastor':'Head Pastor','think-tank':'Think Tank Admin','section-pastor':'Section Pastor Admin','church-pastor':'Pastor of Church','district-ydm':'District YDM Leader','district-women':'District Women Leader'}[role]||(/^section[1-4]$/.test(role)?'Section Super Admin':role))
+const accessRoleName=role=>({district:'District Super Admin','head-pastor':'Head Pastor','think-tank':'Think Tank Admin','section-pastor':'Section Pastor Admin','church-pastor':'Pastor of Church','district-ydm':'District YDM Leader','district-women':'District Women Leader','headmaster-admin':'Headmaster Admin','teacher-admin':'Teacher Admin'}[role]||(/^section[1-4]$/.test(role)?'Section Super Admin':role))
 export async function serverAccessLevel(role,feature){
  const names=[accessRoleName(role)]
  if(/^section[1-4]$/.test(role))names.push(`Section ${role.slice(-1)} Super Admin`)

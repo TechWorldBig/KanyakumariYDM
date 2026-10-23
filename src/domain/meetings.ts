@@ -69,6 +69,8 @@ export const defaultDistrictAttendees: Array<{ name: string; role: string }> = [
   { name: 'Section 4 Admin', role: 'Section 4 Super Admin' },
   { name: 'Think Tank Admin', role: 'Think Tank Admin' },
   { name: 'Section Pastor Admin', role: 'Section Pastor Admin' },
+  { name: 'Headmaster Admin', role: 'Headmaster Admin' },
+  { name: 'Teacher Admin', role: 'Teacher Admin' },
 ]
 
 export const sampleDiscussionPointsTemplate = [

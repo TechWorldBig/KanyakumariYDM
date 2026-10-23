@@ -2,7 +2,7 @@ import { get, put } from '@vercel/blob'
 import { randomUUID } from 'node:crypto'
 import { ensureSchema, readSession, securityHeaders, sql } from './_lib.mjs'
 
-const builtInAccounts = { admin: 'District Super Admin', district: 'District Super Admin', headpastor: 'Head Pastor', 'head-pastor': 'Head Pastor', ydmleader: 'District YDM Leader', districtydm: 'District YDM Leader', 'district-ydm': 'District YDM Leader', 'district-women': 'District Women Leader', section1: 'Section 1 Admin', section2: 'Section 2 Admin', section3: 'Section 3 Admin', section4: 'Section 4 Admin' }
+const builtInAccounts = { admin: 'District Super Admin', district: 'District Super Admin', headpastor: 'Head Pastor', 'head-pastor': 'Head Pastor', ydmleader: 'District YDM Leader', districtydm: 'District YDM Leader', 'district-ydm': 'District YDM Leader', 'district-women': 'District Women Leader', headmaster: 'Headmaster Admin', 'headmaster-admin': 'Headmaster Admin', teacher: 'Teacher Admin', 'teacher-admin': 'Teacher Admin', section1: 'Section 1 Admin', section2: 'Section 2 Admin', section3: 'Section 3 Admin', section4: 'Section 4 Admin' }
 const validGroupId = value => /^[0-9a-f-]{36}$/i.test(String(value || ''))
 
 export default async function handler(req, res) {
