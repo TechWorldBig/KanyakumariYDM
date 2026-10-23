@@ -44,7 +44,7 @@ export function OverviewPage({
   ]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Top Banner / Heading */}
       <div className="page-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -58,13 +58,18 @@ export function OverviewPage({
               : "Administrative dashboard for your assigned section."}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => onNavigate("Reports")} leftIcon={<FileText size={16} />}>
+        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => onNavigate("Reports")}
+            leftIcon={<FileText size={16} />}
+            className="shrink-0"
+          >
             View reports
           </Button>
           {district && (
             <img
-              className="overview-3d-visual hidden md:block"
+              className="overview-3d-visual block shrink-0"
               src="/assets/district-network-3d.png"
               alt="District visualization"
               aria-hidden="true"
