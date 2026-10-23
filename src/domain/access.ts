@@ -14,11 +14,11 @@ export function accessLevel(role: UserRole, feature: string): AccessLevel {
     if (typeof saved === 'boolean') return saved ? 'view' : 'none'
   } catch { /* use the safe default below */ }
   if (role === 'district') return 'manage'
-  if (role === 'church-pastor' && feature === 'Church committee') return 'manage'
+  if (role === 'church-pastor' && (feature === 'Church committee' || feature === 'Sunday school')) return 'manage'
   if (role === 'district-ydm' && (feature === 'YDM meetings' || feature === 'YDM attendance')) return 'manage'
   if (role === 'head-pastor') return feature === 'Live analytics' ? 'none' : 'view'
   if (/^section[1-4]$/.test(role)) return 'manage'
-  if (feature === 'YDM attendance' || feature === 'Church committee') return 'none'
+  if (feature === 'YDM attendance' || feature === 'Church committee' || feature === 'Sunday school') return 'none'
   return 'view'
 }
 

@@ -6,6 +6,7 @@ import {
   Church,
   ClipboardList,
   FileText,
+  GraduationCap,
   Headphones,
   LayoutDashboard,
   LogOut,
@@ -44,6 +45,7 @@ const navigation = [
   ['YDM meetings', Video],
   ['YDM attendance', CalendarCheck],
   ['Church committee', UsersRound],
+  ['Sunday school', GraduationCap],
   ['Messages', MessageCircle],
 ] as const
 
@@ -84,6 +86,7 @@ export function Sidebar({
             label === 'YDM meetings' ||
             (label === 'YDM attendance' && canAccess(role, label)) ||
             (label === 'Church committee' && canAccess(role, label)) ||
+            (label === 'Sunday school' && canAccess(role, label)) ||
             label === 'Messages'
         )
       : navigation.filter(([label]) =>
@@ -94,7 +97,7 @@ export function Sidebar({
   ).filter(
     ([label]) =>
       accountType !== 'section'
-        ? label === 'YDM attendance' || label === 'Church committee'
+        ? label === 'YDM attendance' || label === 'Church committee' || label === 'Sunday school'
           ? canAccess(role, label)
           : true
         : label === 'YDM meetings' || canAccess(role, label)

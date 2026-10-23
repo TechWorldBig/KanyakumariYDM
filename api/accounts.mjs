@@ -15,7 +15,7 @@ export default async function handler(req,res){
   }
   if(req.method!=='PUT'||session.role!=='district')return res.status(403).json({error:'District administration required'})
   const role=String(req.body?.role||''),feature=String(req.body?.feature||''),level=String(req.body?.level||'')
-  if(role.length>80||!role||!['Overview','Sections','Churches','Users','Reports','Audit logs','Live analytics','YDM meetings','YDM attendance','Church committee'].includes(feature)||!['manage','edit','view','none'].includes(level))return res.status(400).json({error:'Invalid permission'})
+  if(role.length>80||!role||!['Overview','Sections','Churches','Users','Reports','Audit logs','Live analytics','YDM meetings','YDM attendance','Church committee','Sunday school'].includes(feature)||!['manage','edit','view','none'].includes(level))return res.status(400).json({error:'Invalid permission'})
   await sql.query('INSERT INTO access_permissions(role,feature,level) VALUES($1,$2,$3) ON CONFLICT(role,feature) DO UPDATE SET level=EXCLUDED.level',[role,feature,level])
   return res.status(200).json({role,feature,level})
  }
