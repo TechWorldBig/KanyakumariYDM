@@ -26,6 +26,7 @@ const features = [
   'Live analytics',
   'YDM meetings',
   'YDM attendance',
+  'Church committee',
 ]
 
 type AccessLevel = 'manage' | 'edit' | 'view' | 'none'
@@ -48,6 +49,8 @@ const defaults: AccessRole[] = defaultRoleNames.map((name) => ({
     features.map((feature) => [
       feature,
       name === 'District Super Admin' || name === 'Section Super Admin'
+        ? 'manage'
+        : name === 'Pastor of Church' && feature === 'Church committee'
         ? 'manage'
         : name === 'District YDM Leader' && (feature === 'YDM meetings' || feature === 'YDM attendance')
         ? 'manage'

@@ -14,6 +14,7 @@ import { ChurchAdminPage } from "../pages/ChurchAdminPage";
 import { AuditLogsPage } from "../pages/AuditLogsPage";
 import { YdmMeetingsPage } from "../pages/YdmMeetingsPage";
 import { YdmAttendancePage } from "../pages/YdmAttendancePage";
+import { ChurchCommitteePage } from "../pages/ChurchCommitteePage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
 import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
@@ -183,6 +184,8 @@ export default function App() {
               <YdmMeetingsPage role={role} />
             ) : page === "YDM attendance" ? (
               <YdmAttendancePage role={role} />
+            ) : page === "Church committee" ? (
+              <ChurchCommitteePage role={role} accountType={accountType} churchId={churchId} />
             ) : page === "Messages" ? (
               <MessagesPage role={role} />
             ) : accountType !== "section" && churchId ? (

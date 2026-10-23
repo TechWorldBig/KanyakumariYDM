@@ -9,6 +9,7 @@ export type Page =
   | "Access control"
   | "YDM meetings"
   | "YDM attendance"
+  | "Church committee"
   | "Messages";
 export type UserRole =
   | "district"

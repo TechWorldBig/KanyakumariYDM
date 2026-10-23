@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Sun,
   Users,
+  UsersRound,
   Video,
   X,
 } from 'lucide-react'
@@ -42,6 +43,7 @@ const navigation = [
   ['Access control', ShieldCheck],
   ['YDM meetings', Video],
   ['YDM attendance', CalendarCheck],
+  ['Church committee', UsersRound],
   ['Messages', MessageCircle],
 ] as const
 
@@ -81,6 +83,7 @@ export function Sidebar({
             label === 'Users' ||
             label === 'YDM meetings' ||
             (label === 'YDM attendance' && canAccess(role, label)) ||
+            (label === 'Church committee' && canAccess(role, label)) ||
             label === 'Messages'
         )
       : navigation.filter(([label]) =>
@@ -91,7 +94,7 @@ export function Sidebar({
   ).filter(
     ([label]) =>
       accountType !== 'section'
-        ? label === 'YDM attendance'
+        ? label === 'YDM attendance' || label === 'Church committee'
           ? canAccess(role, label)
           : true
         : label === 'YDM meetings' || canAccess(role, label)
