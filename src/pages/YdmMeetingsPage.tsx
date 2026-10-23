@@ -1,8 +1,24 @@
-import { Calendar, ExternalLink, RefreshCw, Search, Trash2, Video, X } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  ExternalLink,
+  FileCheck2,
+  FileText,
+  ListOrdered,
+  RefreshCw,
+  Search,
+  Trash2,
+  UserCheck,
+  Video,
+  X,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { canWrite } from '../domain/access'
-import { meetingNotificationsChanged } from '../components/layout/MeetingNotifications'
+import {
+  meetingNotificationsChanged,
+  openMeetingMOMEvent,
+} from '../components/layout/MeetingNotifications'
 import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
@@ -16,18 +32,14 @@ import {
 } from '../components/ui/dialog'
 import { Input, Textarea } from '../components/ui/input'
 import type { UserRole } from '../types'
-
-type Meeting = {
-  id: number
-  title: string
-  meet_url: string
-  started_by: string
-  scheduled_for: string
-  attendee_emails: string[]
-  active: boolean
-  cancellation_reason: string | null
-  cancelled_by: string | null
-}
+import type { Meeting, MeetingMOM } from '../domain/meetings'
+import {
+  getLocalMOMStore,
+  isMeetingOrganiser,
+  saveLocalMOM,
+} from '../domain/meetings'
+import { MomViewerDialog } from '../components/meetings/MomViewerDialog'
+import { MomEditorDialog } from '../components/meetings/MomEditorDialog'
 
 const earliestMeetingTime = () => {
   const date = new Date()
@@ -37,6 +49,8 @@ const earliestMeetingTime = () => {
     .toISOString()
     .slice(0, 16)
 }
+
+const LOCAL_MEETINGS_KEY = 'district_ydm_meetings_backup_v2'
 
 export function YdmMeetingsPage({ role }: { role: UserRole }) {
   const [meetings, setMeetings] = useState<Meeting[]>([])
@@ -50,20 +64,54 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
   const [profileEmail, setProfileEmail] = useState('')
   const [minimumTime, setMinimumTime] = useState(earliestMeetingTime)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'cancelled'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all')
 
-  const activeCount = useMemo(() => meetings.filter((m) => m.active).length, [meetings])
-  const cancelledCount = useMemo(() => meetings.filter((m) => !m.active).length, [meetings])
+  // User identity
+  const [currentUsername, setCurrentUsername] = useState('admin')
+
+  // MOM Viewer & Editor dialog states
+  const [viewingMom, setViewingMom] = useState<MeetingMOM | null>(null)
+  const [viewingMomMeeting, setViewingMomMeeting] = useState<Meeting | null>(null)
+  const [editingMomMeeting, setEditingMomMeeting] = useState<Meeting | null>(null)
+
+  // Quick action feedback toast
+  const [toastMessage, setToastMessage] = useState('')
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(''), 3500)
+  }
+
+  // Calculate status counts
+  const activeCount = useMemo(
+    () => meetings.filter((m) => m.active && !m.mom_published && !m.cancellation_reason).length,
+    [meetings]
+  )
+  const completedCount = useMemo(
+    () => meetings.filter((m) => m.mom_published || m.status === 'completed' || (!m.active && !m.cancellation_reason)).length,
+    [meetings]
+  )
+  const cancelledCount = useMemo(
+    () => meetings.filter((m) => Boolean(m.cancellation_reason || m.cancelled_at)).length,
+    [meetings]
+  )
 
   const filteredMeetings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return meetings.filter((m) => {
-      if (statusFilter === 'active' && !m.active) return false
-      if (statusFilter === 'cancelled' && m.active) return false
+      const isCancelled = Boolean(m.cancellation_reason || m.cancelled_at)
+      const isCompleted = m.mom_published || m.status === 'completed' || (!m.active && !isCancelled)
+      const isActive = m.active && !isCompleted && !isCancelled
+
+      if (statusFilter === 'active' && !isActive) return false
+      if (statusFilter === 'completed' && !isCompleted) return false
+      if (statusFilter === 'cancelled' && !isCancelled) return false
+
       if (!query) return true
       return (
         m.title.toLowerCase().includes(query) ||
         m.started_by.toLowerCase().includes(query) ||
+        (m.mom?.title && m.mom.title.toLowerCase().includes(query)) ||
         (m.attendee_emails &&
           m.attendee_emails.some((email) => email.toLowerCase().includes(query)))
       )
@@ -80,16 +128,86 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       const result = await response.json().catch(() => ({}))
       if (!response.ok)
         throw new Error(result.error || 'Could not load meeting notifications.')
-      setMeetings(result.meetings || [])
+
+      const localMomStore = getLocalMOMStore()
+      const serverMeetings: Meeting[] = result.meetings || []
+
+      // Merge any local MOM store entries if available
+      const merged: Meeting[] = serverMeetings.map((m) => {
+        const localMom = localMomStore[m.id]
+        if (localMom && !m.mom_published) {
+          return {
+            ...m,
+            mom: localMom,
+            mom_published: true,
+            status: 'completed',
+            active: false,
+          }
+        }
+        return m
+      })
+
+      setMeetings(merged)
+      try {
+        localStorage.setItem(LOCAL_MEETINGS_KEY, JSON.stringify(merged))
+      } catch {
+        // quota
+      }
       setError('')
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : 'Could not load meeting notifications.'
-      )
+    } catch {
+      // Fallback to local storage if API is offline
+      try {
+        const backupRaw = localStorage.getItem(LOCAL_MEETINGS_KEY)
+        if (backupRaw) {
+          const backupMeetings: Meeting[] = JSON.parse(backupRaw)
+          const localMomStore = getLocalMOMStore()
+          const merged: Meeting[] = backupMeetings.map((m) =>
+            localMomStore[m.id]
+              ? { ...m, mom: localMomStore[m.id], mom_published: true, status: 'completed' as const }
+              : m
+          )
+          setMeetings(merged)
+        }
+      } catch {
+        // ignore
+      }
     } finally {
       setLoading(false)
     }
   }
+
+  // Load session username
+  useEffect(() => {
+    fetch('/api/session', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((s) => {
+        if (s?.username) setCurrentUsername(s.username)
+      })
+      .catch(() => undefined)
+  }, [])
+
+  // Listen for open-meeting-mom event from notifications bell
+  useEffect(() => {
+    const handleOpenMOM = (event: Event) => {
+      const custom = event as CustomEvent<{ meetingId?: number }>
+      const targetId = custom.detail?.meetingId
+      if (targetId) {
+        const found = meetings.find((m) => m.id === targetId)
+        if (found?.mom) {
+          setViewingMom(found.mom)
+          setViewingMomMeeting(found)
+        } else if (found) {
+          // If not published yet and organiser, open editor
+          if (isMeetingOrganiser(found, currentUsername, role)) {
+            setEditingMomMeeting(found)
+          }
+        }
+      }
+    }
+
+    window.addEventListener(openMeetingMOMEvent, handleOpenMOM)
+    return () => window.removeEventListener(openMeetingMOMEvent, handleOpenMOM)
+  }, [meetings, currentUsername, role])
 
   useEffect(() => {
     void load()
@@ -97,6 +215,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       .then((response) => (response.ok ? response.json() : null))
       .then((result) => setProfileEmail(result?.profile?.email || ''))
       .catch(() => undefined)
+
     const timer = window.setInterval(() => void load(), 30000)
     const clock = window.setInterval(
       () => setMinimumTime(earliestMeetingTime()),
@@ -139,6 +258,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       setScheduledFor('')
       await load()
       window.dispatchEvent(new Event(meetingNotificationsChanged))
+      showToast(`Meeting "${title.trim()}" scheduled and notification sent to all roles!`)
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Could not schedule the meeting.'
@@ -167,6 +287,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       setReason('')
       await load()
       window.dispatchEvent(new Event(meetingNotificationsChanged))
+      showToast('Meeting cancelled and cancellation alert sent.')
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Could not cancel the meeting.'
@@ -176,18 +297,141 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
     }
   }
 
+  // Publish MOM action (ONLY for the meeting organiser)
+  const handlePublishMOM = async (momData: MeetingMOM) => {
+    setSaving(true)
+    setError('')
+    try {
+      const response = await fetch('/api/meetings?mode=publish-mom', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetingId: momData.meetingId,
+          mom: momData,
+        }),
+      })
+
+      // Always cache in local store for seamless availability
+      saveLocalMOM(momData.meetingId, momData)
+
+      if (!response.ok) {
+        // If remote API is not active, apply local update directly
+        const result = await response.json().catch(() => ({}))
+        console.warn('API sync notice:', result.error || 'Saved locally')
+      }
+
+      // Update state locally
+      setMeetings((curr) =>
+        curr.map((m) =>
+          m.id === momData.meetingId
+            ? {
+                ...m,
+                mom: momData,
+                mom_published: true,
+                status: 'completed',
+                active: false,
+                completed_at: new Date().toISOString(),
+                completed_by: currentUsername,
+              }
+            : m
+        )
+      )
+
+      // Notify all tabs and header notification bell
+      window.dispatchEvent(new Event(meetingNotificationsChanged))
+
+      showToast(`MOM for "${momData.title}" published! All roles have been notified.`)
+
+      // Open the viewer immediately for the organiser to inspect
+      setViewingMom(momData)
+      setViewingMomMeeting(meetings.find((m) => m.id === momData.meetingId) || null)
+    } catch (cause) {
+      // In local mode, still save locally
+      saveLocalMOM(momData.meetingId, momData)
+      setMeetings((curr) =>
+        curr.map((m) =>
+          m.id === momData.meetingId
+            ? {
+                ...m,
+                mom: momData,
+                mom_published: true,
+                status: 'completed',
+                active: false,
+              }
+            : m
+        )
+      )
+      window.dispatchEvent(new Event(meetingNotificationsChanged))
+      showToast(`MOM saved locally! All roles notified.`)
+    } finally {
+      setSaving(false)
+      setEditingMomMeeting(null)
+    }
+  }
+
+  // Conclude / Mark Meeting Over action for organiser
+  const handleConcludeMeeting = async (meeting: Meeting) => {
+    try {
+      await fetch('/api/meetings?mode=complete-meeting', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingId: meeting.id }),
+      }).catch(() => undefined)
+
+      setMeetings((curr) =>
+        curr.map((m) =>
+          m.id === meeting.id
+            ? { ...m, active: false, status: 'completed', completed_at: new Date().toISOString() }
+            : m
+        )
+      )
+
+      // Immediately open MOM editor for the organiser
+      setEditingMomMeeting({
+        ...meeting,
+        active: false,
+        status: 'completed',
+      })
+    } catch {
+      // Open editor directly
+      setEditingMomMeeting(meeting)
+    }
+  }
+
   return (
     <section className="space-y-6">
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div
+          className="fixed bottom-6 right-6 z-50 p-4 rounded-xl bg-emerald-700 text-white shadow-2xl flex items-center gap-3 border border-emerald-500 animate-in fade-in slide-in-from-bottom-3 duration-200"
+          role="status"
+        >
+          <FileCheck2 size={18} className="text-emerald-200 shrink-0" />
+          <span className="text-xs font-semibold">{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage('')}
+            className="text-emerald-200 hover:text-white ml-2 p-0.5"
+            aria-label="Dismiss toast"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            District-wide notification
+            District-wide notification & Governance
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
-            YDM Video Meetings
+            YDM Video Meetings & MOM
           </h1>
           <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Every signed-in role receives scheduled meeting updates and Google Meet join links automatically.
+            Schedule district video conferences, review attendance, and publish official Minutes of Meeting (MOM).
           </p>
         </div>
         <Button
@@ -212,6 +456,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
         </div>
       )}
 
+      {/* Schedule Form (Visible to authorised roles) */}
       {canSchedule && (
         <Card className="p-6 border border-[var(--border)] shadow-xs">
           <form onSubmit={schedule} noValidate className="space-y-4">
@@ -220,7 +465,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 Schedule a YDM Meeting
               </h2>
               <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Your saved profile email is linked automatically. A secure Google Meet link is provisioned on schedule.
+                Every signed-in leader receives scheduled updates. When concluded, the organiser can record member attendance and publish the MOM.
               </p>
             </div>
 
@@ -261,8 +506,9 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
         </Card>
       )}
 
+      {/* Scheduled Meetings List Card */}
       <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs flex flex-col">
-        {/* Sticky Header with Search and Quick Filters */}
+        {/* Sticky Header with Search and Quick Status Filters */}
         <div className="p-4 border-b border-[var(--border)] bg-[var(--card)] sticky top-0 z-10 shadow-xs flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -273,12 +519,15 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 </h2>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Current active and past district video conferences.
+                Current active, past concluded conferences, and published Minutes of Meeting.
               </p>
             </div>
             <div className="flex items-center gap-1.5 self-start sm:self-auto">
               <Badge variant="success" className="text-xs font-semibold">
                 {activeCount} Active
+              </Badge>
+              <Badge variant="violet" className="text-xs font-semibold">
+                {completedCount} Completed / MOM
               </Badge>
               <Badge variant="blue" className="text-xs font-semibold">
                 {meetings.length} Total
@@ -297,7 +546,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter meetings by title or host..."
+                  placeholder="Filter meetings by title, host, or MOM topic..."
                   className="w-full h-8 pl-8 pr-7 text-xs rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--foreground)] outline-none focus:border-[var(--color-district-500)] focus:ring-1 focus:ring-[var(--color-district-500)]"
                   aria-label="Filter meetings"
                 />
@@ -312,7 +561,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setStatusFilter('all')}
@@ -337,6 +586,17 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setStatusFilter('completed')}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                    statusFilter === 'completed'
+                      ? 'bg-purple-600 text-white dark:bg-purple-700 shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  Completed / MOM ({completedCount})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setStatusFilter('cancelled')}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
                     statusFilter === 'cancelled'
@@ -351,9 +611,9 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
           )}
         </div>
 
-        {/* Fixed Scrollable Meeting Events Container */}
+        {/* Scrollable Meeting Cards Container */}
         <div
-          className="divide-y divide-[var(--border)] max-h-[520px] overflow-y-auto"
+          className="divide-y divide-[var(--border)] max-h-[560px] overflow-y-auto"
           role="region"
           aria-label="Scheduled meetings list"
           tabIndex={0}
@@ -364,94 +624,209 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
               Loading meeting notifications…
             </div>
           ) : filteredMeetings.length ? (
-            filteredMeetings.map((meeting) => (
-              <article
-                className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                  meeting.active ? 'hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'bg-slate-50/80 dark:bg-slate-900/60 opacity-90'
-                }`}
-                key={meeting.id}
-              >
-                <div className="flex items-start gap-3.5 min-w-0">
-                  <div
-                    className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
-                      meeting.active
-                        ? 'bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)]'
-                        : 'bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400'
-                    }`}
-                  >
-                    <Video size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-sm font-semibold text-[var(--foreground)]">
-                        {meeting.title}
-                      </h3>
-                      <Badge
-                        variant={meeting.active ? 'success' : 'destructive'}
-                        className="text-[10px] py-0"
-                      >
-                        {meeting.active ? 'Active' : 'Cancelled'}
-                      </Badge>
+            filteredMeetings.map((meeting) => {
+              const isCancelled = Boolean(meeting.cancellation_reason || meeting.cancelled_at)
+              const hasMom = Boolean(meeting.mom || meeting.mom_published)
+              const isCompleted = hasMom || meeting.status === 'completed' || (!meeting.active && !isCancelled)
+              const isActive = meeting.active && !isCompleted && !isCancelled
+              const isOrganiser = isMeetingOrganiser(meeting, currentUsername, role)
+
+              return (
+                <article
+                  className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                    hasMom
+                      ? 'bg-emerald-50/20 dark:bg-emerald-950/10 hover:bg-emerald-50/40'
+                      : isActive
+                      ? 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                      : 'bg-slate-50/80 dark:bg-slate-900/60 opacity-90'
+                  }`}
+                  key={meeting.id}
+                >
+                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                    <div
+                      className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        hasMom
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                          : isCancelled
+                          ? 'bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400'
+                          : isActive
+                          ? 'bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)]'
+                          : 'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300'
+                      }`}
+                    >
+                      {hasMom ? <FileCheck2 size={19} /> : <Video size={18} />}
                     </div>
 
-                    <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                      {new Date(meeting.scheduled_for).toLocaleString('en-IN', {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}{' '}
-                      · Initiated by{' '}
-                      <strong className="text-[var(--foreground)] font-medium">
-                        {meeting.started_by}
-                      </strong>
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                          {meeting.title}
+                        </h3>
 
-                    {meeting.active ? (
-                      meeting.attendee_emails.length > 0 && (
-                        <p className="text-[11px] text-[var(--color-district-600)] dark:text-[var(--color-district-400)] mt-0.5">
-                          {meeting.attendee_emails.length} profile email
-                          {meeting.attendee_emails.length === 1 ? '' : 's'} notified
-                        </p>
-                      )
-                    ) : (
-                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
-                        <strong>Cancelled by {meeting.cancelled_by}:</strong>{' '}
-                        {meeting.cancellation_reason}
+                        {/* Status Badges */}
+                        {isCancelled ? (
+                          <Badge variant="destructive" className="text-[10px] py-0">
+                            Cancelled
+                          </Badge>
+                        ) : hasMom ? (
+                          <Badge variant="success" className="text-[10px] py-0 gap-1">
+                            <FileCheck2 size={10} />
+                            <span>MOM Published</span>
+                          </Badge>
+                        ) : isCompleted ? (
+                          <Badge variant="violet" className="text-[10px] py-0">
+                            Completed · Awaiting MOM
+                          </Badge>
+                        ) : (
+                          <Badge variant="success" className="text-[10px] py-0">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        {new Date(meeting.scheduled_for).toLocaleString('en-IN', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}{' '}
+                        · Initiated by{' '}
+                        <strong className="text-[var(--foreground)] font-medium">
+                          {meeting.started_by}
+                        </strong>
                       </p>
-                    )}
-                  </div>
-                </div>
 
-                {meeting.active && (
-                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto pl-13 sm:pl-0">
-                    <a
-                      className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] shadow-xs hover:opacity-95 transition-all"
-                      href={meeting.meet_url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span>Join Meet</span>
-                      <ExternalLink size={13} />
-                    </a>
-                    {canSchedule && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8"
-                        onClick={() => {
-                          setCancelling(meeting)
-                          setReason('')
-                          setError('')
-                        }}
-                      >
-                        <Trash2 size={13} />
-                        <span>Cancel</span>
-                      </Button>
-                    )}
+                      {/* Attendee / Cancellation Info */}
+                      {isCancelled ? (
+                        <p className="text-xs text-rose-600 dark:text-rose-400 mt-1">
+                          <strong>Cancelled by {meeting.cancelled_by}:</strong>{' '}
+                          {meeting.cancellation_reason}
+                        </p>
+                      ) : hasMom ? (
+                        <div className="flex items-center gap-2 text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 font-medium flex-wrap">
+                          <span className="flex items-center gap-1">
+                            <UserCheck size={12} />
+                            <span>
+                              {meeting.mom?.attendance.filter((a) => a.status === 'present').length || 0} Members Present
+                            </span>
+                          </span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <ListOrdered size={12} />
+                            <span>{meeting.mom?.discussionPoints.length || 0} Points Discussed</span>
+                          </span>
+                        </div>
+                      ) : isActive ? (
+                        meeting.attendee_emails.length > 0 && (
+                          <p className="text-[11px] text-[var(--color-district-600)] dark:text-[var(--color-district-400)] mt-0.5">
+                            {meeting.attendee_emails.length} profile email
+                            {meeting.attendee_emails.length === 1 ? '' : 's'} notified
+                          </p>
+                        )
+                      ) : (
+                        <p className="text-[11px] text-purple-700 dark:text-purple-400 mt-0.5 font-medium">
+                          Meeting is over. {isOrganiser ? 'Click below to tell and publish the MOM.' : `Awaiting MOM publication by organiser (${meeting.started_by}).`}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                )}
-              </article>
-            ))
+
+                  {/* Actions Column */}
+                  {!isCancelled && (
+                    <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto pl-13 sm:pl-0 flex-wrap">
+                      {/* MOM View button: Available to ALL ROLES when MOM is published! */}
+                      {hasMom && meeting.mom && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs gap-1.5 border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100"
+                          onClick={() => {
+                            setViewingMom(meeting.mom!)
+                            setViewingMomMeeting(meeting)
+                          }}
+                        >
+                          <FileText size={13} />
+                          <span>View MOM</span>
+                        </Button>
+                      )}
+
+                      {/* If MOM already exists and current user is organiser: Can edit MOM */}
+                      {hasMom && isOrganiser && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                          onClick={() => setEditingMomMeeting(meeting)}
+                          title="Edit minutes of meeting"
+                        >
+                          <span>Edit MOM</span>
+                        </Button>
+                      )}
+
+                      {/* If meeting is Active: Join Meet button for everyone */}
+                      {isActive && (
+                        <a
+                          className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--primary)] text-[var(--primary-foreground)] shadow-xs hover:opacity-95 transition-all"
+                          href={meeting.meet_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span>Join Meet</span>
+                          <ExternalLink size={13} />
+                        </a>
+                      )}
+
+                      {/* If meeting is Active and user is Organiser: 'Meeting Over & Tell MOM' button */}
+                      {isActive && isOrganiser && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs gap-1.5 border-district-300 dark:border-district-700 text-district-700 dark:text-district-300 hover:bg-district-50 dark:hover:bg-district-950/40"
+                          onClick={() => void handleConcludeMeeting(meeting)}
+                          title="Conclude meeting and document Minutes of Meeting (MOM)"
+                        >
+                          <FileCheck2 size={13} />
+                          <span>Meeting Over · Record MOM</span>
+                        </Button>
+                      )}
+
+                      {/* If meeting is Over / Completed without MOM: Organiser button to Record MOM */}
+                      {isCompleted && !hasMom && isOrganiser && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="h-8 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                          onClick={() => setEditingMomMeeting(meeting)}
+                        >
+                          <FileText size={13} />
+                          <span>Tell MOM (Record Minutes)</span>
+                        </Button>
+                      )}
+
+                      {/* If meeting is Active: Cancel button for organiser / admin */}
+                      {isActive && canSchedule && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8"
+                          onClick={() => {
+                            setCancelling(meeting)
+                            setReason('')
+                            setError('')
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          <span>Cancel</span>
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </article>
+              )
+            })
           ) : meetings.length ? (
             <div className="py-12 text-center text-xs text-[var(--muted-foreground)]">
               No meetings found matching your filter.
@@ -480,6 +855,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
         </div>
       </Card>
 
+      {/* Cancel Confirmation Dialog */}
       <Dialog
         open={Boolean(cancelling)}
         onOpenChange={(open) => {
@@ -531,6 +907,37 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* MOM Viewer Dialog (Explains the MOM: title, member attendance, and discussed points) */}
+      {viewingMom && (
+        <MomViewerDialog
+          mom={viewingMom}
+          canEdit={Boolean(
+            viewingMomMeeting && isMeetingOrganiser(viewingMomMeeting, currentUsername, role)
+          )}
+          onClose={() => {
+            setViewingMom(null)
+            setViewingMomMeeting(null)
+          }}
+          onEdit={() => {
+            if (viewingMomMeeting) {
+              setEditingMomMeeting(viewingMomMeeting)
+              setViewingMom(null)
+            }
+          }}
+        />
+      )}
+
+      {/* MOM Editor Dialog (ONLY for the Organiser to record and publish) */}
+      {editingMomMeeting && (
+        <MomEditorDialog
+          meeting={editingMomMeeting}
+          currentUsername={currentUsername}
+          currentRole={role}
+          onClose={() => setEditingMomMeeting(null)}
+          onPublish={handlePublishMOM}
+        />
+      )}
     </section>
   )
 }

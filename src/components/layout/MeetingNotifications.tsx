@@ -2,7 +2,17 @@ import { Bell, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 export const meetingNotificationsChanged = 'meeting-notifications-changed'
-type Notification = { id: string; type: 'meeting-scheduled' | 'meeting-cancelled' | 'meeting' | 'group'; title: string; scheduled_for: string | null; detail: string | null; occurred_at: string; actor: string; read_at: string | null }
+export const openMeetingMOMEvent = 'open-meeting-mom'
+type Notification = {
+  id: string
+  type: 'meeting-scheduled' | 'meeting-cancelled' | 'meeting' | 'group' | 'meeting-mom'
+  title: string
+  scheduled_for: string | null
+  detail: string | null
+  occurred_at: string
+  actor: string
+  read_at: string | null
+}
 
 export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -52,7 +62,12 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
       } catch { setError('Could not mark notification as read. Please try again.') }
     }
     setOpen(false)
-    if (notification.type !== 'group') onOpenMeeting()
+    if (notification.type === 'meeting-mom') {
+      onOpenMeeting()
+      window.dispatchEvent(new CustomEvent(openMeetingMOMEvent, { detail: { meetingId: Number(notification.id) } }))
+    } else if (notification.type !== 'group') {
+      onOpenMeeting()
+    }
   }
 
   const unread = notifications.filter(item => !item.read_at).length
@@ -61,11 +76,12 @@ export function MeetingNotifications({ onOpenMeeting }: { onOpenMeeting: () => v
     {open && <div className="notification-menu" role="dialog" aria-label="Notifications"><div className="notification-menu-head"><strong>Notifications</strong><button type="button" aria-label="Close notifications" onClick={() => setOpen(false)}><X size={16}/></button></div>{error && <p className="notification-error" role="alert">{error}</p>}<div className="notification-items">{notifications.length ? notifications.map(item => {
       const isGroup = item.type === 'group'
       const isCancelled = item.type === 'meeting-cancelled'
+      const isMom = item.type === 'meeting-mom'
       return <button type="button" className={`notification-item${item.read_at ? '' : ' unread'}`} key={`${item.type}:${item.id}`} onClick={() => void view(item)}>
-        <strong>{isGroup ? `Group deleted: ${item.title}` : isCancelled ? `Meeting cancelled: ${item.title}` : `Meeting scheduled: ${item.title}`}</strong>
-        <span>{isGroup ? `Deleted by ${item.actor}` : isCancelled ? `${new Date(item.scheduled_for!).toLocaleString('en-IN')} · Cancelled by ${item.actor}` : `${new Date(item.scheduled_for!).toLocaleString('en-IN')} · Scheduled by ${item.actor}`}</span>
-        <span>{isGroup ? 'This group and its messages are no longer available.' : isCancelled ? `Reason: ${item.detail}` : 'Join link and schedule available in YDM meetings.'}</span>
-        <small>{new Date(item.occurred_at).toLocaleString('en-IN')}{!isGroup ? ' · View meeting' : ''}</small>
+        <strong>{isGroup ? `Group deleted: ${item.title}` : isCancelled ? `Meeting cancelled: ${item.title}` : isMom ? `📋 Minutes of Meeting (MOM): ${item.title}` : `Meeting scheduled: ${item.title}`}</strong>
+        <span>{isGroup ? `Deleted by ${item.actor}` : isCancelled ? `${new Date(item.scheduled_for!).toLocaleString('en-IN')} · Cancelled by ${item.actor}` : isMom ? `Published by ${item.actor} · Official MOM available` : `${new Date(item.scheduled_for!).toLocaleString('en-IN')} · Scheduled by ${item.actor}`}</span>
+        <span>{isGroup ? 'This group and its messages are no longer available.' : isCancelled ? `Reason: ${item.detail}` : isMom ? `Attendees & discussion points recorded. Click to view.` : 'Join link and schedule available in YDM meetings.'}</span>
+        <small>{new Date(item.occurred_at).toLocaleString('en-IN')}{!isGroup ? (isMom ? ' · View MOM' : ' · View meeting') : ''}</small>
       </button>
     }) : <p className="notification-empty">No notifications.</p>}</div></div>}
   </div>

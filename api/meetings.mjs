@@ -14,15 +14,20 @@ export default async function handler(req,res){
    FROM ydm_meetings m LEFT JOIN meeting_notification_reads r ON r.meeting_id=m.id AND r.username=$1
    WHERE m.cancelled_at IS NOT NULL
    UNION ALL
+   SELECT 'meeting-mom' AS type,m.id::text AS id,m.title,m.scheduled_for,coalesce(m.mom->>'title',m.title) AS detail,m.mom_published_at AS occurred_at,coalesce(m.mom_published_by,m.started_by) AS actor,
+    CASE WHEN r.read_at IS NOT NULL AND r.read_at>=m.mom_published_at THEN r.read_at ELSE NULL END AS read_at
+   FROM ydm_meetings m LEFT JOIN meeting_notification_reads r ON r.meeting_id=m.id AND r.username=$1
+   WHERE m.mom_published=true
+   UNION ALL
    SELECT 'group' AS type,n.id::text AS id,n.group_name AS title,NULL::timestamptz AS scheduled_for,NULL::text AS detail,n.deleted_at AS occurred_at,n.deleted_by AS actor,n.read_at
    FROM chat_group_notifications n WHERE n.username=$1
    ) notices ORDER BY occurred_at DESC LIMIT 50`,[session.username])
   return res.status(200).json({notifications})
  }
- if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL ORDER BY active DESC, CASE WHEN active THEN scheduled_for END ASC, cancelled_at DESC LIMIT 100");return res.status(200).json({meetings})}
+ if(req.method==='GET'){const meetings=await sql.query("SELECT id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,active,cancellation_reason,cancelled_at,cancelled_by,status,completed_at,completed_by,mom,mom_published,mom_published_at,mom_published_by FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL OR mom_published=true OR completed_at IS NOT NULL ORDER BY active DESC, CASE WHEN active THEN scheduled_for END ASC, cancelled_at DESC, id DESC LIMIT 100");return res.status(200).json({meetings})}
  if(req.method==='POST'&&req.query?.mode==='notification-read-all'){
   await sql.query(`INSERT INTO meeting_notification_reads(username,meeting_id,read_at)
-   SELECT $1,id,now() FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL ORDER BY id DESC LIMIT 100
+   SELECT $1,id,now() FROM ydm_meetings WHERE (active=true AND scheduled_for >= now() - interval '2 hours') OR cancelled_at IS NOT NULL OR mom_published=true ORDER BY id DESC LIMIT 100
    ON CONFLICT (username,meeting_id) DO UPDATE SET read_at=now()`,[session.username])
   await sql.query('UPDATE chat_group_notifications SET read_at=now() WHERE username=$1 AND read_at IS NULL',[session.username])
   return res.status(200).json({read:true})
@@ -41,6 +46,32 @@ export default async function handler(req,res){
   if(!meeting)return res.status(404).json({error:'Notification not found'})
   await sql.query('INSERT INTO meeting_notification_reads(username,meeting_id,read_at) VALUES($1,$2,now()) ON CONFLICT (username,meeting_id) DO UPDATE SET read_at=now()',[session.username,id])
   return res.status(200).json({read:true})
+ }
+ if(req.method==='POST'&&req.query?.mode==='complete-meeting'){
+  const id=Number(req.body?.meetingId)
+  if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:'Choose a valid meeting'})
+  const meeting=(await sql.query('SELECT * FROM ydm_meetings WHERE id=$1',[id]))[0]
+  if(!meeting)return res.status(404).json({error:'Meeting not found'})
+  const isOrganiser=meeting.started_by===session.username||['district','district-ydm'].includes(session.role)
+  if(!isOrganiser)return res.status(403).json({error:'Only the meeting organiser can mark the meeting as concluded'})
+  const updated=(await sql.query('UPDATE ydm_meetings SET active=false,status=\'completed\',completed_at=coalesce(completed_at,now()),completed_by=$2 WHERE id=$1 RETURNING id,title,active,status,completed_at,completed_by',[id,session.username]))[0]
+  await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,null,`Concluded meeting: ${meeting.title}`])
+  return res.status(200).json({meeting:updated})
+ }
+ if(req.method==='POST'&&req.query?.mode==='publish-mom'){
+  const id=Number(req.body?.meetingId)
+  if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({error:'Choose a valid meeting'})
+  const meeting=(await sql.query('SELECT * FROM ydm_meetings WHERE id=$1',[id]))[0]
+  if(!meeting)return res.status(404).json({error:'Meeting not found'})
+  const isOrganiser=meeting.started_by===session.username||['district','district-ydm'].includes(session.role)
+  if(!isOrganiser)return res.status(403).json({error:'Only the meeting organiser can record and publish the Minutes of Meeting (MOM)'})
+  const momData=req.body?.mom||{}
+  if(!momData.discussionPoints||!Array.isArray(momData.discussionPoints)||!momData.discussionPoints.length){
+   return res.status(400).json({error:'Please add discussion points from the meeting'})
+  }
+  const updated=(await sql.query('UPDATE ydm_meetings SET mom=$2,mom_published=true,mom_published_at=now(),mom_published_by=$3,active=false,status=\'completed\',completed_at=coalesce(completed_at,now()),completed_by=coalesce(completed_by,$3) WHERE id=$1 RETURNING id,title,meet_url,started_by,started_role,scheduled_for,active,status,completed_at,completed_by,mom,mom_published,mom_published_at,mom_published_by',[id,JSON.stringify(momData),session.username]))[0]
+  await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,null,`Published Minutes of Meeting (MOM) for: ${meeting.title}`])
+  return res.status(200).json({meeting:updated})
  }
  if(req.method==='DELETE'){
   const canCancel=['district','district-ydm'].includes(session.role)||['manage','edit'].includes(await serverAccessLevel(session.role,'YDM meetings'))
@@ -62,7 +93,7 @@ export default async function handler(req,res){
  const directEmails=String(body.attendeeEmails||'').split(/[\s,;]+/).map(v=>v.trim().toLowerCase()).filter(Boolean)
  const savedProfiles=(await sql.query("SELECT DISTINCT lower(trim(email)) AS email FROM user_profiles WHERE email IS NOT NULL AND email<>''")).map(r=>r.email).filter(email=>emailPattern.test(email))
  const attendeeEmails=[...new Set([...directEmails, ...savedProfiles])].filter(email=>emailPattern.test(email))
- const meeting=(await sql.query('INSERT INTO ydm_meetings(title,meet_url,started_by,started_role,scheduled_for,attendee_emails) VALUES($1,$2,$3,$4,$5,$6) RETURNING id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails',[title,meetUrl,session.username,session.role,scheduledFor.toISOString(),attendeeEmails]))[0]
+ const meeting=(await sql.query('INSERT INTO ydm_meetings(title,meet_url,started_by,started_role,scheduled_for,attendee_emails,status) VALUES($1,$2,$3,$4,$5,$6,\'active\') RETURNING id,title,meet_url,started_by,started_role,started_at,scheduled_for,attendee_emails,status',[title,meetUrl,session.username,session.role,scheduledFor.toISOString(),attendeeEmails]))[0]
  await sql.query('INSERT INTO session_activity(username,role,section_scope,action) VALUES($1,$2,$3,$4)',[session.username,session.role,null,`Scheduled YDM meeting: ${title}`])
  return res.status(201).json({meeting})
 }
