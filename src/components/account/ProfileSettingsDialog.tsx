@@ -3,7 +3,7 @@ import { Camera, ShieldCheck, Trash2 } from 'lucide-react'
 import type { UserRole } from '../../types'
 import { roleName } from '../../domain/permissions'
 import { Button } from '../ui/button'
-import { Input, Select } from '../ui/input'
+import { Input } from '../ui/input'
 import {
   Dialog,
   DialogContent,
@@ -20,8 +20,6 @@ export interface ProfileData {
   phone: string
   email: string
 }
-
-type ThemePreference = 'light' | 'dark' | 'system'
 
 export function ProfileSettingsDialog({
   role,
@@ -40,24 +38,6 @@ export function ProfileSettingsDialog({
   const [email, setEmail] = useState(profile.email || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [theme, setTheme] = useState<ThemePreference>(
-    () => (localStorage.getItem('district-theme') as ThemePreference) || 'system'
-  )
-  const [initialTheme] = useState<ThemePreference>(
-    () => (localStorage.getItem('district-theme') as ThemePreference) || 'system'
-  )
-
-  const applyTheme = (next: ThemePreference) => {
-    setTheme(next)
-    document.body.dataset.theme = next
-    document.documentElement.classList.toggle('dark', next === 'dark')
-  }
-
-  const close = () => {
-    document.body.dataset.theme = initialTheme
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark')
-    onClose()
-  }
 
   function choose(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -84,9 +64,6 @@ export function ProfileSettingsDialog({
         phone: phone.trim(),
         email: email.trim(),
       })
-      localStorage.setItem('district-theme', theme)
-      document.body.dataset.theme = theme
-      document.documentElement.classList.toggle('dark', theme === 'dark')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Profile could not be saved')
     } finally {
@@ -103,7 +80,7 @@ export function ProfileSettingsDialog({
     .toUpperCase() || 'DS'
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) close() }}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-lg p-5 sm:p-6 gap-5">
         <DialogCloseButton />
 
@@ -117,7 +94,7 @@ export function ProfileSettingsDialog({
             Profile Settings
           </DialogTitle>
           <DialogDescription className="text-xs text-[var(--muted-foreground)]">
-            Update your public name, photo avatar, contact information, and theme.
+            Update your public name, photo avatar, and contact information.
           </DialogDescription>
         </DialogHeader>
 
@@ -241,21 +218,6 @@ export function ProfileSettingsDialog({
               />
             </div>
           </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="profile-appearance" className="block text-xs font-semibold text-[var(--ink)]">
-              Appearance & Theme
-            </label>
-            <Select
-              id="profile-appearance"
-              value={theme}
-              onChange={(event) => applyTheme(event.target.value as ThemePreference)}
-            >
-              <option value="system">Use device setting (Auto)</option>
-              <option value="light">Light mode</option>
-              <option value="dark">Dark mode</option>
-            </Select>
-          </div>
         </div>
 
         {error && (
@@ -265,7 +227,7 @@ export function ProfileSettingsDialog({
         )}
 
         <DialogFooter className="pt-2 border-t border-[var(--line)]">
-          <Button type="button" variant="outline" onClick={close} disabled={saving}>
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
           <Button type="button" onClick={() => void save()} loading={saving} disabled={saving}>
