@@ -79,6 +79,32 @@ export function ChurchCommitteePage({ role, accountType, churchId }: ChurchCommi
   const [selectedSection, setSelectedSection] = useState<string>('All')
   const [selectedChurchId, setSelectedChurchId] = useState<string | null>(churchId || null)
 
+  const selectChurch = (id: string | null) => {
+    if (churchId) return
+    if (id) {
+      window.history.pushState({ ...window.history.state, subview: 'church', churchId: id }, '', window.location.hash)
+      setSelectedChurchId(id)
+    } else {
+      if (window.history.state?.subview === 'church') {
+        window.history.back()
+      } else {
+        setSelectedChurchId(null)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (churchId) return
+    const handleSubPop = (e: PopStateEvent) => {
+      const state = e.state as { subview?: string } | null
+      if (!state?.subview) {
+        setSelectedChurchId(null)
+      }
+    }
+    window.addEventListener('popstate', handleSubPop)
+    return () => window.removeEventListener('popstate', handleSubPop)
+  }, [churchId])
+
   // Committee members filter within selected church
   const [memberSearch, setMemberSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<'All' | 'Executives' | 'Representatives' | 'Deacons'>('All')
@@ -263,7 +289,7 @@ export function ChurchCommitteePage({ role, accountType, churchId }: ChurchCommi
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSelectedChurchId(null)}
+              onClick={() => selectChurch(null)}
               className="text-xs"
             >
               <ChevronLeft size={14} className="mr-1" />
@@ -380,7 +406,7 @@ export function ChurchCommitteePage({ role, accountType, churchId }: ChurchCommi
               return (
                 <Card
                   key={church.id}
-                  onClick={() => setSelectedChurchId(church.id)}
+                  onClick={() => selectChurch(church.id)}
                   className="p-4 cursor-pointer hover:border-district-400 dark:hover:border-district-600 hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
                 >
                   <div>
@@ -501,7 +527,7 @@ export function ChurchCommitteePage({ role, accountType, churchId }: ChurchCommi
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedChurchId(null)}
+                onClick={() => selectChurch(null)}
                 className="text-xs h-9"
               >
                 <span>Change Church</span>

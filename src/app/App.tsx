@@ -19,6 +19,40 @@ import { SundaySchoolPage } from "../pages/SundaySchoolPage";
 import { MessagesPage } from "../pages/MessagesPage";
 import { isDistrictScope } from "../domain/permissions";
 import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
+
+const PAGE_TO_HASH: Record<Page, string> = {
+  Overview: '',
+  'Live analytics': 'live-analytics',
+  Sections: 'sections',
+  Churches: 'churches',
+  Users: 'users',
+  Reports: 'reports',
+  'Audit logs': 'audit-logs',
+  'Access control': 'access-control',
+  'YDM meetings': 'ydm-meetings',
+  'YDM attendance': 'ydm-attendance',
+  'Church committee': 'church-committee',
+  'Sunday school': 'sunday-school',
+  Messages: 'messages',
+}
+
+const HASH_TO_PAGE: Record<string, Page> = {
+  '': 'Overview',
+  overview: 'Overview',
+  'live-analytics': 'Live analytics',
+  sections: 'Sections',
+  churches: 'Churches',
+  users: 'Users',
+  reports: 'Reports',
+  'audit-logs': 'Audit logs',
+  'access-control': 'Access control',
+  'ydm-meetings': 'YDM meetings',
+  'ydm-attendance': 'YDM attendance',
+  'church-committee': 'Church committee',
+  'sunday-school': 'Sunday school',
+  messages: 'Messages',
+}
+
 const ProfileSettingsDialog = lazy(() => import('../components/account/ProfileSettingsDialog').then((module) => ({ default: module.ProfileSettingsDialog })));
 export default function App() {
   const [role, setRole] = useState<UserRole | null>(null),
@@ -119,24 +153,143 @@ export default function App() {
         }}
       />
     );
-  const primarySection = scopedSections[0],
-    logout = () => {
-      fetch("/api/logout", { method: "POST", credentials: "include" }).catch(
-        () => undefined,
-      );
-      setRole(null);
-      setAccountType("section");
-      setChurchId(null);
-      setProfile({ name: "", photo: "", phone: "", email: "" });
-      setProfileOpen(false);
+  const primarySection = scopedSections[0];
+
+  const navigateTo = (nextPage: Page) => {
+    if (nextPage === page) {
+      closeMobileDrawer();
+      return;
+    }
+    const currentDepth = (window.history.state?.depth as number) || 0;
+    if (nextPage === 'Overview') {
+      if (currentDepth > 0) {
+        window.history.go(-currentDepth);
+      } else {
+        window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+        setPage('Overview');
+      }
+      setMobile(false);
+      return;
+    }
+    const hash = PAGE_TO_HASH[nextPage];
+    const targetUrl = hash ? `#${hash}` : window.location.pathname;
+    const newDepth = currentDepth + 1;
+    window.history.pushState({ page: nextPage, depth: newDepth }, '', targetUrl);
+    setPage(nextPage);
+    setMobile(false);
+  };
+
+  const openMobileDrawer = () => {
+    const currentDepth = (window.history.state?.depth as number) || 0;
+    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'drawer' }, '', window.location.hash || window.location.pathname);
+    setMobile(true);
+  };
+
+  const closeMobileDrawer = () => {
+    if (window.history.state?.overlay === 'drawer') {
+      window.history.back();
+    } else {
+      setMobile(false);
+    }
+  };
+
+  const openSectionModal = (sec: Section) => {
+    const currentDepth = (window.history.state?.depth as number) || 0;
+    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'section' }, '', window.location.hash || window.location.pathname);
+    setSelectedSection(sec);
+  };
+
+  const closeSectionModal = () => {
+    if (window.history.state?.overlay === 'section') {
+      window.history.back();
+    } else {
+      setSelectedSection(null);
+    }
+  };
+
+  const openAddSectionModal = () => {
+    const currentDepth = (window.history.state?.depth as number) || 0;
+    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'add-section' }, '', window.location.hash || window.location.pathname);
+    setAddSectionOpen(true);
+  };
+
+  const closeAddSectionModal = () => {
+    if (window.history.state?.overlay === 'add-section') {
+      window.history.back();
+    } else {
+      setAddSectionOpen(false);
+    }
+  };
+
+  const openSettingsModal = () => {
+    setProfileOpen(false);
+    const currentDepth = (window.history.state?.depth as number) || 0;
+    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'settings' }, '', window.location.hash || window.location.pathname);
+    setSettingsOpen(true);
+  };
+
+  const closeSettingsModal = () => {
+    if (window.history.state?.overlay === 'settings') {
+      window.history.back();
+    } else {
+      setSettingsOpen(false);
+    }
+  };
+
+  // Mobile Back Button and PopState Synchronizer
+  useEffect(() => {
+    if (!role) return;
+
+    const initialHash = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
+    const initialPage = HASH_TO_PAGE[initialHash] || 'Overview';
+
+    if (initialPage !== 'Overview') {
+      window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+      window.history.pushState({ page: initialPage, depth: 1 }, '', `#${PAGE_TO_HASH[initialPage]}`);
+      setPage(initialPage);
+    } else {
+      window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+      setPage('Overview');
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as { page?: Page; depth?: number; overlay?: string } | null;
+
+      if (!state?.overlay) {
+        setMobile(false);
+        setSelectedSection(null);
+        setAddSectionOpen(false);
+        setSettingsOpen(false);
+      }
+
+      const hashPage = HASH_TO_PAGE[window.location.hash.replace(/^#\/?/, '').trim().toLowerCase()] || 'Overview';
+      const targetPage = state?.page || hashPage;
+      setPage(targetPage);
     };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [role]);
+
+  const logout = () => {
+    fetch("/api/logout", { method: "POST", credentials: "include" }).catch(
+      () => undefined,
+    );
+    setRole(null);
+    setAccountType("section");
+    setChurchId(null);
+    setProfile({ name: "", photo: "", phone: "", email: "" });
+    setProfileOpen(false);
+    window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+  };
+
   return (
     <div className={page === "Messages" ? "app messages-app" : "app"}>
       {mobile && (
         <button
           type="button"
           className="mobile-nav-backdrop"
-          onClick={() => setMobile(false)}
+          onClick={closeMobileDrawer}
           aria-label="Close navigation menu"
         />
       )}
@@ -148,11 +301,8 @@ export default function App() {
         page={page}
         mobile={mobile}
         profile={profile}
-        onNavigate={(nextPage) => {
-          setPage(nextPage);
-          setMobile(false);
-        }}
-        onClose={() => setMobile(false)}
+        onNavigate={navigateTo}
+        onClose={closeMobileDrawer}
         onLogout={logout}
       />
       <div className={page === "Messages" ? "main messages-main" : "main"}>
@@ -163,15 +313,12 @@ export default function App() {
           section={primarySection}
           page={page}
           profileOpen={profileOpen}
-          onMenu={() => setMobile(true)}
+          onMenu={openMobileDrawer}
           onProfile={() => setProfileOpen((value) => !value)}
-          onSettings={() => {
-            setProfileOpen(false);
-            setSettingsOpen(true);
-          }}
+          onSettings={openSettingsModal}
           profile={profile}
           onLogout={logout}
-          onOpenMeeting={() => { setPage('YDM meetings'); setProfileOpen(false); setMobile(false); }}
+          onOpenMeeting={() => { navigateTo('YDM meetings'); setProfileOpen(false); }}
         />
         <AnimatePresence mode="wait">
           <motion.main
@@ -198,9 +345,9 @@ export default function App() {
               <OverviewPage
                 role={role}
                 sections={scopedSections}
-                onOpen={setSelectedSection}
-                onNavigate={setPage}
-                onAdd={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
+                onOpen={openSectionModal}
+                onNavigate={navigateTo}
+                onAdd={() => { if (canWrite(role, 'Sections')) openAddSectionModal(); }}
               />
             ) : page === "Audit logs" ? (
               <AuditLogsPage role={role} />
@@ -212,8 +359,8 @@ export default function App() {
                 role={role}
                 section={primarySection}
                 sections={scopedSections}
-                onAddSection={() => { if (canWrite(role, 'Sections')) setAddSectionOpen(true); }}
-                onOpenSection={setSelectedSection}
+                onAddSection={() => { if (canWrite(role, 'Sections')) openAddSectionModal(); }}
+                onOpenSection={openSectionModal}
               />
             )}
           </motion.main>
@@ -222,7 +369,7 @@ export default function App() {
       {selectedSection && (
         <SectionDialog
           section={selectedSection}
-          onClose={() => setSelectedSection(null)}
+          onClose={closeSectionModal}
           isDistrict={role === "district"}
           canManageCredentials={(role === "district" || /^section[1-4]$/.test(role)) && canWrite(role, 'Sections') && canWrite(role, 'Churches')}
           canEditSection={(role === "district" || selectedSection.name === scopedSections[0]?.name) && canWrite(role, 'Sections')}
@@ -238,7 +385,7 @@ export default function App() {
       )}
       {addSectionOpen && canWrite(role, 'Sections') && (
         <AddSectionDialog
-          onClose={() => setAddSectionOpen(false)}
+          onClose={closeAddSectionModal}
           onCreate={(section) => {
             setAllSections((current) => [...current, section]);
             setAddSectionOpen(false);
@@ -248,7 +395,7 @@ export default function App() {
       {settingsOpen && <Suspense fallback={null}><ProfileSettingsDialog
         role={role}
         profile={profile}
-        onClose={() => setSettingsOpen(false)}
+        onClose={closeSettingsModal}
         onSave={async (nextProfile) => {
           const response = await fetch("/api/accounts?mode=profile", { method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(nextProfile) });
           const result = await response.json();

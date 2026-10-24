@@ -66,6 +66,30 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
   const [selectedSection, setSelectedSection] = useState<string>('All')
   const [selectedChurchId, setSelectedChurchId] = useState<string | null>(null)
 
+  const selectChurch = (id: string | null) => {
+    if (id) {
+      window.history.pushState({ ...window.history.state, subview: 'church', churchId: id }, '', window.location.hash)
+      setSelectedChurchId(id)
+    } else {
+      if (window.history.state?.subview === 'church') {
+        window.history.back()
+      } else {
+        setSelectedChurchId(null)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const handleSubPop = (e: PopStateEvent) => {
+      const state = e.state as { subview?: string } | null
+      if (!state?.subview) {
+        setSelectedChurchId(null)
+      }
+    }
+    window.addEventListener('popstate', handleSubPop)
+    return () => window.removeEventListener('popstate', handleSubPop)
+  }, [])
+
   // Attendance date & session state
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString())
   const [sessionType, setSessionType] = useState<YdmAttendanceSession['sessionType']>('Youth Fellowship')
@@ -278,7 +302,7 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSelectedChurchId(null)}
+              onClick={() => selectChurch(null)}
               className="text-xs"
             >
               <ChevronLeft size={14} className="mr-1" />
@@ -395,7 +419,7 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
               return (
                 <Card
                   key={church.id}
-                  onClick={() => setSelectedChurchId(church.id)}
+                  onClick={() => selectChurch(church.id)}
                   className="p-4 cursor-pointer hover:border-district-400 dark:hover:border-district-600 hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
                 >
                   <div>
@@ -504,7 +528,7 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSelectedChurchId(null)}
+                onClick={() => selectChurch(null)}
                 className="text-xs h-9"
               >
                 <span>Change Church</span>
