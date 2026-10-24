@@ -334,16 +334,6 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
         </div>
       )}
 
-      {/* View-Only Banner */}
-      {!hasWrite && (
-        <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-900/50 text-xs font-medium flex items-center gap-2.5">
-          <Eye size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
-          <span>
-            <strong>View-Only Mode:</strong> The District Super Admin has granted your role view access. You can explore all classes, student records, and Headmaster verification seals across the district.
-          </span>
-        </div>
-      )}
-
       {/* Overview Metrics Cards (2x2 on mobile, 4 columns on desktop) */}
       <div className="metrics grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         <Metric
