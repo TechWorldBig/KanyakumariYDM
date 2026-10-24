@@ -147,6 +147,7 @@ export default function App() {
         section={primarySection}
         page={page}
         mobile={mobile}
+        profile={profile}
         onNavigate={(nextPage) => {
           setPage(nextPage);
           setMobile(false);

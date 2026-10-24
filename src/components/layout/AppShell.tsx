@@ -33,21 +33,35 @@ import { MeetingNotifications } from './MeetingNotifications'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 
-const navigation = [
-  ['Overview', LayoutDashboard],
-  ['Live analytics', Activity],
-  ['Sections', Building2],
-  ['Churches', Church],
-  ['Users', Users],
-  ['Reports', FileText],
-  ['Audit logs', ClipboardList],
-  ['Access control', ShieldCheck],
-  ['YDM meetings', Video],
-  ['YDM attendance', CalendarCheck],
-  ['Church committee', UsersRound],
-  ['Sunday school', GraduationCap],
-  ['Messages', MessageCircle],
-] as const
+type NavGroupKey = 'platform' | 'ministries' | 'governance'
+
+interface NavItemDef {
+  label: Page
+  icon: typeof LayoutDashboard
+  group: NavGroupKey
+}
+
+const navItemDefs: NavItemDef[] = [
+  { label: 'Overview', icon: LayoutDashboard, group: 'platform' },
+  { label: 'Live analytics', icon: Activity, group: 'platform' },
+  { label: 'Sections', icon: Building2, group: 'platform' },
+  { label: 'Churches', icon: Church, group: 'platform' },
+  { label: 'Users', icon: Users, group: 'platform' },
+  { label: 'YDM meetings', icon: Video, group: 'ministries' },
+  { label: 'YDM attendance', icon: CalendarCheck, group: 'ministries' },
+  { label: 'Sunday school', icon: GraduationCap, group: 'ministries' },
+  { label: 'Church committee', icon: UsersRound, group: 'ministries' },
+  { label: 'Messages', icon: MessageCircle, group: 'ministries' },
+  { label: 'Reports', icon: FileText, group: 'governance' },
+  { label: 'Audit logs', icon: ClipboardList, group: 'governance' },
+  { label: 'Access control', icon: ShieldCheck, group: 'governance' },
+]
+
+const navGroups: { key: NavGroupKey; title: string }[] = [
+  { key: 'platform', title: 'Platform Core' },
+  { key: 'ministries', title: 'Ministries & Gatherings' },
+  { key: 'governance', title: 'Governance & Audit' },
+]
 
 export function Sidebar({
   role,
@@ -55,6 +69,7 @@ export function Sidebar({
   section,
   page,
   mobile,
+  profile,
   onNavigate,
   onClose,
   onLogout,
@@ -65,6 +80,7 @@ export function Sidebar({
   section: Section
   page: Page
   mobile: boolean
+  profile?: ProfileData
   onNavigate: (page: Page) => void
   onClose: () => void
   onLogout: () => void
@@ -77,31 +93,26 @@ export function Sidebar({
     return () => window.removeEventListener(accessUpdatedEvent, refresh)
   }, [])
 
-  const visibleNavigation = (
-    accountType !== 'section'
-      ? navigation.filter(
-          ([label]) =>
-            label === 'Overview' ||
-            label === 'Users' ||
-            label === 'YDM meetings' ||
-            (label === 'YDM attendance' && canAccess(role, label)) ||
-            (label === 'Church committee' && canAccess(role, label)) ||
-            (label === 'Sunday school' && canAccess(role, label)) ||
-            label === 'Messages'
-        )
-      : navigation.filter(([label]) =>
-          label === 'Live analytics' || label === 'Access control'
-            ? role === 'district'
-            : label === 'YDM meetings' || canAccess(role, label)
-        )
-  ).filter(
-    ([label]) =>
-      accountType !== 'section'
-        ? label === 'YDM attendance' || label === 'Church committee' || label === 'Sunday school'
-          ? canAccess(role, label)
-          : true
-        : label === 'YDM meetings' || canAccess(role, label)
-  )
+  const visibleItems = navItemDefs.filter((item) => {
+    const label = item.label
+    if (accountType !== 'section') {
+      if (label === 'Overview' || label === 'Users' || label === 'YDM meetings' || label === 'Messages') {
+        return true
+      }
+      if (label === 'YDM attendance' || label === 'Church committee' || label === 'Sunday school') {
+        return canAccess(role, label)
+      }
+      return false
+    }
+
+    if (label === 'Live analytics' || label === 'Access control') {
+      return role === 'district'
+    }
+    if (label === 'YDM meetings') {
+      return true
+    }
+    return canAccess(role, label)
+  })
 
   const workspaceName =
     accountType === 'church'
@@ -111,6 +122,19 @@ export function Sidebar({
       : isDistrictScope(role)
       ? 'Kanyakumari'
       : section.name
+
+  const roleLabel = roleName(role)
+  const hasCustomName = Boolean(
+    profile?.name &&
+    profile.name.trim().toLowerCase() !== roleLabel.trim().toLowerCase()
+  )
+  const displayName = hasCustomName ? profile!.name.trim() : roleLabel
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase() || 'SA'
 
   return (
     <aside className={'sidebar ' + (mobile ? 'open' : '')}>
@@ -136,8 +160,11 @@ export function Sidebar({
             ? 'K'
             : role.replace('section', '')}
         </div>
-        <div>
-          <strong>{workspaceName}</strong>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <strong>{workspaceName}</strong>
+            <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+          </div>
           <small>
             {accountType === 'church'
               ? 'Church workspace'
@@ -148,48 +175,62 @@ export function Sidebar({
               : 'Section workspace'}
           </small>
         </div>
-        <ChevronDown size={15} />
+        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-district-100 text-district-700 dark:bg-district-950 dark:text-district-300 uppercase tracking-wider shrink-0">
+          {isDistrictScope(role) ? 'All 4' : 'Zone'}
+        </span>
       </div>
 
-      <nav>
-        {visibleNavigation.map(([label, Icon]) => (
-          <button
-            key={label}
-            className={page === label ? 'active' : ''}
-            onClick={() => onNavigate(label)}
-          >
-            <Icon size={17} />
-            {label}
-          </button>
-        ))}
+      <nav className="sidebar-nav">
+        {navGroups.map((group) => {
+          const items = visibleItems.filter((i) => i.group === group.key)
+          if (!items.length) return null
+
+          return (
+            <div key={group.key} className="nav-group">
+              <span className="nav-group-title">{group.title}</span>
+              <div className="nav-group-items">
+                {items.map(({ label, icon: Icon }) => {
+                  const isActive = page === label
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      className={`nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => onNavigate(label)}
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <span className="nav-item-icon">
+                        <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
+                      </span>
+                      <span className="nav-item-label">{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
       </nav>
 
       <div className="sidebar-bottom">
-        <div className="help-card">
-          <Headphones size={17} />
-          <strong>Need assistance?</strong>
-          <span>Enterprise administration</span>
-        </div>
-        <button className="profile" onClick={onLogout} title="Click to log out">
-          <div className="avatar">SA</div>
-          <div>
-            <strong>
-              {accountType === 'church'
-                ? 'Church Admin'
-                : accountType === 'user'
-                ? 'Church Member'
-                : roleName(role)}
-            </strong>
-            <small>
-              {accountType !== 'section'
-                ? 'Church workspace'
-                : isDistrictScope(role)
-                ? 'All sections'
-                : section.name}
-            </small>
+        <div className="profile">
+          <div className="avatar">
+            {profile?.photo ? <img src={profile.photo} alt={displayName} /> : initials}
           </div>
-          <LogOut size={15} />
-        </button>
+          <div className="min-w-0 flex-1">
+            <strong>{displayName}</strong>
+            <small>{roleLabel}</small>
+          </div>
+          <button
+            type="button"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+            onClick={onLogout}
+            title="Log out of session"
+            aria-label="Log out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
       </div>
     </aside>
   )
@@ -298,12 +339,13 @@ export function Header({
         <Menu size={20} />
       </button>
       <div className="breadcrumb">
+        <Church size={14} className="text-district-600 dark:text-district-400 shrink-0" />
         <span>{church?.name || (isDistrictScope(role) ? 'District' : section.name)}</span>
         <span>/</span>
         <strong>{page}</strong>
       </div>
       <div className="header-actions">
-        {accountType === 'section' && <WorkspaceSearch role={role} section={section} />}
+        <WorkspaceSearch role={role} section={section} />
 
         <button
           type="button"

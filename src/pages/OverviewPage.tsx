@@ -86,6 +86,7 @@ export function OverviewPage({
           value={String(sections.length)}
           tone="blue"
           subtext={district ? "All district regions" : `Assigned to ${sections[0]?.name || 'your section'}`}
+          badge={`${sections.length} Active`}
         />
         <Metric
           icon={Church}
@@ -93,6 +94,7 @@ export function OverviewPage({
           value={String(churches)}
           tone="green"
           subtext="Under administrative care"
+          badge={`${churches} Total`}
         />
         <Metric
           icon={Users}
@@ -100,6 +102,7 @@ export function OverviewPage({
           value={String(users)}
           tone="orange"
           subtext="Total network registry"
+          badge={`${users} Verified`}
         />
         <Metric
           icon={Activity}
@@ -107,6 +110,7 @@ export function OverviewPage({
           value={`${health}%`}
           tone="violet"
           subtext="System integrity score"
+          badge={health >= 90 ? "Optimal" : "Normal"}
         />
       </div>
 

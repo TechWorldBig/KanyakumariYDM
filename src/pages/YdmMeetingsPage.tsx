@@ -36,8 +36,10 @@ import type { Meeting, MeetingMOM } from '../domain/meetings'
 import {
   getLocalMOMStore,
   isMeetingInFuture,
+  isMeetingInProgress,
   isMeetingOrganiser,
   isMeetingOver,
+  parseMeetingDate,
   saveLocalMOM,
 } from '../domain/meetings'
 import { MomViewerDialog } from '../components/meetings/MomViewerDialog'
@@ -87,12 +89,12 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
   // Lifecycle helper:
   // 1. 'cancelled': has cancellation reason
   // 2. 'mom_published': mom_published is true and has mom details
-  // 3. 'active': meeting scheduled date and time is in the future (> now) and not cancelled
-  // 4. 'completed': meeting scheduled date and time has arrived/passed (<= now), awaiting MOM
+  // 3. 'active': meeting scheduled date and time is in the future (> now) OR in progress (within 60m of scheduled time)
+  // 4. 'completed': meeting scheduled date and time has passed and not cancelled, awaiting MOM
   const getMeetingState = (m: Meeting): 'active' | 'completed' | 'mom_published' | 'cancelled' => {
     if (m.cancellation_reason || m.cancelled_at) return 'cancelled'
     if (m.mom_published && m.mom) return 'mom_published'
-    if (isMeetingInFuture(m.scheduled_for)) return 'active'
+    if (isMeetingInFuture(m.scheduled_for) || isMeetingInProgress(m.scheduled_for)) return 'active'
     return 'completed'
   }
 
@@ -156,8 +158,8 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
             active: false,
           }
         }
-        // Future meeting without published MOM must be active
-        if (!m.cancellation_reason && !m.mom_published && new Date(m.scheduled_for).getTime() > now) {
+        // Future or live in-progress meeting without published MOM must be active
+        if (!m.cancellation_reason && !m.mom_published && (isMeetingInFuture(m.scheduled_for) || isMeetingInProgress(m.scheduled_for))) {
           return {
             ...m,
             active: true,
@@ -717,9 +719,14 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                           <Badge variant="violet" className="text-[10px] py-0">
                             Completed · Awaiting MOM
                           </Badge>
+                        ) : isMeetingInProgress(meeting.scheduled_for) ? (
+                          <Badge variant="success" className="text-[10px] py-0 gap-1 bg-emerald-600 text-white animate-pulse">
+                            <span className="h-1.5 w-1.5 rounded-full bg-white inline-block"></span>
+                            Live Now
+                          </Badge>
                         ) : (
-                          <Badge variant="success" className="text-[10px] py-0">
-                            Active
+                          <Badge variant="blue" className="text-[10px] py-0">
+                            Upcoming
                           </Badge>
                         )}
                       </div>
@@ -764,7 +771,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                         )
                       ) : (
                         <p className="text-[11px] text-purple-700 dark:text-purple-400 mt-0.5 font-medium">
-                          Meeting is over. {isOrganiser ? 'Click below to tell and publish the MOM.' : `Awaiting MOM publication by organiser (${meeting.started_by}).`}
+                          Meeting has concluded. {isOrganiser ? 'Click below to tell and publish the MOM.' : `Awaiting MOM publication by organiser (${meeting.started_by}).`}
                         </p>
                       )}
                     </div>
@@ -812,7 +819,7 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          <span>Join Meet</span>
+                          <span>{isMeetingInProgress(meeting.scheduled_for) ? 'Join Live Meet' : 'Join Meet'}</span>
                           <ExternalLink size={13} />
                         </a>
                       )}

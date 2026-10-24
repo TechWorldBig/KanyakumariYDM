@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import {
+  BarChart3,
   Building2,
+  CheckCircle2,
   Church,
+  Download,
+  FileSpreadsheet,
   MapPin,
   Plus,
   Search,
@@ -204,6 +208,8 @@ export function WorkspacePage({
         />
       ) : page === 'Access control' && role === 'district' ? (
         <AccessControlWorkspace />
+      ) : page === 'Reports' ? (
+        <ReportsSuite sections={sections} role={role} />
       ) : (
         <InfoWorkspace page={page} role={role} section={section} />
       )}
@@ -702,6 +708,166 @@ function AddRecordDialog({
         </form>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function ReportsSuite({
+  sections,
+  role,
+}: {
+  sections: Section[]
+  role: UserRole
+}) {
+  const totalChurches = churches.length
+  const totalUsers = sections.reduce((acc, s) => acc + s.users, 0)
+  const averageHealth = Math.round(
+    sections.reduce((acc, s) => acc + s.health, 0) / (sections.length || 1)
+  )
+
+  const downloadChurchesCSV = () => {
+    const headers = ['ID', 'Name', 'Section', 'Address', 'Pastor', 'Admin', 'Committee Members', 'YDM Members', 'Women Ministry']
+    const rows = churches.map((c) => [
+      `"${c.id}"`,
+      `"${c.name.replace(/"/g, '""')}"`,
+      `"${c.section}"`,
+      `"${(c.address || '').replace(/"/g, '""')}"`,
+      `"${(c.pastor || '').replace(/"/g, '""')}"`,
+      `"${(c.admin || '').replace(/"/g, '""')}"`,
+      c.committee?.length || 0,
+      c.ydm?.length || 0,
+      c.womenMinistry?.length || 0,
+    ])
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `kanyakumari_district_churches_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const downloadSectionsCSV = () => {
+    const headers = ['Section Name', 'Administrative Center', 'Super Admin', 'Churches Count', 'Registered Users', 'System Health Score']
+    const rows = sections.map((s) => [
+      `"${s.name}"`,
+      `"${s.town}"`,
+      `"${s.admin}"`,
+      s.churches,
+      s.users,
+      `${s.health}%`,
+    ])
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `kanyakumari_district_regional_governance_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Top action cards & CSV triggers */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+        <div>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="text-[var(--color-district-600)] dark:text-[var(--color-district-400)] size-5" />
+            <h2 className="text-base font-bold text-[var(--foreground)]">Executive Governance & District Reports</h2>
+          </div>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            Official operational analytics, institutional rosters, and real-time data exports.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={downloadChurchesCSV}
+            className="text-xs gap-1.5 h-9"
+          >
+            <Download size={14} />
+            <span>Export Churches (CSV)</span>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={downloadSectionsCSV}
+            className="text-xs gap-1.5 h-9 bg-[var(--color-district-600)] hover:bg-[var(--color-district-700)] text-white shadow-xs"
+          >
+            <FileSpreadsheet size={14} />
+            <span>Export Regional Data (CSV)</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Overview Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Total Registered Churches</span>
+          <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{totalChurches}</strong>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 block flex items-center gap-1 font-medium">
+            <CheckCircle2 size={12} />
+            100% active coverage
+          </span>
+        </Card>
+        <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Active Sections</span>
+          <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{sections.length}</strong>
+          <span className="text-[11px] text-[var(--muted-foreground)] mt-1 block">Nagercoil, Coast, North, West</span>
+        </Card>
+        <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Network Members</span>
+          <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{totalUsers}</strong>
+          <span className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 block font-medium">Verified profile registry</span>
+        </Card>
+        <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Average System Health</span>
+          <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{averageHealth}%</strong>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 block font-medium">District governance optimal</span>
+        </Card>
+      </div>
+
+      {/* Regional Governance Breakdown Table */}
+      <Card className="p-0 overflow-hidden border border-[var(--border)] shadow-xs">
+        <div className="p-4 border-b border-[var(--border)] bg-[var(--muted)]/40 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-[var(--foreground)]">Regional Governance Breakdown</h3>
+          <Badge variant="blue">{sections.length} Active Regions</Badge>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-semibold">
+                <th className="py-3 px-4">Section Name</th>
+                <th className="py-3 px-4">Administrative Center</th>
+                <th className="py-3 px-4">Super Administrator</th>
+                <th className="py-3 px-4 text-center">Churches</th>
+                <th className="py-3 px-4 text-center">Users</th>
+                <th className="py-3 px-4 text-center">Health</th>
+                <th className="py-3 px-4 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)] text-[var(--foreground)]">
+              {sections.map((s) => (
+                <tr key={s.name} className="hover:bg-[var(--muted)]/30 transition-colors">
+                  <td className="py-3 px-4 font-semibold">{s.name}</td>
+                  <td className="py-3 px-4 text-[var(--muted-foreground)]">{s.town}</td>
+                  <td className="py-3 px-4">{s.admin}</td>
+                  <td className="py-3 px-4 text-center font-mono font-medium">{s.churches}</td>
+                  <td className="py-3 px-4 text-center font-mono font-medium">{s.users}</td>
+                  <td className="py-3 px-4 text-center font-mono font-bold text-emerald-600 dark:text-emerald-400">{s.health}%</td>
+                  <td className="py-3 px-4 text-right">
+                    <Badge variant="success" className="text-[10px] py-0">Healthy</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
   )
 }
 

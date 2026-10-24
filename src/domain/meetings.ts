@@ -127,13 +127,35 @@ export function saveLocalMOM(meetingId: number, mom: MeetingMOM): void {
   }
 }
 
-export function isMeetingInFuture(scheduledFor: string): boolean {
+export function parseMeetingDate(scheduledFor: string | null | undefined): Date | null {
+  if (!scheduledFor) return null
   try {
-    const time = new Date(scheduledFor).getTime()
-    return !Number.isNaN(time) && time > Date.now()
+    let d = new Date(scheduledFor)
+    if (!Number.isNaN(d.getTime())) return d
+    // If standard SQL timestamp like "2026-10-27 14:12:00+00", replace space with T
+    if (typeof scheduledFor === 'string' && scheduledFor.includes(' ')) {
+      d = new Date(scheduledFor.replace(' ', 'T'))
+      if (!Number.isNaN(d.getTime())) return d
+    }
+    return null
   } catch {
-    return false
+    return null
   }
+}
+
+export function isMeetingInFuture(scheduledFor: string | null | undefined): boolean {
+  const d = parseMeetingDate(scheduledFor)
+  if (!d) return false
+  return d.getTime() > Date.now()
+}
+
+export function isMeetingInProgress(scheduledFor: string | null | undefined, durationMinutes = 60): boolean {
+  const d = parseMeetingDate(scheduledFor)
+  if (!d) return false
+  const start = d.getTime()
+  const end = start + durationMinutes * 60 * 1000
+  const now = Date.now()
+  return now >= start && now <= end
 }
 
 export function isMeetingOver(meeting: Meeting): boolean {
@@ -141,7 +163,9 @@ export function isMeetingOver(meeting: Meeting): boolean {
   if (meeting.mom_published || meeting.mom) return true
   // If scheduled time is in the future, it is NOT over yet
   if (isMeetingInFuture(meeting.scheduled_for)) return false
-  // Once the scheduled date/time has arrived or passed, the meeting is over
+  // If the meeting is currently live/in progress (within 60 mins of start), it is NOT over yet
+  if (isMeetingInProgress(meeting.scheduled_for)) return false
+  // Once the scheduled date/time and meeting window has passed, it is over
   return true
 }
 
