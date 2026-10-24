@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { roleName } from "../domain/permissions";
+import { isDistrictScope, roleName } from "../domain/permissions";
 import { dashboardDate, greeting } from "../utils/date";
 import { Metric } from "../components/shared/Metric";
 import { SectionCard } from "../components/dashboard/SectionCard";
@@ -30,7 +30,7 @@ export function OverviewPage({
   onNavigate: (page: Page) => void;
   onAdd: () => void;
 }) {
-  const district = role === "district";
+  const district = isDistrictScope(role) || sections.length > 1;
   const churches = sections.reduce((n, s) => n + s.churches, 0);
   const users = sections.reduce((n, s) => n + s.users, 0);
   const health = Math.round(
@@ -55,7 +55,7 @@ export function OverviewPage({
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-normal">
             {district
               ? "Comprehensive overview of the Kanyakumari district church network."
-              : "Administrative dashboard for your assigned section."}
+              : `Administrative dashboard for ${sections[0]?.name || 'your assigned section'}.`}
           </p>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
@@ -85,7 +85,7 @@ export function OverviewPage({
           label="Active sections"
           value={String(sections.length)}
           tone="blue"
-          subtext={district ? "All district regions" : "Your assigned sector"}
+          subtext={district ? "All district regions" : `Assigned to ${sections[0]?.name || 'your section'}`}
         />
         <Metric
           icon={Church}
@@ -120,7 +120,7 @@ export function OverviewPage({
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
               {district
                 ? "Administrative sections governing local church assemblies."
-                : "Limited to your authorized administrative scope."}
+                : `Limited to ${sections[0]?.name || 'your assigned section'} administrative scope.`}
             </p>
           </div>
         </div>
@@ -130,7 +130,7 @@ export function OverviewPage({
             <SectionCard key={section.name} section={section} onOpen={onOpen} />
           ))}
 
-          {district && canWrite(role, 'Sections') && (
+          {role === 'district' && canWrite(role, 'Sections') && (
             <button
               type="button"
               className="add-card group p-6 rounded-2xl border-2 border-dashed border-[var(--line)] hover:border-district-400 dark:hover:border-district-600 hover:bg-district-50/50 dark:hover:bg-slate-800/40 transition-all flex flex-col items-center justify-center gap-3 text-center cursor-pointer min-h-[220px]"
