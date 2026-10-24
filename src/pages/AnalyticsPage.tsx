@@ -126,7 +126,7 @@ export function AnalyticsPage() {
         <Metric
           icon={Users}
           label="Tracked Sessions"
-          value={String(data?.online.length ?? 0)}
+          value={String(data?.online?.length ?? 0)}
           tone="violet"
         />
       </div>
@@ -147,7 +147,7 @@ export function AnalyticsPage() {
         </div>
 
         <div className="divide-y divide-slate-200 dark:divide-slate-800">
-          {data?.online.length ? (
+          {data?.online?.length ? (
             data.online.map((session) => (
               <div
                 key={session.username + session.last_seen}

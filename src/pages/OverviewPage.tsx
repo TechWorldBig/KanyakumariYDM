@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import type { Page, Section, UserRole } from "../types";
 import { canWrite } from '../domain/access';
+import { sections as fallbackSections } from '../data/sections';
 
 export function OverviewPage({
   role,
@@ -30,14 +31,15 @@ export function OverviewPage({
   onNavigate: (page: Page) => void;
   onAdd: () => void;
 }) {
-  const district = isDistrictScope(role) || sections.length > 1;
-  const churches = sections.reduce((n, s) => n + s.churches, 0);
-  const users = sections.reduce((n, s) => n + s.users, 0);
+  const list = sections && sections.length ? sections : fallbackSections;
+  const district = isDistrictScope(role) || list.length > 1;
+  const churches = list.reduce((n, s) => n + (s?.churches || 0), 0);
+  const users = list.reduce((n, s) => n + (s?.users || 0), 0);
   const health = Math.round(
-    sections.reduce((n, s) => n + s.health, 0) / (sections.length || 1),
+    list.reduce((n, s) => n + (s?.health || 0), 0) / (list.length || 1),
   );
 
-  const activity = sections.flatMap((section) => [
+  const activity = list.flatMap((section) => [
     { title: `${section.name} church records verified`, detail: `${section.churches} churches · Today`, tone: section.tone },
     { title: `${section.name} user access reviewed`, detail: `${section.users} users · Today`, tone: section.tone },
     { title: `${section.name} district report synced`, detail: `${section.town} · Today`, tone: section.tone },
@@ -55,7 +57,7 @@ export function OverviewPage({
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-normal">
             {district
               ? "Comprehensive overview of the Kanyakumari district church network."
-              : `Administrative dashboard for ${sections[0]?.name || 'your assigned section'}.`}
+              : `Administrative dashboard for ${list[0]?.name || 'your assigned section'}.`}
           </p>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
@@ -83,10 +85,10 @@ export function OverviewPage({
         <Metric
           icon={Building2}
           label="Active sections"
-          value={String(sections.length)}
+          value={String(list.length)}
           tone="blue"
-          subtext={district ? "All district regions" : `Assigned to ${sections[0]?.name || 'your section'}`}
-          badge={`${sections.length} Active`}
+          subtext={district ? "All district regions" : `Assigned to ${list[0]?.name || 'your section'}`}
+          badge={`${list.length} Active`}
         />
         <Metric
           icon={Church}
@@ -119,18 +121,18 @@ export function OverviewPage({
         <div className="section-head mb-4">
           <div>
             <h2>
-              {district ? "District Sections" : `${sections[0]?.name || 'Section'} Overview`}
+              {district ? "District Sections" : `${list[0]?.name || 'Section'} Overview`}
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
               {district
                 ? "Administrative sections governing local church assemblies."
-                : `Limited to ${sections[0]?.name || 'your assigned section'} administrative scope.`}
+                : `Limited to ${list[0]?.name || 'your assigned section'} administrative scope.`}
             </p>
           </div>
         </div>
 
         <div className="section-grid">
-          {sections.map((section) => (
+          {list.map((section) => (
             <SectionCard key={section.name} section={section} onOpen={onOpen} />
           ))}
 
@@ -201,7 +203,7 @@ export function OverviewPage({
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed m-0">
                 {district
                   ? "You have administrative permission to create, edit, audit, and manage churches, users, section boundaries, and meetings across the entire Kanyakumari district."
-                  : `Your access is scoped specifically to ${sections[0]?.name || 'your section'}. Cross-section mutations and global logs are isolated.`}
+                  : `Your access is scoped specifically to ${list[0]?.name || 'your section'}. Cross-section mutations and global logs are isolated.`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">

@@ -121,7 +121,7 @@ export function Sidebar({
       ? 'Church Member'
       : isDistrictScope(role)
       ? 'Kanyakumari'
-      : section.name
+      : section?.name || 'Section 1'
 
   const roleLabel = roleName(role)
   const hasCustomName = Boolean(
@@ -250,10 +250,10 @@ function getRoleSubtitle(
   if (role === 'headmaster-admin') return church?.name ? `${church.name} Headmaster` : 'Sunday School Headmaster Admin'
   if (role === 'teacher-admin') return church?.name ? `${church.name} Teacher` : 'Sunday School Teacher Admin'
   if (role === 'church-pastor') return church?.name ? `${church.name} Pastor` : 'Pastor of Church'
-  if (role === 'section-pastor') return `${section.name} Pastor Admin`
-  if (/^section[1-4]$/.test(role)) return `${section.name} Super Admin`
+  if (role === 'section-pastor') return `${section?.name || 'Section 1'} Pastor Admin`
+  if (/^section[1-4]$/.test(role)) return `${section?.name || 'Section 1'} Super Admin`
   if (accountType === 'church') return church?.name || 'Local Church Admin'
-  return `${section.name} Administrator`
+  return `${section?.name || 'Section 1'} Administrator`
 }
 
 export function Header({
@@ -290,7 +290,7 @@ export function Header({
       ? 'All 4 sections'
       : isDistrictScope(role)
       ? 'District workspace'
-      : section.name
+      : section?.name || 'Section workspace'
   const church = churchId ? churches.find((item) => item.id === churchId) : null
   const roleLabel = roleName(role)
   const hasCustomName = Boolean(
@@ -356,7 +356,7 @@ export function Header({
       </button>
       <div className="breadcrumb">
         <Church size={14} className="text-district-600 dark:text-district-400 shrink-0" />
-        <span>{church?.name || (isDistrictScope(role) ? 'District' : section.name)}</span>
+        <span>{church?.name || (isDistrictScope(role) ? 'District' : section?.name || 'Section 1')}</span>
         <span>/</span>
         <strong>{page}</strong>
       </div>

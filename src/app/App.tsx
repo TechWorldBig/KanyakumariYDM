@@ -76,7 +76,12 @@ export default function App() {
     return () => window.removeEventListener(accessUpdatedEvent, update);
   }, [role]);
   const scopedSections = useMemo(
-    () => role && isDistrictScope(role) ? allSections : allSections.filter((_, index) => role === `section${index + 1}`),
+    () => {
+      if (!role) return allSections;
+      if (isDistrictScope(role)) return allSections;
+      const filtered = allSections.filter((_, index) => role === `section${index + 1}`);
+      return filtered.length ? filtered : [allSections[0] || initialSections[0]];
+    },
     [role, allSections],
   );
   useEffect(() => {
@@ -153,7 +158,23 @@ export default function App() {
         }}
       />
     );
-  const primarySection = scopedSections[0];
+  const primarySection = scopedSections[0] || allSections[0] || initialSections[0];
+
+  const safeHistoryPush = (state: Record<string, unknown>, url?: string) => {
+    try {
+      window.history.pushState(state, '', url || window.location.hash || window.location.pathname);
+    } catch {
+      // browser blocked state push
+    }
+  };
+
+  const safeHistoryReplace = (state: Record<string, unknown>, url?: string) => {
+    try {
+      window.history.replaceState(state, '', url || window.location.pathname);
+    } catch {
+      // browser blocked state replace
+    }
+  };
 
   const navigateTo = (nextPage: Page) => {
     if (nextPage === page) {
@@ -162,32 +183,28 @@ export default function App() {
     }
     const currentDepth = (window.history.state?.depth as number) || 0;
     if (nextPage === 'Overview') {
-      if (currentDepth > 0) {
-        window.history.go(-currentDepth);
-      } else {
-        window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
-        setPage('Overview');
-      }
+      safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
+      setPage('Overview');
       setMobile(false);
       return;
     }
     const hash = PAGE_TO_HASH[nextPage];
     const targetUrl = hash ? `#${hash}` : window.location.pathname;
     const newDepth = currentDepth + 1;
-    window.history.pushState({ page: nextPage, depth: newDepth }, '', targetUrl);
+    safeHistoryPush({ page: nextPage, depth: newDepth }, targetUrl);
     setPage(nextPage);
     setMobile(false);
   };
 
   const openMobileDrawer = () => {
     const currentDepth = (window.history.state?.depth as number) || 0;
-    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'drawer' }, '', window.location.hash || window.location.pathname);
+    safeHistoryPush({ page, depth: currentDepth + 1, overlay: 'drawer' }, window.location.hash || window.location.pathname);
     setMobile(true);
   };
 
   const closeMobileDrawer = () => {
     if (window.history.state?.overlay === 'drawer') {
-      window.history.back();
+      try { window.history.back(); } catch { setMobile(false); }
     } else {
       setMobile(false);
     }
@@ -195,13 +212,13 @@ export default function App() {
 
   const openSectionModal = (sec: Section) => {
     const currentDepth = (window.history.state?.depth as number) || 0;
-    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'section' }, '', window.location.hash || window.location.pathname);
+    safeHistoryPush({ page, depth: currentDepth + 1, overlay: 'section' }, window.location.hash || window.location.pathname);
     setSelectedSection(sec);
   };
 
   const closeSectionModal = () => {
     if (window.history.state?.overlay === 'section') {
-      window.history.back();
+      try { window.history.back(); } catch { setSelectedSection(null); }
     } else {
       setSelectedSection(null);
     }
@@ -209,13 +226,13 @@ export default function App() {
 
   const openAddSectionModal = () => {
     const currentDepth = (window.history.state?.depth as number) || 0;
-    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'add-section' }, '', window.location.hash || window.location.pathname);
+    safeHistoryPush({ page, depth: currentDepth + 1, overlay: 'add-section' }, window.location.hash || window.location.pathname);
     setAddSectionOpen(true);
   };
 
   const closeAddSectionModal = () => {
     if (window.history.state?.overlay === 'add-section') {
-      window.history.back();
+      try { window.history.back(); } catch { setAddSectionOpen(false); }
     } else {
       setAddSectionOpen(false);
     }
@@ -224,13 +241,13 @@ export default function App() {
   const openSettingsModal = () => {
     setProfileOpen(false);
     const currentDepth = (window.history.state?.depth as number) || 0;
-    window.history.pushState({ page, depth: currentDepth + 1, overlay: 'settings' }, '', window.location.hash || window.location.pathname);
+    safeHistoryPush({ page, depth: currentDepth + 1, overlay: 'settings' }, window.location.hash || window.location.pathname);
     setSettingsOpen(true);
   };
 
   const closeSettingsModal = () => {
     if (window.history.state?.overlay === 'settings') {
-      window.history.back();
+      try { window.history.back(); } catch { setSettingsOpen(false); }
     } else {
       setSettingsOpen(false);
     }
@@ -244,11 +261,11 @@ export default function App() {
     const initialPage = HASH_TO_PAGE[initialHash] || 'Overview';
 
     if (initialPage !== 'Overview') {
-      window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
-      window.history.pushState({ page: initialPage, depth: 1 }, '', `#${PAGE_TO_HASH[initialPage]}`);
+      safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
+      safeHistoryPush({ page: initialPage, depth: 1 }, `#${PAGE_TO_HASH[initialPage]}`);
       setPage(initialPage);
     } else {
-      window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+      safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
       setPage('Overview');
     }
 
@@ -280,7 +297,7 @@ export default function App() {
     setChurchId(null);
     setProfile({ name: "", photo: "", phone: "", email: "" });
     setProfileOpen(false);
-    window.history.replaceState({ page: 'Overview', depth: 0 }, '', window.location.pathname);
+    safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
   };
 
   return (

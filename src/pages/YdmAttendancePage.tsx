@@ -68,11 +68,15 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
 
   const selectChurch = (id: string | null) => {
     if (id) {
-      window.history.pushState({ ...window.history.state, subview: 'church', churchId: id }, '', window.location.hash)
+      try {
+        window.history.pushState({ ...window.history.state, subview: 'church', churchId: id }, '', window.location.hash || window.location.pathname)
+      } catch {
+        // ignore history restriction
+      }
       setSelectedChurchId(id)
     } else {
       if (window.history.state?.subview === 'church') {
-        window.history.back()
+        try { window.history.back() } catch { setSelectedChurchId(null) }
       } else {
         setSelectedChurchId(null)
       }

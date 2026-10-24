@@ -79,7 +79,7 @@ export function WorkspacePage({
 
   const visibleChurches = churches.filter(
     (church) =>
-      (isDistrictScope(role) || church.section === section.name) &&
+      (isDistrictScope(role) || church.section === (section?.name || 'Section 1')) &&
       !deleted.includes(church.id)
   )
 
@@ -165,7 +165,7 @@ export function WorkspacePage({
               ? 'District administration'
               : isDistrictScope(role)
               ? 'District workspace'
-              : `${section.name} workspace`}
+              : `${section?.name || 'Section 1'} workspace`}
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
             {page}
@@ -175,7 +175,7 @@ export function WorkspacePage({
               ? 'Define role permissions across the workspace.'
               : role === 'head-pastor'
               ? 'Read-only view of all district data.'
-              : `Manage ${isDistrictScope(role) ? 'district-wide' : section.name} data.`}
+              : `Manage ${isDistrictScope(role) ? 'district-wide' : section?.name || 'Section 1'} data.`}
           </p>
         </div>
         {canAdd && (
@@ -223,7 +223,7 @@ export function WorkspacePage({
         <AddRecordDialog
           kind={adding}
           sections={sections}
-          defaultSection={section.name}
+          defaultSection={section?.name || 'Section 1'}
           onClose={() => setAdding(null)}
           onCreate={create}
         />
@@ -1058,7 +1058,7 @@ function InfoWorkspace({
         {page} Workspace
       </h2>
       <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-sm mt-1">
-        Your current access is scoped to {role === 'district' ? 'the entire district' : section.name}.
+        Your current access is scoped to {role === 'district' ? 'the entire district' : section?.name || 'Section 1'}.
       </p>
     </Card>
   )

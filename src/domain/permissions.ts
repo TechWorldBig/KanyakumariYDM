@@ -4,4 +4,9 @@ export const accounts:Record<string,UserRole>={admin:'district',headpastor:'head
 export const isDistrictScope=(role:UserRole)=>['district','think-tank','district-ydm','district-women','head-pastor','headmaster-admin','teacher-admin'].includes(role)
 export const isReadOnlyRole=(role:UserRole)=>role==='head-pastor'||role==='district-ydm'||role==='district-women'||role==='church-pastor'
 export const roleName=(role:UserRole)=>({district:'District Super Admin','head-pastor':'Head Pastor','think-tank':'Think Tank Admin','section-pastor':'Section Pastor Admin','church-pastor':'Pastor of Church','district-ydm':'District YDM Leader','district-women':'District Women Leader','headmaster-admin':'Headmaster Admin','teacher-admin':'Teacher Admin'} as Record<string,string>)[role]||`Section ${role.replace('section','')} Super Admin`
-export const sectionsForRole=(role:UserRole)=>isDistrictScope(role)?sections:sections.filter((_,index)=>role===`section${index+1}`)
+export const sectionsForRole = (role: UserRole) => {
+  if (isDistrictScope(role)) return sections
+  const matched = sections.filter((_, index) => role === `section${index + 1}`)
+  return matched.length ? matched : [sections[0]]
+}
+
