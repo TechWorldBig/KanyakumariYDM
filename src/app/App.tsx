@@ -145,19 +145,7 @@ export default function App() {
       .then((result) => result?.profile && setProfile({ name: result.profile.name || "", photo: result.profile.photo || "", phone: result.profile.phone || "", email: result.profile.email || "" }))
       .catch(() => undefined);
   }, [role]);
-  if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
-  if (!role)
-    return (
-      <Login
-        onLogin={(session) => {
-          setRole(session.role);
-          setAccountType(session.accountType || "section");
-          setChurchId(session.churchId || null);
-          setProfile({ name: "", photo: "", phone: "", email: "" });
-          setPage("Overview");
-        }}
-      />
-    );
+
   const primarySection = scopedSections[0] || allSections[0] || initialSections[0];
 
   const safeHistoryPush = (state: Record<string, unknown>, url?: string) => {
@@ -253,7 +241,7 @@ export default function App() {
     }
   };
 
-  // Mobile Back Button and PopState Synchronizer
+  // Mobile Back Button and PopState Synchronizer (Hooks called unconditionally)
   useEffect(() => {
     if (!role) return;
 
@@ -299,6 +287,20 @@ export default function App() {
     setProfileOpen(false);
     safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
   };
+
+  if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
+  if (!role)
+    return (
+      <Login
+        onLogin={(session) => {
+          setRole(session.role);
+          setAccountType(session.accountType || "section");
+          setChurchId(session.churchId || null);
+          setProfile({ name: "", photo: "", phone: "", email: "" });
+          setPage("Overview");
+        }}
+      />
+    );
 
   return (
     <div className={page === "Messages" ? "app messages-app" : "app"}>
