@@ -139,7 +139,7 @@ export function OverviewPage({
               <div className="add-card-icon size-12 rounded-xl bg-district-50 dark:bg-district-950/60 text-district-600 dark:text-district-400 flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
                 <Plus size={22} strokeWidth={2.5} />
               </div>
-              <div className="add-card-text">
+              <div className="add-card-text bg-transparent border-0 w-auto h-auto">
                 <strong className="block text-sm font-bold text-[var(--ink)]">Add new section</strong>
                 <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Expand administrative zone</span>
               </div>

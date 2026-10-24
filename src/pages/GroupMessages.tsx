@@ -988,15 +988,17 @@ export function GroupMessages({
             })
           ) : (
             <div className="chat-empty">
-              <div className="w-14 h-14 rounded-full bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
-                <MessageCircle size={28} />
+              <div className="chat-empty-card">
+                <div className="chat-empty-icon">
+                  <MessageCircle size={28} />
+                </div>
+                <strong>{active ? 'No messages in this group yet' : 'Choose a group'}</strong>
+                <span>
+                  {active
+                    ? 'Send the first message to start the district team discussion.'
+                    : 'Select a group from the sidebar to view conversations.'}
+                </span>
               </div>
-              <strong>{active ? 'No messages in this group yet' : 'Choose a group'}</strong>
-              <span>
-                {active
-                  ? 'Send the first message to start the district team discussion.'
-                  : 'Select a group from the sidebar to view conversations.'}
-              </span>
             </div>
           )}
           <div ref={messagesEndRef} />

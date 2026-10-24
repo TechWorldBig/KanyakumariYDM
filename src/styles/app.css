@@ -765,6 +765,10 @@ body[data-theme="dark"] .section-head p {
   align-items: center;
   text-align: center;
   gap: 2px;
+  background: transparent !important;
+  border: none !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 .add-card strong {
@@ -2114,7 +2118,7 @@ body[data-theme="dark"] .meeting-card-cancelled {
   color: #4ade80;
 }
 
-/* Authentic WhatsApp Messages Canvas */
+/* Modern Enterprise Realtime Messages Canvas */
 .chat-messages, .group-messages {
   flex: 1;
   display: flex;
@@ -2124,18 +2128,25 @@ body[data-theme="dark"] .meeting-card-cancelled {
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  background-color: #efeae2;
+  background-color: #f1f5f9;
   background-image: 
-    radial-gradient(rgba(11, 20, 26, 0.055) 1px, transparent 1px);
-  background-size: 20px 20px;
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.09) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+    radial-gradient(rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+    radial-gradient(rgba(100, 116, 139, 0.09) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 22px 22px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
   position: relative;
 }
 
 .dark .chat-messages, .dark .group-messages {
-  background-color: #0b141a;
+  background-color: #0b1322;
   background-image: 
-    radial-gradient(rgba(233, 237, 239, 0.045) 1px, transparent 1px);
-  background-size: 20px 20px;
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.14) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.10) 0px, transparent 50%),
+    radial-gradient(rgba(148, 163, 184, 0.07) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 22px 22px;
+  background-position: 0 0, 0 0, 0 0;
 }
 
 /* Date Divider Pill */
@@ -2145,10 +2156,10 @@ body[data-theme="dark"] .meeting-card-cancelled {
   padding: 4px 12px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 1px 2px rgba(11, 20, 26, 0.12);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
   font-size: 11px;
   font-weight: 600;
-  color: #54656f;
+  color: #475569;
   text-transform: capitalize;
   letter-spacing: 0.02em;
   user-select: none;
@@ -2156,13 +2167,14 @@ body[data-theme="dark"] .meeting-card-cancelled {
   position: sticky;
   top: 6px;
   z-index: 10;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .dark .chat-date-divider {
-  background: rgba(24, 34, 41, 0.94);
+  background: rgba(15, 23, 42, 0.92);
   color: #94a3b8;
   border-color: rgba(51, 65, 85, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 /* Message Row Container */
@@ -2527,26 +2539,85 @@ body[data-theme="dark"] .meeting-card-cancelled {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: #64748b;
-  text-align: center;
   padding: 40px 20px;
 }
 
-.chat-empty strong {
-  font-size: 15px;
-  font-weight: 600;
-  color: #334155;
+.chat-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 20px;
+  padding: 36px 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 
+    0 10px 28px -6px rgba(15, 23, 42, 0.08),
+    0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.dark .chat-empty strong {
-  color: #cbd5e1;
+.chat-empty-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 14px 34px -6px rgba(15, 23, 42, 0.12),
+    0 6px 16px -2px rgba(15, 23, 42, 0.06);
 }
 
-.chat-empty span {
-  font-size: 12px;
-  max-width: 280px;
+.dark .chat-empty-card {
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(51, 65, 85, 0.8);
+  box-shadow: 
+    0 10px 30px -6px rgba(0, 0, 0, 0.5),
+    0 4px 12px -2px rgba(0, 0, 0, 0.3);
+}
+
+.chat-empty-card .chat-empty-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(59, 130, 246, 0.16));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.dark .chat-empty-card .chat-empty-icon {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(59, 130, 246, 0.22));
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.chat-empty-card strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.dark .chat-empty-card strong {
+  color: #f1f5f9;
+}
+
+.chat-empty-card span {
+  font-size: 13px;
+  max-width: 320px;
   line-height: 1.5;
+  color: #64748b;
+}
+
+.dark .chat-empty-card span {
+  color: #94a3b8;
 }
 
 /* WhatsApp Typing Indicator & Wave Bubble */

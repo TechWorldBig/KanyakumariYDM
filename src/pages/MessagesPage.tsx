@@ -852,11 +852,13 @@ export function MessagesPage({ role }: { role: UserRole }) {
               })
             ) : (
               <div className="chat-empty">
-                <div className="w-14 h-14 rounded-full bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1">
-                  <MessageCircle size={28} />
+                <div className="chat-empty-card">
+                  <div className="chat-empty-icon">
+                    <MessageCircle size={28} />
+                  </div>
+                  <strong>No messages yet with {recipientName}</strong>
+                  <span>Send a message to start this secure realtime conversation.</span>
                 </div>
-                <strong>No messages yet with {recipientName}</strong>
-                <span>Send a message to start this secure realtime conversation.</span>
               </div>
             )}
 
