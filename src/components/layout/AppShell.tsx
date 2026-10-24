@@ -236,6 +236,26 @@ export function Sidebar({
   )
 }
 
+function getRoleSubtitle(
+  role: UserRole,
+  accountType: AccountType,
+  section: Section,
+  church?: ChurchRecord | null
+): string {
+  if (role === 'district') return 'Executive District Administrator'
+  if (role === 'head-pastor') return 'District Pastoral Oversight'
+  if (role === 'think-tank') return 'Strategic Advisory Council'
+  if (role === 'district-ydm') return 'District Youth Ministry Leader'
+  if (role === 'district-women') return 'District Women Ministry Leader'
+  if (role === 'headmaster-admin') return church?.name ? `${church.name} Headmaster` : 'Sunday School Headmaster Admin'
+  if (role === 'teacher-admin') return church?.name ? `${church.name} Teacher` : 'Sunday School Teacher Admin'
+  if (role === 'church-pastor') return church?.name ? `${church.name} Pastor` : 'Pastor of Church'
+  if (role === 'section-pastor') return `${section.name} Pastor Admin`
+  if (/^section[1-4]$/.test(role)) return `${section.name} Super Admin`
+  if (accountType === 'church') return church?.name || 'Local Church Admin'
+  return `${section.name} Administrator`
+}
+
 export function Header({
   role,
   accountType,
@@ -282,11 +302,7 @@ export function Header({
     ? roleLabel
     : profile.email ||
       profile.phone ||
-      (role === 'district'
-        ? 'Executive Administrator'
-        : accountType === 'church'
-        ? church?.name || 'Local Church Admin'
-        : `${section.name} Administrator`)
+      getRoleSubtitle(role, accountType, section, church)
   const initials = displayName
     .split(/\s+/)
     .slice(0, 2)
