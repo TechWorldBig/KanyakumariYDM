@@ -400,6 +400,7 @@ export function Header({
 function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }) {
   const [query, setQuery] = useState('')
   const [selectedChurch, setSelectedChurch] = useState<ChurchRecord | null>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
   const term = query.trim().toLowerCase()
   const accessibleChurches = isDistrictScope(role)
     ? churches
@@ -421,6 +422,25 @@ function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }
         .slice(0, 6)
     : []
 
+  useEffect(() => {
+    const handleOutsideClick = (event: PointerEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setQuery('')
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setQuery('')
+    }
+    if (query) {
+      document.addEventListener('pointerdown', handleOutsideClick)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [query])
+
   const openChurch = (church: ChurchRecord) => {
     setSelectedChurch(church)
     setQuery('')
@@ -428,7 +448,7 @@ function WorkspaceSearch({ role, section }: { role: UserRole; section: Section }
 
   return (
     <>
-      <div className="district-search">
+      <div className="district-search" ref={searchRef}>
         <Search size={15} />
         <input
           value={query}
