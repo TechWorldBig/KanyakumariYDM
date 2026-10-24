@@ -5,19 +5,24 @@ import {
   CheckCircle2,
   Church,
   Download,
+  Eye,
   FileSpreadsheet,
+  FileText,
   MapPin,
   Plus,
+  Printer,
   Search,
   ShieldCheck,
   Trash2,
   UserRound,
   Users,
+  X,
 } from 'lucide-react'
 import { churches } from '../data/churches'
 import type { Page, Section, UserRole } from '../types'
-import { isDistrictScope } from '../domain/permissions'
+import { isDistrictScope, roleName } from '../domain/permissions'
 import { AccessControlWorkspace } from '../components/dashboard/AccessControlWorkspace'
+import { downloadNativePdf, type PdfReportOptions } from '../utils/pdfGenerator'
 import { canWrite } from '../domain/access'
 import { Badge } from '../components/ui/badge'
 import { Button } from '../components/ui/button'
@@ -711,6 +716,144 @@ function AddRecordDialog({
   )
 }
 
+function ReportPreviewModal({
+  report,
+  onClose,
+}: {
+  report: PdfReportOptions
+  onClose: () => void
+}) {
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownload = () => {
+    downloadNativePdf(report)
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl w-[96vw] p-0 overflow-hidden bg-[var(--card)] border border-[var(--border)] shadow-2xl rounded-2xl">
+        {/* Header bar */}
+        <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between bg-slate-50 dark:bg-slate-900/60 print:hidden">
+          <div className="flex items-center gap-2.5">
+            <div className="size-9 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <FileText size={18} />
+            </div>
+            <div>
+              <DialogTitle className="text-sm sm:text-base font-bold text-[var(--foreground)] line-clamp-1">
+                {report.title}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-[var(--muted-foreground)]">
+                Document preview & PDF export ready
+              </DialogDescription>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              className="text-xs gap-1.5 h-8 px-2.5 sm:px-3"
+              title="Print or Save as PDF using system dialog"
+            >
+              <Printer size={13} />
+              <span className="hidden sm:inline">Print / Save as PDF</span>
+              <span className="sm:hidden">Print</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleDownload}
+              className="text-xs gap-1.5 h-8 px-2.5 sm:px-3 bg-blue-600 hover:bg-blue-700 text-white"
+              title="Download standalone .pdf file"
+            >
+              <Download size={13} />
+              <span className="hidden sm:inline">Download PDF</span>
+              <span className="sm:hidden">PDF</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Printable/Previewable Document Canvas */}
+        <div id="district-pdf-printable" className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto space-y-4 bg-white text-slate-900">
+          {/* Executive Header Banner */}
+          <div className="p-4 rounded-xl bg-blue-600 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div>
+              <div className="text-[10px] uppercase font-bold tracking-wider text-blue-100">
+                Official District Record · PDF Export
+              </div>
+              <h1 className="text-base sm:text-lg font-bold text-white mt-0.5">
+                {report.title}
+              </h1>
+              <p className="text-xs text-blue-100 mt-0.5">
+                {report.subtitle}
+              </p>
+            </div>
+            <div className="text-left sm:text-right text-[11px] text-blue-100 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-blue-400/40">
+              <div className="font-semibold text-white">Kanyakumari District OS</div>
+              <div>Certified Digital Document</div>
+            </div>
+          </div>
+
+          {/* Meta Tags Row */}
+          <div className="flex flex-wrap items-center gap-2 py-2 border-b border-slate-200 text-xs">
+            {report.meta.map((m, idx) => (
+              <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
+                <span className="text-slate-500 font-normal">{m.label}:</span>
+                <strong className="font-semibold text-slate-900">{m.value}</strong>
+              </span>
+            ))}
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold">
+                  {report.headers.map((h, i) => (
+                    <th key={i} className="py-2.5 px-3 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-slate-800">
+                {report.rows.map((row, rIdx) => (
+                  <tr key={rIdx} className={rIdx % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'}>
+                    {row.map((cell, cIdx) => (
+                      <td key={cIdx} className="py-2.5 px-3 whitespace-nowrap text-[11px]">
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Official Footer */}
+          <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 gap-2">
+            <span>Official Certified Record · Kanyakumari District Administration & Pastoral Oversight</span>
+            <span className="font-mono">Generated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function ReportsSuite({
   sections,
   role,
@@ -718,58 +861,72 @@ function ReportsSuite({
   sections: Section[]
   role: UserRole
 }) {
-  const totalChurches = churches.length
+  const totalChurches = sections.reduce((acc, s) => acc + s.churches, 0) || churches.length
   const totalUsers = sections.reduce((acc, s) => acc + s.users, 0)
   const averageHealth = Math.round(
     sections.reduce((acc, s) => acc + s.health, 0) / (sections.length || 1)
   )
 
-  const downloadChurchesCSV = () => {
-    const headers = ['ID', 'Name', 'Section', 'Address', 'Pastor', 'Admin', 'Committee Members', 'YDM Members', 'Women Ministry']
-    const rows = churches.map((c) => [
-      `"${c.id}"`,
-      `"${c.name.replace(/"/g, '""')}"`,
-      `"${c.section}"`,
-      `"${(c.address || '').replace(/"/g, '""')}"`,
-      `"${(c.pastor || '').replace(/"/g, '""')}"`,
-      `"${(c.admin || '').replace(/"/g, '""')}"`,
-      c.committee?.length || 0,
-      c.ydm?.length || 0,
-      c.womenMinistry?.length || 0,
-    ])
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `kanyakumari_district_churches_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+  const [activeReportPreview, setActiveReportPreview] = useState<PdfReportOptions | null>(null)
 
-  const downloadSectionsCSV = () => {
-    const headers = ['Section Name', 'Administrative Center', 'Super Admin', 'Churches Count', 'Registered Users', 'System Health Score']
-    const rows = sections.map((s) => [
-      `"${s.name}"`,
-      `"${s.town}"`,
-      `"${s.admin}"`,
+  const buildChurchesPdfReport = (): PdfReportOptions => ({
+    filename: `kanyakumari_district_churches_${new Date().toISOString().slice(0, 10)}.pdf`,
+    title: 'KANYAKUMARI DISTRICT — REGISTERED CHURCHES DIRECTORY',
+    subtitle: 'District Governance & Ecclesiastical Administration Official Roster',
+    meta: [
+      { label: 'Date', value: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) },
+      { label: 'Authority', value: 'Kanyakumari District Council' },
+      { label: 'Scope', value: roleName(role) },
+      { label: 'Total', value: `${totalChurches} Registered Churches` },
+    ],
+    headers: ['ID', 'Church Name', 'Section', 'Pastor / Overseer', 'District Center'],
+    rows: churches.map((c) => [
+      c.id,
+      c.name,
+      c.section,
+      c.pastor || 'Pastor In-Charge',
+      c.address || 'Kanyakumari District',
+    ]),
+    columnWidths: [45, 175, 75, 115, 113],
+  })
+
+  const buildSectionsPdfReport = (): PdfReportOptions => ({
+    filename: `kanyakumari_district_regional_governance_${new Date().toISOString().slice(0, 10)}.pdf`,
+    title: 'KANYAKUMARI DISTRICT — REGIONAL GOVERNANCE REPORT',
+    subtitle: 'Sectional Roster, Supervisory Personnel & Infrastructure Health',
+    meta: [
+      { label: 'Date', value: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) },
+      { label: 'District', value: 'Kanyakumari' },
+      { label: 'Active Sections', value: `${sections.length} Sectors` },
+      { label: 'System Health', value: `${averageHealth}% Optimal` },
+    ],
+    headers: ['Section Name', 'Admin Center', 'Super Administrator', 'Churches', 'Users', 'Health Score'],
+    rows: sections.map((s) => [
+      s.name,
+      s.town,
+      s.admin,
       s.churches,
       s.users,
       `${s.health}%`,
-    ])
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `kanyakumari_district_regional_governance_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    ]),
+    columnWidths: [95, 100, 130, 60, 60, 78],
+  })
+
+  const handleDownloadChurchesPdf = () => {
+    const report = buildChurchesPdfReport()
+    downloadNativePdf(report)
+    setActiveReportPreview(report)
+  }
+
+  const handleDownloadSectionsPdf = () => {
+    const report = buildSectionsPdfReport()
+    downloadNativePdf(report)
+    setActiveReportPreview(report)
   }
 
   return (
     <div className="space-y-6">
-      {/* Top action cards & CSV triggers */}
+      {/* Top action cards & PDF triggers */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
         <div>
           <div className="flex items-center gap-2">
@@ -777,7 +934,7 @@ function ReportsSuite({
             <h2 className="text-base font-bold text-[var(--foreground)]">Executive Governance & District Reports</h2>
           </div>
           <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            Official operational analytics, institutional rosters, and real-time data exports.
+            Official operational analytics, institutional rosters, and real-time PDF data exports.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -785,20 +942,20 @@ function ReportsSuite({
             type="button"
             variant="outline"
             size="sm"
-            onClick={downloadChurchesCSV}
+            onClick={handleDownloadChurchesPdf}
             className="text-xs gap-1.5 h-9"
           >
-            <Download size={14} />
-            <span>Export Churches (CSV)</span>
+            <FileText size={14} className="text-red-500" />
+            <span>Download Churches (PDF)</span>
           </Button>
           <Button
             type="button"
             size="sm"
-            onClick={downloadSectionsCSV}
+            onClick={handleDownloadSectionsPdf}
             className="text-xs gap-1.5 h-9 bg-[var(--color-district-600)] hover:bg-[var(--color-district-700)] text-white shadow-xs"
           >
-            <FileSpreadsheet size={14} />
-            <span>Export Regional Data (CSV)</span>
+            <Download size={14} />
+            <span>Download Regional Report (PDF)</span>
           </Button>
         </div>
       </div>
@@ -867,6 +1024,14 @@ function ReportsSuite({
           </table>
         </div>
       </Card>
+
+      {/* Interactive Report Preview Modal */}
+      {activeReportPreview && (
+        <ReportPreviewModal
+          report={activeReportPreview}
+          onClose={() => setActiveReportPreview(null)}
+        />
+      )}
     </div>
   )
 }

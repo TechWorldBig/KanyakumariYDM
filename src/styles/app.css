@@ -3814,3 +3814,48 @@ body[data-theme="dark"] .form-error {
     scroll-behavior: auto !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   19. Print Media Styles for Official PDF Generation
+   -------------------------------------------------------------------------- */
+@media print {
+  /* Hide application shell chrome, sidebar, top header, floating elements */
+  .sidebar,
+  .header,
+  .mobile-nav-backdrop,
+  .profile-menu,
+  .meeting-dock,
+  .print\:hidden,
+  button:not(.allow-print) {
+    display: none !important;
+  }
+
+  body, html {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Make printable modal fill the document cleanly */
+  #district-pdf-printable {
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  table {
+    page-break-inside: auto;
+    width: 100% !important;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+
