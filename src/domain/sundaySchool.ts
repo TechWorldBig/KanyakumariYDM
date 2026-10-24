@@ -70,6 +70,14 @@ export interface SundaySchoolTeacher {
   roleTitle: string
 }
 
+export interface SundaySchoolHeadmaster {
+  churchId: string
+  name: string
+  phone: string
+  roleTitle: string
+  academicYear: string
+}
+
 export interface SundaySchoolClassVerification {
   id: string
   churchId: string
@@ -85,6 +93,26 @@ export const SUNDAY_SCHOOL_EVENT = 'district-sunday-school-updated'
 const STUDENTS_STORAGE_KEY = 'district_sunday_school_students'
 const TEACHERS_STORAGE_KEY = 'district_sunday_school_teachers'
 const VERIFICATIONS_STORAGE_KEY = 'district_sunday_school_verifications'
+
+export const defaultHeadmasters: SundaySchoolHeadmaster[] = [
+  { churchId: 's1-c1', name: 'Prof. S. Jeyakumar', phone: '+91 94430 12345', roleTitle: 'Headmaster Admin', academicYear: '2026 - 2027' },
+  { churchId: 's1-c2', name: 'Dr. D. Vasanthakumar', phone: '+91 94430 23456', roleTitle: 'Headmaster Admin', academicYear: '2026 - 2027' },
+  { churchId: 's2-c1', name: 'Mr. C. Robinson', phone: '+91 94430 34567', roleTitle: 'Headmaster Admin', academicYear: '2026 - 2027' },
+  { churchId: 's3-c1', name: 'Mr. T. Arthur', phone: '+91 94430 45678', roleTitle: 'Headmaster Admin', academicYear: '2026 - 2027' },
+  { churchId: 's4-c1', name: 'Mr. M. Wilson Raj', phone: '+91 94430 56789', roleTitle: 'Headmaster Admin', academicYear: '2026 - 2027' },
+]
+
+export function getHeadmasterForChurch(churchId: string): SundaySchoolHeadmaster {
+  const found = defaultHeadmasters.find((h) => h.churchId === churchId)
+  if (found) return found
+  return {
+    churchId,
+    name: 'Church Sunday School Headmaster',
+    phone: '+91 94430 00000',
+    roleTitle: 'Headmaster Admin',
+    academicYear: '2026 - 2027',
+  }
+}
 
 const defaultTeachers: SundaySchoolTeacher[] = [
   // s1-c1
@@ -444,7 +472,24 @@ export function getStoredVerifications(): SundaySchoolClassVerification[] {
       localStorage.setItem(VERIFICATIONS_STORAGE_KEY, JSON.stringify(defaultVerifications))
       return defaultVerifications
     }
-    return JSON.parse(raw) as SundaySchoolClassVerification[]
+    const list = JSON.parse(raw) as SundaySchoolClassVerification[]
+    // Automatically sanitize legacy records that mistakenly attributed verification to "District Super Admin"
+    let updated = false
+    const sanitized = list.map((v) => {
+      if (v.verifiedBy && v.verifiedBy.includes('District Super Admin')) {
+        updated = true
+        const headmaster = getHeadmasterForChurch(v.churchId)
+        return {
+          ...v,
+          verifiedBy: `${headmaster.name} (Headmaster Admin)`,
+        }
+      }
+      return v
+    })
+    if (updated) {
+      localStorage.setItem(VERIFICATIONS_STORAGE_KEY, JSON.stringify(sanitized))
+    }
+    return sanitized
   } catch {
     return defaultVerifications
   }
@@ -507,11 +552,17 @@ export function toggleClassFinalisation(
   churchId: string,
   classLevel: SundaySchoolClassLevel,
   finalise: boolean,
-  headmasterName: string = 'Headmaster Admin',
+  headmasterName?: string,
   notes: string = ''
 ): SundaySchoolClassVerification {
   const current = getStoredVerifications()
   const idx = current.findIndex((v) => v.churchId === churchId && v.classLevel === classLevel)
+
+  // Enforce proper Headmaster attribution: District Super Admin is NOT Headmaster Admin
+  const churchHeadmaster = getHeadmasterForChurch(churchId)
+  const resolvedHeadmaster = (!headmasterName || headmasterName.includes('District Super Admin'))
+    ? `${churchHeadmaster.name} (Headmaster Admin)`
+    : headmasterName
 
   const updated: SundaySchoolClassVerification = {
     id: idx >= 0 ? current[idx].id : `ver-${churchId}-${classLevel}`,
@@ -519,7 +570,7 @@ export function toggleClassFinalisation(
     classLevel,
     academicYear: '2026 - 2027',
     isFinalised: finalise,
-    verifiedBy: finalise ? headmasterName : undefined,
+    verifiedBy: finalise ? resolvedHeadmaster : undefined,
     verifiedAt: finalise ? new Date().toISOString() : undefined,
     headmasterNotes: finalise ? (notes || 'Verified and officially finalised by Headmaster Admin.') : undefined,
   }

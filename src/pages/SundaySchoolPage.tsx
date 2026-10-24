@@ -45,6 +45,7 @@ import {
   deleteSundaySchoolStudent,
   getAllChurchesUnified,
   getClassVerification,
+  getHeadmasterForChurch,
   getStudentsForChurch,
   getSundaySchoolStats,
   getTeachersForChurch,
@@ -67,7 +68,11 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
   // Permission checks
   const hasAccess = canAccess(role, 'Sunday school')
   const hasWrite = canWrite(role, 'Sunday school')
-  const isHeadmasterAdmin = role === 'district' || /^section[1-4]$/.test(role) || role === 'church-pastor' || hasWrite
+  const isHeadmasterRole = role === 'headmaster-admin'
+  const isTeacherRole = role === 'teacher-admin'
+  const isDistrictRole = role === 'district'
+  // Verification belongs to Headmaster Admin of that church; District Admin can oversee
+  const canVerify = role === 'headmaster-admin' || role === 'district'
 
   // Search & filter state
   const [churchSearch, setChurchSearch] = useState('')
@@ -177,14 +182,22 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
     return map
   }, [churchTeachers])
 
+  // Church Headmaster Admin details
+  const churchHeadmaster = useMemo(() => {
+    if (!selectedChurchId) return null
+    return getHeadmasterForChurch(selectedChurchId)
+  }, [selectedChurchId])
+
   // Headmaster Verify / Finalise action
+  // Note: District Super Admin is NOT Headmaster Admin; verification is attributed to Church Headmaster Admin
   const handleVerifyClass = (classLevel: SundaySchoolClassLevel, finalise: boolean) => {
     if (!hasWrite || !selectedChurchId) return
-    const headmasterName = `${roleName(role)} (Headmaster)`
+    const headmaster = getHeadmasterForChurch(selectedChurchId)
+    const headmasterName = `${headmaster.name} (Headmaster Admin)`
     toggleClassFinalisation(selectedChurchId, classLevel, finalise, headmasterName)
     setSuccessNotice(
       finalise
-        ? `Successfully verified & finalised ${classLevel} Class roster!`
+        ? `Successfully verified & finalised ${classLevel} Class roster by Headmaster Admin (${headmaster.name})!`
         : `Reopened ${classLevel} Class for teacher revisions.`
     )
   }
@@ -262,9 +275,21 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
               Christian Education Ministry
             </span>
-            {hasWrite ? (
+            {isDistrictRole ? (
+              <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800 font-semibold text-[11px] px-2 py-0.5">
+                <ShieldCheck size={12} className="mr-1 inline" /> District Super Admin Oversight
+              </Badge>
+            ) : isHeadmasterRole ? (
               <Badge className="bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold text-[11px] px-2 py-0.5">
-                <CheckCircle2 size={12} className="mr-1 inline" /> Headmaster & Teacher Admin Access
+                <Award size={12} className="mr-1 inline" /> Headmaster Admin Access
+              </Badge>
+            ) : isTeacherRole ? (
+              <Badge className="bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 font-semibold text-[11px] px-2 py-0.5">
+                <Users size={12} className="mr-1 inline" /> Sunday Teacher Admin Access
+              </Badge>
+            ) : hasWrite ? (
+              <Badge className="bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold text-[11px] px-2 py-0.5">
+                <CheckCircle2 size={12} className="mr-1 inline" /> {roleName(role)} Access
               </Badge>
             ) : (
               <Badge className="bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800 font-semibold text-[11px] px-2 py-0.5">
@@ -504,6 +529,9 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   {selectedChurch.address} · Presiding Pastor: <strong>{selectedChurch.pastor}</strong>
+                  {churchHeadmaster && (
+                    <span> · Sunday School Headmaster: <strong>{churchHeadmaster.name}</strong> ({churchHeadmaster.phone})</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -534,7 +562,7 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
             </div>
           </div>
 
-          {/* Perspective View Switcher: Headmaster Classes Overview vs Student Registry */}
+          {/* Perspective View Switcher: Classes Overview vs Student Registry */}
           <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
             <button
               type="button"
@@ -546,7 +574,7 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
               }`}
             >
               <ShieldCheck size={14} />
-              <span>Headmaster Admin: Classes & Verification</span>
+              <span>Classes & Headmaster Verification</span>
             </button>
             <button
               type="button"
@@ -562,15 +590,15 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
             </button>
           </div>
 
-          {/* TAB 1: Headmaster Admin - Classes & Verification View */}
+          {/* TAB 1: Classes & Headmaster Verification View */}
           {activeTab === 'classes' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
                 <span>
-                  <strong>Headmaster Verification Console:</strong> Review all 5 Sunday school classes and their assigned teacher admins. Once you verify a class roster, it is stamped as <strong>Finalised</strong>.
+                  <strong>Headmaster Verification Console:</strong> Review all 5 Sunday school classes and their assigned teacher admins. Official roster verifications are certified by Church <strong>Headmaster Admin</strong> ({churchHeadmaster?.name || 'Headmaster Admin'}).
                 </span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  Total Students: {churchStudents.length}
+                  Headmaster: {churchHeadmaster?.name || 'Headmaster Admin'} · Total Students: {churchStudents.length}
                 </span>
               </div>
 
@@ -652,12 +680,12 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
                         {verification.isFinalised ? (
                           <div className="space-y-2">
                             <div className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                              <div>✓ {verification.headmasterNotes || 'Verified & Finalised'}</div>
-                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
+                              <div>✓ {verification.headmasterNotes || 'Verified and officially finalised by Headmaster Admin.'}</div>
+                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-semibold">
                                 By {verification.verifiedBy}
                               </div>
                             </div>
-                            {hasWrite && (
+                            {canVerify && (
                               <button
                                 type="button"
                                 onClick={() => handleVerifyClass(classLvl, false)}
@@ -669,7 +697,7 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
                           </div>
                         ) : (
                           <div>
-                            {hasWrite ? (
+                            {canVerify ? (
                               <Button
                                 size="sm"
                                 onClick={() => handleVerifyClass(classLvl, true)}
@@ -680,7 +708,7 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
                               </Button>
                             ) : (
                               <span className="text-[11px] text-slate-400 italic">
-                                Awaiting Headmaster verification
+                                Awaiting Headmaster verification ({churchHeadmaster?.name})
                               </span>
                             )}
                           </div>
@@ -748,7 +776,10 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
                     )}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Teacher Admin: <strong>{teachersMap[selectedClassLevel]?.name || 'Assigned Class Teacher'}</strong> ({teachersMap[selectedClassLevel]?.phone || 'Contact pending'})
+                    Sunday Teacher Admin: <strong>{teachersMap[selectedClassLevel]?.name || 'Assigned Class Teacher'}</strong> ({teachersMap[selectedClassLevel]?.phone || 'Contact pending'})
+                    {churchHeadmaster && (
+                      <span> · Headmaster Admin: <strong>{churchHeadmaster.name}</strong></span>
+                    )}
                   </p>
                 </div>
 

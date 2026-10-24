@@ -56,7 +56,7 @@ export function AnalyticsPage() {
       setError('')
     } catch {
       setError(
-        'Live analytics are unavailable. Check the Vercel environment variables and deployment.'
+        'Live analytics are unavailable now'
       )
     } finally {
       setLoading(false)
