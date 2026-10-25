@@ -14,7 +14,9 @@ export function useNetworkStatus(): NetworkStatus {
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   )
-  const [isServerReachable, setIsServerReachable] = useState<boolean>(true)
+  const [isServerReachable, setIsServerReachable] = useState<boolean>(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  )
   const [isChecking, setIsChecking] = useState<boolean>(false)
   const [lastChecked, setLastChecked] = useState<Date>(new Date())
   const [latency, setLatency] = useState<number | null>(null)

@@ -1,0 +1,9 @@
+{
+  "name": "Kanyakumari District OS",
+  "short_name": "District OS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1329",
+  "theme_color": "#172d55",
+  "description": "Executive District OS for Kanyakumari Christian Assembly"
+}

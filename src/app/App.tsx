@@ -80,7 +80,13 @@ const resolveCurrentPage = (): Page => {
 const ProfileSettingsDialog = lazy(() => import('../components/account/ProfileSettingsDialog').then((module) => ({ default: module.ProfileSettingsDialog })));
 export default function App() {
   const networkStatus = useNetworkStatus();
-  const [, setDismissedOfflineModal] = useState(false);
+  const [dismissedOfflineModal, setDismissedOfflineModal] = useState(false);
+
+  useEffect(() => {
+    if (networkStatus.isOnline && networkStatus.isServerReachable) {
+      setDismissedOfflineModal(false);
+    }
+  }, [networkStatus.isOnline, networkStatus.isServerReachable]);
 
   const [role, setRole] = useState<UserRole | null>(null),
     [accountType, setAccountType] = useState<AccountType>("section"),
@@ -322,6 +328,20 @@ export default function App() {
     setProfileOpen(false);
     safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
   };
+
+  // Priority 1: If network connection is switched off (offline), immediately show custom offline page
+  if (!networkStatus.isOnline && !dismissedOfflineModal) {
+    return (
+      <div className="app min-h-screen flex flex-col justify-center items-center p-4">
+        <NetworkStatusBanner status={networkStatus} />
+        <NetworkErrorPage
+          status={networkStatus}
+          onNavigate={navigateTo}
+          onDismissOffline={() => setDismissedOfflineModal(true)}
+        />
+      </div>
+    );
+  }
 
   if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
   if (!role) {
