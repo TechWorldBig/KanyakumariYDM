@@ -7,9 +7,7 @@ const savedTheme = localStorage.getItem('district-theme') || 'system'
 document.body.dataset.theme = savedTheme
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => undefined)
-  })
+  navigator.serviceWorker.register('/sw.js').catch(() => undefined)
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode><ErrorBoundary><App/></ErrorBoundary></StrictMode>)

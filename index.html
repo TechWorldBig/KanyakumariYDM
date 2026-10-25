@@ -6,6 +6,15 @@
     <meta name="theme-color" content="#172d55" />
     <link rel="manifest" href="/manifest.json" />
     <title>Kanyakumari District OS</title>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(function(reg) {
+            if (reg.installing) reg.installing.postMessage({ type: 'SKIP_WAITING' });
+          })
+          .catch(function() {});
+      }
+    </script>
   </head>
   <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
 </html>
