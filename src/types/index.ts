@@ -11,7 +11,9 @@ export type Page =
   | "YDM attendance"
   | "Church committee"
   | "Sunday school"
-  | "Messages";
+  | "Messages"
+  | "Not found"
+  | "Network error";
 export type UserRole =
   | "district"
   | "head-pastor"

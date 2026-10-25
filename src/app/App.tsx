@@ -17,6 +17,10 @@ import { YdmAttendancePage } from "../pages/YdmAttendancePage";
 import { ChurchCommitteePage } from "../pages/ChurchCommitteePage";
 import { SundaySchoolPage } from "../pages/SundaySchoolPage";
 import { MessagesPage } from "../pages/MessagesPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
+import { NetworkErrorPage } from "../pages/NetworkErrorPage";
+import { NetworkStatusBanner } from "../components/shared/NetworkStatusBanner";
+import { useNetworkStatus } from "../hooks/useNetworkStatus";
 import { isDistrictScope } from "../domain/permissions";
 import { accessUpdatedEvent, canWrite, refreshAccess } from '../domain/access';
 
@@ -34,6 +38,8 @@ const PAGE_TO_HASH: Record<Page, string> = {
   'Church committee': 'church-committee',
   'Sunday school': 'sunday-school',
   Messages: 'messages',
+  'Not found': '404',
+  'Network error': 'network-issue',
 }
 
 const HASH_TO_PAGE: Record<string, Page> = {
@@ -51,15 +57,36 @@ const HASH_TO_PAGE: Record<string, Page> = {
   'church-committee': 'Church committee',
   'sunday-school': 'Sunday school',
   messages: 'Messages',
+  '404': 'Not found',
+  'not-found': 'Not found',
+  'network-issue': 'Network error',
+  'network-error': 'Network error',
+  offline: 'Network error',
 }
+
+const resolveCurrentPage = (): Page => {
+  if (typeof window === 'undefined') return 'Overview';
+  const rawHash = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
+  if (rawHash) {
+    return HASH_TO_PAGE[rawHash] || 'Not found';
+  }
+  const pathname = window.location.pathname.replace(/^\/|\/$/g, '').trim().toLowerCase();
+  if (pathname && pathname !== 'index.html' && pathname !== '') {
+    return HASH_TO_PAGE[pathname] || 'Not found';
+  }
+  return 'Overview';
+};
 
 const ProfileSettingsDialog = lazy(() => import('../components/account/ProfileSettingsDialog').then((module) => ({ default: module.ProfileSettingsDialog })));
 export default function App() {
+  const networkStatus = useNetworkStatus();
+  const [, setDismissedOfflineModal] = useState(false);
+
   const [role, setRole] = useState<UserRole | null>(null),
     [accountType, setAccountType] = useState<AccountType>("section"),
     [churchId, setChurchId] = useState<string | null>(null),
     [authReady, setAuthReady] = useState(false),
-    [page, setPage] = useState<Page>("Overview"),
+    [page, setPage] = useState<Page>(() => resolveCurrentPage()),
     [mobile, setMobile] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
     [settingsOpen, setSettingsOpen] = useState(false),
@@ -241,16 +268,25 @@ export default function App() {
     }
   };
 
+  // URL Hash Synchronizer
+  useEffect(() => {
+    const handleHashChange = () => {
+      setPage(resolveCurrentPage());
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   // Mobile Back Button and PopState Synchronizer (Hooks called unconditionally)
   useEffect(() => {
     if (!role) return;
 
-    const initialHash = window.location.hash.replace(/^#\/?/, '').trim().toLowerCase();
-    const initialPage = HASH_TO_PAGE[initialHash] || 'Overview';
+    const initialPage = resolveCurrentPage();
 
     if (initialPage !== 'Overview') {
       safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
-      safeHistoryPush({ page: initialPage, depth: 1 }, `#${PAGE_TO_HASH[initialPage]}`);
+      const hash = PAGE_TO_HASH[initialPage];
+      safeHistoryPush({ page: initialPage, depth: 1 }, hash ? `#${hash}` : window.location.pathname);
       setPage(initialPage);
     } else {
       safeHistoryReplace({ page: 'Overview', depth: 0 }, window.location.pathname);
@@ -267,8 +303,7 @@ export default function App() {
         setSettingsOpen(false);
       }
 
-      const hashPage = HASH_TO_PAGE[window.location.hash.replace(/^#\/?/, '').trim().toLowerCase()] || 'Overview';
-      const targetPage = state?.page || hashPage;
+      const targetPage = state?.page || resolveCurrentPage();
       setPage(targetPage);
     };
 
@@ -289,21 +324,61 @@ export default function App() {
   };
 
   if (!authReady) return <main className="auth-loading" aria-label="Checking secure session" />;
-  if (!role)
+  if (!role) {
+    if (page === "Not found") {
+      return (
+        <div className="app min-h-screen flex flex-col justify-center items-center p-4">
+          <NetworkStatusBanner
+            status={networkStatus}
+            onOpenDetails={() => navigateTo('Network error')}
+          />
+          <NotFoundPage
+            onNavigate={navigateTo}
+            currentPath={window.location.hash || window.location.pathname}
+          />
+        </div>
+      );
+    }
+    if (page === "Network error") {
+      return (
+        <div className="app min-h-screen flex flex-col justify-center items-center p-4">
+          <NetworkStatusBanner status={networkStatus} />
+          <NetworkErrorPage
+            status={networkStatus}
+            onNavigate={navigateTo}
+            onDismissOffline={() => {
+              setDismissedOfflineModal(true);
+              navigateTo('Overview');
+            }}
+          />
+        </div>
+      );
+    }
     return (
-      <Login
-        onLogin={(session) => {
-          setRole(session.role);
-          setAccountType(session.accountType || "section");
-          setChurchId(session.churchId || null);
-          setProfile({ name: "", photo: "", phone: "", email: "" });
-          setPage("Overview");
-        }}
-      />
+      <>
+        <NetworkStatusBanner
+          status={networkStatus}
+          onOpenDetails={() => navigateTo('Network error')}
+        />
+        <Login
+          onLogin={(session) => {
+            setRole(session.role);
+            setAccountType(session.accountType || "section");
+            setChurchId(session.churchId || null);
+            setProfile({ name: "", photo: "", phone: "", email: "" });
+            setPage(resolveCurrentPage());
+          }}
+        />
+      </>
     );
+  }
 
   return (
     <div className={page === "Messages" ? "app messages-app" : "app"}>
+      <NetworkStatusBanner
+        status={networkStatus}
+        onOpenDetails={() => navigateTo('Network error')}
+      />
       {mobile && (
         <button
           type="button"
@@ -348,7 +423,21 @@ export default function App() {
             transition={{ duration: 0.16, ease: "easeOut" }}
             className={page === "Messages" ? "content messages-content" : "content"}
           >
-            {page === "YDM meetings" ? (
+            {page === "Not found" ? (
+              <NotFoundPage
+                onNavigate={navigateTo}
+                currentPath={window.location.hash || window.location.pathname}
+              />
+            ) : page === "Network error" ? (
+              <NetworkErrorPage
+                status={networkStatus}
+                onNavigate={navigateTo}
+                onDismissOffline={() => {
+                  setDismissedOfflineModal(true);
+                  navigateTo('Overview');
+                }}
+              />
+            ) : page === "YDM meetings" ? (
               <YdmMeetingsPage role={role} />
             ) : page === "YDM attendance" ? (
               <YdmAttendancePage role={role} />
