@@ -55,18 +55,18 @@ interface ChurchCommitteePageProps {
 }
 
 const roleBadgeColors: Record<string, string> = {
-  'Committee Chair': 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700',
-  'President': 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-700',
-  'Vice President': 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-950/70 dark:text-orange-200 dark:border-orange-700',
-  'Secretary': 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/70 dark:text-blue-200 dark:border-blue-700',
-  'Joint Secretary': 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950/70 dark:text-sky-200 dark:border-sky-700',
-  'Treasurer': 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-700',
-  'Auditor': 'bg-teal-100 text-teal-900 border-teal-300 dark:bg-teal-950/70 dark:text-teal-200 dark:border-teal-700',
-  'Senior Deacon': 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-950/70 dark:text-indigo-200 dark:border-indigo-700',
-  'Trustee': 'bg-slate-100 text-slate-900 border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
-  'Youth Representative': 'bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/70 dark:text-purple-200 dark:border-purple-700',
-  'Women Representative': 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/70 dark:text-rose-200 dark:border-rose-700',
-  'Committee Member': 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
+  'Committee Chair': 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+  'President': 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20',
+  'Vice President': 'bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-500/20',
+  'Secretary': 'bg-district-500/10 text-district-700 dark:text-district-300 border-district-500/20',
+  'Joint Secretary': 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20',
+  'Treasurer': 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20',
+  'Auditor': 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20',
+  'Senior Deacon': 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
+  'Trustee': 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/20',
+  'Youth Representative': 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20',
+  'Women Representative': 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20',
+  'Committee Member': 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
 }
 
 export function ChurchCommitteePage({ role, accountType, churchId }: ChurchCommitteePageProps) {

@@ -87,7 +87,7 @@ export function NetworkErrorPage({
       </div>
 
       {/* Diagnostics and Telemetry Card */}
-      <Card className="w-full p-5 sm:p-6 bg-[var(--card)] border border-[var(--border)] shadow-md rounded-2xl space-y-5">
+      <Card className="w-full p-5 sm:p-6 bg-[var(--card)] border border-[var(--border)] shadow-xs rounded-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <Activity className="size-5 text-[var(--color-district-600)] dark:text-[var(--color-district-400)]" />

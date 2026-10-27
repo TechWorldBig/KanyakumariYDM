@@ -7,7 +7,7 @@ export function Input({ className, type = 'text', ...props }: InputHTMLAttribute
       type={type}
       data-slot="input"
       className={cn(
-        'flex h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--ink)] placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
+        'flex h-9 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors focus:border-district-600 focus:ring-1 focus:ring-district-600/30 disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}
@@ -20,7 +20,7 @@ export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTex
     <textarea
       data-slot="textarea"
       className={cn(
-        'flex min-h-24 w-full resize-none rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2.5 text-sm text-[var(--ink)] placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
+        'flex min-h-20 w-full resize-none rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-colors focus:border-district-600 focus:ring-1 focus:ring-district-600/30 disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}
@@ -33,7 +33,7 @@ export function Select({ className, children, ...props }: SelectHTMLAttributes<H
     <select
       data-slot="select"
       className={cn(
-        'flex h-10 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3.5 py-2 text-sm text-[var(--ink)] outline-none transition-all duration-150 focus:border-district-500 focus:ring-4 focus:ring-district-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--surface-raised)] dark:border-[var(--line)]',
+        'flex h-9 w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-district-600 focus:ring-1 focus:ring-district-600/30 disabled:cursor-not-allowed disabled:opacity-50',
         className
       )}
       {...props}

@@ -5,32 +5,32 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-xl text-xs font-semibold select-none cursor-pointer transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500/30 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
+  'inline-flex items-center justify-center gap-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500/20 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
   {
     variants: {
       variant: {
         default:
-          'bg-gradient-to-b from-district-700 to-district-800 text-white shadow-sm hover:from-district-600 hover:to-district-700 dark:from-district-600 dark:to-district-700 dark:hover:from-district-500 dark:hover:to-district-600 border border-district-600/30',
+          'bg-district-600 text-white shadow-xs hover:bg-district-700 active:bg-district-800 dark:bg-district-600 dark:hover:bg-district-500 border border-district-700/30',
         secondary:
-          'bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-800/90 dark:text-slate-100 dark:hover:bg-slate-700/80 border border-slate-200/60 dark:border-slate-700/60',
+          'bg-slate-100 text-slate-800 hover:bg-slate-200/80 active:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700',
         outline:
-          'border border-[var(--line)] bg-[var(--surface)] text-[var(--ink)] hover:bg-district-50/70 hover:text-district-700 hover:border-district-200 dark:hover:bg-slate-800/60 dark:hover:text-district-300 dark:hover:border-slate-700 shadow-xs',
+          'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white shadow-xs',
         ghost:
-          'text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-slate-50 dark:hover:bg-slate-800/60 font-semibold',
+          'text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60 font-medium',
         destructive:
-          'bg-gradient-to-b from-rose-600 to-rose-700 text-white shadow-sm hover:from-rose-500 hover:to-rose-600 border border-rose-600/30',
+          'bg-rose-600 text-white shadow-xs hover:bg-rose-700 active:bg-rose-800 border border-rose-700/30',
         success:
-          'bg-gradient-to-b from-emerald-600 to-emerald-700 text-white shadow-sm hover:from-emerald-500 hover:to-emerald-600 border border-emerald-600/30',
+          'bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 active:bg-emerald-800 border border-emerald-700/30',
         link:
-          'text-district-600 underline-offset-4 hover:underline p-0 h-auto font-medium',
+          'text-district-600 dark:text-district-400 underline-offset-4 hover:underline p-0 h-auto font-medium',
       },
       size: {
-        default: 'h-10 px-4 py-2',
-        xs: 'h-7 px-2.5 text-[11px] rounded-lg gap-1.5',
-        sm: 'h-8 px-3 text-[11px] rounded-lg gap-1.5',
-        lg: 'h-11 px-5 text-sm rounded-xl',
-        icon: 'size-10 min-h-10 p-0 rounded-xl',
-        'icon-sm': 'size-8 min-h-8 p-0 rounded-lg',
+        default: 'h-9 px-3.5 py-2',
+        xs: 'h-7 px-2.5 text-[11px] rounded-md gap-1.5',
+        sm: 'h-8 px-3 text-[11px] rounded-md gap-1.5',
+        lg: 'h-10 px-4 text-sm rounded-lg',
+        icon: 'size-9 min-h-9 p-0 rounded-lg',
+        'icon-sm': 'size-7 min-h-7 p-0 rounded-md',
       },
     },
     defaultVariants: {

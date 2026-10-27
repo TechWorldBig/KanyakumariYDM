@@ -79,20 +79,20 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
       <div className="login-panel">
         <div className="brand">
           <div className="brand-mark">
-            <Church size={19} />
+            <Church size={18} strokeWidth={2.2} />
           </div>
-          District<span className="brand-accent">OS</span>
+          <span>District<span className="text-district-600 dark:text-district-400 font-bold">OS</span></span>
         </div>
 
         <div className="login-form">
           <div className="space-y-1 mb-6">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Authentication Portal
             </span>
-            <h2 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
               Welcome back
             </h2>
-            <p className="text-xs text-[var(--muted-foreground)]">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Sign in with your assigned administrative credentials.
             </p>
           </div>
@@ -144,12 +144,15 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
             </Button>
           </form>
 
-          <div className="mt-8 pt-4 border-t border-[var(--border)]">
-            <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-              <LockKeyhole size={15} className="shrink-0 text-district-600 dark:text-district-400" />
-              <span>
-                <strong>Demo:</strong> District: <code className="font-mono font-semibold text-slate-900 dark:text-slate-100">admin</code> · Sections: <code className="font-mono font-semibold text-slate-900 dark:text-slate-100">section1–section4</code> · Sunday School: <code className="font-mono font-semibold text-slate-900 dark:text-slate-100">headmaster / teacher</code>
-              </span>
+          <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
+              <LockKeyhole size={14} className="shrink-0 text-slate-500 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-semibold text-slate-900 dark:text-slate-100">Demo Accounts:</span>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  District: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">admin</code> · Sections: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">section1–4</code> · Sunday School: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">headmaster / teacher</code>
+                </span>
+              </div>
             </div>
           </div>
         </div>

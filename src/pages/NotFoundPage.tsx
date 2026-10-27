@@ -84,8 +84,8 @@ export function NotFoundPage({ onNavigate, currentPath }: NotFoundPageProps) {
     <div className="min-h-[80vh] flex flex-col items-center justify-center py-8 px-4 sm:px-6 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* 404 Hero Illustration & Typography */}
       <div className="text-center space-y-3 max-w-xl">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-xs">
-          <FileQuestion size={14} className="animate-bounce" />
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-xs">
+          <FileQuestion size={14} />
           <span>404 · PAGE NOT FOUND</span>
         </div>
 

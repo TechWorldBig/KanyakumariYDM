@@ -192,7 +192,7 @@ export function ChurchAdminPage({
         </div>
       )}
 
-      <Card className="p-5 bg-gradient-to-r from-[var(--color-district-50)]/40 to-transparent dark:from-[var(--color-district-950)]/30 border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="p-5 bg-[var(--card)] border border-[var(--border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
             Access Boundary

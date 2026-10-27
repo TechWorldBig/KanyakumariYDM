@@ -48,13 +48,13 @@ export function OverviewPage({
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Top Banner / Heading */}
-      <div className="page-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="page-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <span className="eyebrow">{dashboardDate()}</span>
-          <h1>
-            {greeting()}, {roleName(role)} <span className="wave">✦</span>
+          <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400 tracking-wider uppercase">{dashboardDate()}</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
+            {greeting()}, {roleName(role)}
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-normal">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-normal">
             {district
               ? "Comprehensive overview of the Kanyakumari district church network."
               : `Administrative dashboard for ${list[0]?.name || 'your assigned section'}.`}
@@ -64,7 +64,7 @@ export function OverviewPage({
           <Button
             variant="outline"
             onClick={() => onNavigate("Reports")}
-            leftIcon={<FileText size={16} />}
+            leftIcon={<FileText size={15} />}
             className="shrink-0"
           >
             View reports
@@ -139,15 +139,15 @@ export function OverviewPage({
           {role === 'district' && canWrite(role, 'Sections') && (
             <button
               type="button"
-              className="add-card group p-6 rounded-2xl border-2 border-dashed border-[var(--line)] hover:border-district-400 dark:hover:border-district-600 hover:bg-district-50/50 dark:hover:bg-slate-800/40 transition-all flex flex-col items-center justify-center gap-3 text-center cursor-pointer min-h-[220px]"
+              className="group p-5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-900/40 transition-colors flex flex-col items-center justify-center gap-2.5 text-center cursor-pointer min-h-[190px]"
               onClick={onAdd}
             >
-              <div className="add-card-icon size-12 rounded-xl bg-district-50 dark:bg-district-950/60 text-district-600 dark:text-district-400 flex items-center justify-center transition-transform group-hover:scale-110 shadow-xs">
-                <Plus size={22} strokeWidth={2.5} />
+              <div className="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center transition-transform group-hover:scale-105">
+                <Plus size={20} strokeWidth={2.2} />
               </div>
-              <div className="add-card-text bg-transparent border-0 w-auto h-auto">
-                <strong className="block text-sm font-bold text-[var(--ink)]">Add new section</strong>
-                <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Expand administrative zone</span>
+              <div>
+                <strong className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">Add new section</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">Expand administrative zone</span>
               </div>
             </button>
           )}

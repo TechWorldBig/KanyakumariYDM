@@ -83,10 +83,10 @@ const levelLabels: Record<AccessLevel, string> = {
 
 const levelBadgeStyles: Record<AccessLevel, string> = {
   manage:
-    'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border-emerald-400 dark:border-emerald-700 font-bold',
-  edit: 'bg-blue-100 dark:bg-blue-950/70 text-blue-900 dark:text-blue-200 border-blue-400 dark:border-blue-700 font-bold',
-  view: 'bg-purple-100 dark:bg-purple-950/70 text-purple-900 dark:text-purple-200 border-purple-400 dark:border-purple-700 font-bold',
-  none: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-600 font-semibold',
+    'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 font-semibold',
+  edit: 'bg-district-500/10 text-district-700 dark:text-district-300 border-district-500/20 font-semibold',
+  view: 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20 font-semibold',
+  none: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-medium',
 }
 
 export function AccessControlWorkspace() {

@@ -158,19 +158,19 @@ export function WorkspacePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[var(--border)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+          <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             {page === 'Access control'
               ? 'District administration'
               : isDistrictScope(role)
               ? 'District workspace'
               : `${section?.name || 'Section 1'} workspace`}
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
             {page}
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-normal">
             {page === 'Access control'
               ? 'Define role permissions across the workspace.'
               : role === 'head-pastor'
@@ -179,8 +179,7 @@ export function WorkspacePage({
           </p>
         </div>
         {canAdd && (
-          <Button onClick={add} className="shrink-0 shadow-sm">
-            <Plus size={16} />
+          <Button onClick={add} className="shrink-0 shadow-xs" leftIcon={<Plus size={15} />}>
             <span>Add {page.slice(0, -1).toLowerCase()}</span>
           </Button>
         )}
@@ -240,36 +239,36 @@ function SectionDirectory({
   onOpen: (section: Section) => void
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {sections.map((item) => (
         <button
           type="button"
           key={item.name}
           onClick={() => onOpen(item)}
-          className="group relative flex flex-col justify-between p-5 rounded-xl text-left bg-[var(--card)] border border-[var(--border)] shadow-xs hover:shadow-md hover:border-[var(--color-district-500)]/40 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+          className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-xl text-left bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-district-500 cursor-pointer"
         >
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="h-10 w-10 rounded-lg bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-700)] dark:text-[var(--color-district-300)] flex items-center justify-center font-bold text-sm">
-                <Building2 size={20} />
+              <div className="size-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs">
+                <Building2 size={18} />
               </div>
               <Badge variant="blue">{item.town}</Badge>
             </div>
-            <strong className="block text-base font-semibold text-[var(--foreground)] group-hover:text-[var(--color-district-600)] dark:group-hover:text-[var(--color-district-400)] transition-colors">
+            <strong className="block text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 group-hover:text-district-600 dark:group-hover:text-district-400 transition-colors">
               {item.name}
             </strong>
-            <span className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)] mt-1">
-              <MapPin size={12} className="shrink-0" />
+            <span className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <MapPin size={12} className="shrink-0 text-slate-400" />
               {item.admin} Admin
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>
-              <strong className="text-[var(--foreground)] font-semibold">{item.churches}</strong> churches
+              <strong className="text-slate-900 dark:text-slate-100 font-medium">{item.churches}</strong> churches
             </span>
             <span>
-              <strong className="text-[var(--foreground)] font-semibold">{item.users}</strong> users
+              <strong className="text-slate-900 dark:text-slate-100 font-medium">{item.users}</strong> users
             </span>
           </div>
         </button>

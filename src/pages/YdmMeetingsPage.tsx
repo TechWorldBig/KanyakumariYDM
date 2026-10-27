@@ -602,10 +602,10 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('all')}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                     statusFilter === 'all'
-                      ? 'bg-district-700 text-white dark:bg-district-600 shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      ? 'bg-[var(--color-district-600)] text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   All ({meetings.length})
@@ -613,10 +613,10 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('active')}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                     statusFilter === 'active'
                       ? 'bg-emerald-600 text-white dark:bg-emerald-700 shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   Active ({activeCount})
@@ -625,10 +625,10 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                   <button
                     type="button"
                     onClick={() => setStatusFilter('completed')}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                       statusFilter === 'completed'
                         ? 'bg-purple-600 text-white dark:bg-purple-700 shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     Completed / MOM ({completedCount})
@@ -637,10 +637,10 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                 <button
                   type="button"
                   onClick={() => setStatusFilter('cancelled')}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                     statusFilter === 'cancelled'
                       ? 'bg-rose-600 text-white dark:bg-rose-700 shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   Cancelled ({cancelledCount})

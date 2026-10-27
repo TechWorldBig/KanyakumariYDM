@@ -6,7 +6,7 @@ export function TabsList({ className, ...props }: HTMLAttributes<HTMLDivElement>
     <div
       data-slot="tabs-list"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 p-1 border border-slate-200/50 dark:border-slate-700/50 max-w-full overflow-x-auto overscroll-x-contain',
+        'inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200/80 dark:border-slate-700/60 max-w-full overflow-x-auto overscroll-x-contain',
         className
       )}
       {...props}
@@ -26,8 +26,8 @@ export function TabTrigger({ className, active, onClick, ...props }: TabTriggerP
       data-state={active ? 'active' : 'inactive'}
       onClick={onClick}
       className={cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-150 select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-district-500',
-        active && 'bg-[var(--surface)] text-[var(--ink)] shadow-xs font-bold dark:bg-slate-900',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors select-none cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-district-500',
+        active && 'bg-white text-slate-900 shadow-xs font-semibold dark:bg-slate-900 dark:text-slate-50',
         className
       )}
       {...props}
