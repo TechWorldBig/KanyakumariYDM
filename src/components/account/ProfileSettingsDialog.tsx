@@ -85,16 +85,11 @@ export function ProfileSettingsDialog({
         <DialogCloseButton />
 
         <DialogHeader className="space-y-1 pb-3 border-b border-[var(--line)]">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-district-500/10 text-district-600 dark:text-district-400 border border-district-500/20 tracking-wider uppercase">
-              Account Settings
-            </span>
-          </div>
           <DialogTitle className="text-xl font-bold tracking-tight text-[var(--ink)]">
             Profile Settings
           </DialogTitle>
           <DialogDescription className="text-xs text-[var(--muted-foreground)]">
-            Update your public name, photo avatar, and contact information.
+            Update your name, avatar, and contact information.
           </DialogDescription>
         </DialogHeader>
 

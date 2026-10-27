@@ -58,9 +58,9 @@ const navItemDefs: NavItemDef[] = [
 ]
 
 const navGroups: { key: NavGroupKey; title: string }[] = [
-  { key: 'platform', title: 'Platform Core' },
-  { key: 'ministries', title: 'Ministries & Gatherings' },
-  { key: 'governance', title: 'Governance & Audit' },
+  { key: 'platform', title: 'Workspace' },
+  { key: 'ministries', title: 'Ministries' },
+  { key: 'governance', title: 'Governance' },
 ]
 
 export function Sidebar({

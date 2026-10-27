@@ -303,36 +303,33 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-              Christian Education Ministry
+              Education
             </span>
             {isDistrictRole ? (
-              <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800 font-semibold text-[11px] px-2 py-0.5">
-                <ShieldCheck size={12} className="mr-1 inline" /> District Super Admin Oversight
+              <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <ShieldCheck size={12} className="mr-1 inline" /> District Admin
               </Badge>
             ) : isHeadmasterRole ? (
-              <Badge className="bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold text-[11px] px-2 py-0.5">
-                <Award size={12} className="mr-1 inline" /> Headmaster Admin Access
+              <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <Award size={12} className="mr-1 inline" /> Headmaster
               </Badge>
             ) : isTeacherRole ? (
-              <Badge className="bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 font-semibold text-[11px] px-2 py-0.5">
-                <Users size={12} className="mr-1 inline" /> Sunday Teacher Admin Access
+              <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <Users size={12} className="mr-1 inline" /> Teacher
               </Badge>
             ) : hasWrite ? (
-              <Badge className="bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold text-[11px] px-2 py-0.5">
-                <CheckCircle2 size={12} className="mr-1 inline" /> {roleName(role)} Access
+              <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <CheckCircle2 size={12} className="mr-1 inline" /> Manage
               </Badge>
             ) : (
-              <Badge className="bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800 font-semibold text-[11px] px-2 py-0.5">
-                <Eye size={12} className="mr-1 inline" /> View-Only Access
+              <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <Eye size={12} className="mr-1 inline" /> View only
               </Badge>
             )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1 flex items-center gap-2">
-            <span>Sunday school</span>
+            <span>Sunday School</span>
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Sunday teacher admins enroll students by class (Beginner, Primary, Intermediate, Senior, Super Senior), and Headmaster admins verify and finalise the official class rosters.
-          </p>
         </div>
 
         {/* Global actions */}
@@ -440,9 +437,8 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
-              <span>Showing <strong>{filteredChurches.length}</strong> church Sunday schools</span>
-              <span>Click any church to open teacher admin classes & headmaster verification</span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              <span>{filteredChurches.length} Sunday schools</span>
             </div>
           </div>
 
@@ -587,38 +583,38 @@ export function SundaySchoolPage({ role, accountType, churchId }: SundaySchoolPa
             <button
               type="button"
               onClick={() => setActiveTab('classes')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'classes'
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <ShieldCheck size={14} />
-              <span>Classes & Headmaster Verification</span>
+              <span>Classes</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('students')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === 'students'
                   ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Users size={14} />
-              <span>Sunday Teacher Admin: Student Rosters</span>
+              <span>Student Rosters</span>
             </button>
           </div>
 
           {/* TAB 1: Classes & Headmaster Verification View */}
           {activeTab === 'classes' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
+              <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
                 <span>
-                  <strong>Headmaster Verification Console:</strong> Review all 5 Sunday school classes and their assigned teacher admins. Official roster verifications are certified by Church <strong>Headmaster Admin</strong> ({churchHeadmaster?.name || 'Headmaster Admin'}).
+                  Headmaster: <strong>{churchHeadmaster?.name || 'Headmaster Admin'}</strong>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  Headmaster: {churchHeadmaster?.name || 'Headmaster Admin'} · Total Students: {churchStudents.length}
+                <span className="font-mono text-slate-500 dark:text-slate-400">
+                  {churchStudents.length} Students Total
                 </span>
               </div>
 

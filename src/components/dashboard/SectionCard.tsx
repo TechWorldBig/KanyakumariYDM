@@ -47,7 +47,7 @@ export function SectionCard({
 
         <div className="space-y-1 mb-4">
           <div className="flex justify-between items-center text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-normal">Access health</span>
+            <span className="text-slate-500 dark:text-slate-400 font-normal">Health</span>
             <b className="font-mono font-medium text-slate-900 dark:text-slate-100">{section.health}%</b>
           </div>
           <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -60,7 +60,7 @@ export function SectionCard({
       </div>
 
       <div className="flex items-center gap-1.5 text-xs font-medium text-district-600 dark:text-district-400 group-hover:text-district-700 dark:group-hover:text-district-300 pt-0.5">
-        <span>Open section workspace</span>
+        <span>Open section</span>
         <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </div>
     </motion.button>

@@ -73,15 +73,12 @@ export function AnalyticsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            District Super Admin Only
+          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            Telemetry
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
-            Live Usage & Sessions
+            Usage & Sessions
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Real-time active sessions and traffic metrics. IP addresses are cryptographically hashed for privacy.
-          </p>
         </div>
         <Button
           variant="outline"
@@ -91,7 +88,7 @@ export function AnalyticsPage() {
           className="shrink-0"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh Data'}</span>
+          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
         </Button>
       </div>
 
@@ -133,14 +130,9 @@ export function AnalyticsPage() {
 
       <Card className="p-0 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Active Sessions
-            </h2>
-            <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
-              Sessions seen within the last 60 seconds are designated active.
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            Active Sessions
+          </h2>
           <Badge variant="success" dot className="animate-pulse">
             Live
           </Badge>
@@ -199,11 +191,8 @@ export function AnalyticsPage() {
       <Card className="p-0 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-            Recent Authentication Activity
+            Authentication Activity
           </h2>
-          <p className="text-xs text-slate-700 dark:text-slate-300 font-medium mt-0.5">
-            Log of user sign-in and sign-out events across the district.
-          </p>
         </div>
 
         <div className="divide-y divide-slate-200 dark:divide-slate-800">

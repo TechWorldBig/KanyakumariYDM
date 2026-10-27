@@ -70,19 +70,19 @@ export function NetworkErrorPage({
     <div className="min-h-[75vh] flex flex-col items-center justify-center py-8 px-4 sm:px-6 max-w-4xl mx-auto space-y-6">
       {/* Top Status Header */}
       <div className="text-center space-y-3 max-w-xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 shadow-xs">
-          <WifiOff size={14} className="animate-pulse" />
-          <span>NETWORK CONNECTION ISSUE</span>
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 shadow-xs">
+          <WifiOff size={14} />
+          <span>{!isOnline ? 'Offline' : 'Connection Error'}</span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[var(--foreground)]">
-          {!isOnline ? 'You Are Currently Offline' : 'Cannot Reach District Server'}
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)]">
+          {!isOnline ? 'No Internet Connection' : 'Server Unreachable'}
         </h1>
 
-        <p className="text-sm sm:text-base text-[var(--muted-foreground)] leading-relaxed">
+        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
           {!isOnline
-            ? 'District OS has detected that your device lost its internet connection. Please inspect your Wi-Fi, mobile data, or local gateway.'
-            : 'Your internet connection appears active, but the District OS cloud services could not be reached. We are automatically attempting to reconnect.'}
+            ? 'Check your network connection and try again.'
+            : 'Attempting to reconnect to district services.'}
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export function NetworkErrorPage({
           <div className="flex items-center gap-2">
             <Activity className="size-5 text-[var(--color-district-600)] dark:text-[var(--color-district-400)]" />
             <h2 className="text-sm sm:text-base font-bold text-[var(--foreground)]">
-              Live Connection Diagnostics
+              Diagnostics
             </h2>
           </div>
           <div className="flex items-center gap-2">

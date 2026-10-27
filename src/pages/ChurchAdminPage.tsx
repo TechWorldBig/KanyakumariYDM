@@ -156,19 +156,16 @@ export function ChurchAdminPage({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            Private Church Workspace
+          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            Parish
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
             {church.name}
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Manage people, ministries, and announcements for this church only.
-          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={canManage ? 'success' : 'blue'} dot>
-            {canManage ? 'Church Admin' : 'Church Member'}
+          <Badge variant={canManage ? 'success' : 'blue'}>
+            {canManage ? 'Church Admin' : 'Member'}
           </Badge>
         </div>
       </div>
@@ -192,24 +189,19 @@ export function ChurchAdminPage({
         </div>
       )}
 
-      <Card className="p-5 bg-[var(--card)] border border-[var(--border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="p-4 sm:p-5 bg-[var(--card)] border border-[var(--border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            Access Boundary
-          </span>
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mt-0.5">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">
             {data.details.location || church.address}
           </h2>
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            Synchronized with this church, its Section Super Admin, and District Super Admin.
-          </p>
+          <span className="text-xs text-[var(--muted-foreground)]">Location & Parish Profile</span>
         </div>
-        <div className="flex items-baseline gap-2 bg-[var(--card)] px-4 py-2.5 rounded-xl border border-[var(--border)] shadow-xs">
-          <strong className="text-2xl font-bold text-[var(--foreground)]">
+        <div className="flex items-baseline gap-2 bg-[var(--surface-subtle)] px-3.5 py-2 rounded-lg border border-[var(--border)]">
+          <strong className="text-xl font-bold font-mono text-[var(--foreground)]">
             {data.details.totalMembers}
           </strong>
-          <span className="text-xs text-[var(--muted-foreground)] font-medium">
-            total members
+          <span className="text-xs text-[var(--muted-foreground)]">
+            members
           </span>
         </div>
       </Card>
@@ -217,19 +209,19 @@ export function ChurchAdminPage({
       <div className="border-b border-[var(--border)] overflow-x-auto pb-1">
         <TabsList className="min-w-max">
           <TabTrigger active={active === 'details'} onClick={() => setActive('details')}>
-            Church details
+            Details
           </TabTrigger>
           <TabTrigger active={active === 'committee'} onClick={() => setActive('committee')}>
             Committee ({data.committee.length})
           </TabTrigger>
           <TabTrigger active={active === 'ydm'} onClick={() => setActive('ydm')}>
-            YDM members ({data.ydm.length})
+            YDM ({data.ydm.length})
           </TabTrigger>
           <TabTrigger active={active === 'women'} onClick={() => setActive('women')}>
-            Women ministry ({data.women.length})
+            Women ({data.women.length})
           </TabTrigger>
           <TabTrigger active={active === 'pastor'} onClick={() => setActive('pastor')}>
-            Pastor profile
+            Pastor
           </TabTrigger>
           <TabTrigger active={active === 'announcements'} onClick={() => setActive('announcements')}>
             Announcements ({data.announcements.length})
@@ -316,11 +308,8 @@ function ChurchDetailsSection({
       <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
         <div>
           <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
-            Church Profile & Statistics
+            Church Profile
           </h2>
-          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-            These figures are visible to church administrators, Section Super Admin, and District Super Admin.
-          </p>
         </div>
         <div className="h-10 w-10 rounded-xl bg-[var(--color-district-100)] dark:bg-[var(--color-district-900)] text-[var(--color-district-600)] dark:text-[var(--color-district-300)] flex items-center justify-center">
           <Church size={20} />

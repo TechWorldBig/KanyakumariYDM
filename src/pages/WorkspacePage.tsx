@@ -161,22 +161,11 @@ export function WorkspacePage({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div>
           <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            {page === 'Access control'
-              ? 'District administration'
-              : isDistrictScope(role)
-              ? 'District workspace'
-              : `${section?.name || 'Section 1'} workspace`}
+            {isDistrictScope(role) ? 'District' : section?.name || 'Section 1'}
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
             {page}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-normal">
-            {page === 'Access control'
-              ? 'Define role permissions across the workspace.'
-              : role === 'head-pastor'
-              ? 'Read-only view of all district data.'
-              : `Manage ${isDistrictScope(role) ? 'district-wide' : section?.name || 'Section 1'} data.`}
-          </p>
         </div>
         {canAdd && (
           <Button onClick={add} className="shrink-0 shadow-xs" leftIcon={<Plus size={15} />}>
@@ -926,15 +915,12 @@ function ReportsSuite({
   return (
     <div className="space-y-6">
       {/* Top action cards & PDF triggers */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <BarChart3 className="text-[var(--color-district-600)] dark:text-[var(--color-district-400)] size-5" />
-            <h2 className="text-base font-bold text-[var(--foreground)]">Executive Governance & District Reports</h2>
+            <h2 className="text-base font-bold text-[var(--foreground)]">Reports</h2>
           </div>
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            Official operational analytics, institutional rosters, and real-time PDF data exports.
-          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button
@@ -945,7 +931,7 @@ function ReportsSuite({
             className="text-xs gap-1.5 h-9"
           >
             <FileText size={14} className="text-red-500" />
-            <span>Download Churches (PDF)</span>
+            <span>Export Churches (PDF)</span>
           </Button>
           <Button
             type="button"
@@ -954,7 +940,7 @@ function ReportsSuite({
             className="text-xs gap-1.5 h-9 bg-[var(--color-district-600)] hover:bg-[var(--color-district-700)] text-white shadow-xs"
           >
             <Download size={14} />
-            <span>Download Regional Report (PDF)</span>
+            <span>Export Regional Data (PDF)</span>
           </Button>
         </div>
       </div>
@@ -962,27 +948,20 @@ function ReportsSuite({
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Total Registered Churches</span>
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Total Churches</span>
           <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{totalChurches}</strong>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 block flex items-center gap-1 font-medium">
-            <CheckCircle2 size={12} />
-            100% active coverage
-          </span>
         </Card>
         <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
           <span className="text-xs font-medium text-[var(--muted-foreground)] block">Active Sections</span>
           <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{sections.length}</strong>
-          <span className="text-[11px] text-[var(--muted-foreground)] mt-1 block">Nagercoil, Coast, North, West</span>
         </Card>
         <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Network Members</span>
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Total Members</span>
           <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{totalUsers}</strong>
-          <span className="text-[11px] text-blue-600 dark:text-blue-400 mt-1 block font-medium">Verified profile registry</span>
         </Card>
         <Card className="p-4 bg-[var(--card)] border border-[var(--border)] shadow-xs">
-          <span className="text-xs font-medium text-[var(--muted-foreground)] block">Average System Health</span>
+          <span className="text-xs font-medium text-[var(--muted-foreground)] block">System Health</span>
           <strong className="text-2xl font-bold font-mono text-[var(--foreground)] mt-1 block">{averageHealth}%</strong>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 block font-medium">District governance optimal</span>
         </Card>
       </div>
 

@@ -84,22 +84,22 @@ export function NotFoundPage({ onNavigate, currentPath }: NotFoundPageProps) {
     <div className="min-h-[80vh] flex flex-col items-center justify-center py-8 px-4 sm:px-6 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* 404 Hero Illustration & Typography */}
       <div className="text-center space-y-3 max-w-xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-xs">
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 shadow-xs">
           <FileQuestion size={14} />
-          <span>404 · PAGE NOT FOUND</span>
+          <span>404</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[var(--foreground)]">
-          Workspace Page Not Found
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[var(--foreground)]">
+          Page Not Found
         </h1>
 
-        <p className="text-sm sm:text-base text-[var(--muted-foreground)] leading-relaxed">
-          The administrative module or URL you requested is not recognized in the Kanyakumari District OS network. The link may have changed, expired, or you may lack access clearance.
+        <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+          The requested page does not exist or has been moved.
         </p>
 
         {/* Display Requested Target */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-700 dark:text-slate-300 max-w-full overflow-hidden text-ellipsis">
-          <span className="text-[var(--muted-foreground)]">Requested Route:</span>
+          <span className="text-[var(--muted-foreground)]">Route:</span>
           <code className="text-rose-600 dark:text-rose-400 font-semibold truncate">{displayPath}</code>
         </div>
       </div>

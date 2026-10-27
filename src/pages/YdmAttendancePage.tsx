@@ -280,24 +280,21 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-              District Youth Department
+              Ministries
             </span>
             {hasWrite ? (
-              <Badge className="bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-semibold text-[11px] px-2 py-0.5">
-                <CheckCircle2 size={12} className="mr-1 inline" /> Full Management Access
+              <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <CheckCircle2 size={12} className="mr-1 inline" /> Manage
               </Badge>
             ) : (
-              <Badge className="bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800 font-semibold text-[11px] px-2 py-0.5">
-                <Eye size={12} className="mr-1 inline" /> View-Only Access
+              <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20 font-semibold text-[11px] px-2 py-0.5">
+                <Eye size={12} className="mr-1 inline" /> View only
               </Badge>
             )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1 flex items-center gap-2">
-            <span>YDM attendance</span>
+            <span>YDM Attendance</span>
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Search churches across the district to manage youth member rosters and record session attendance.
-          </p>
         </div>
 
         {/* Global actions */}
@@ -334,31 +331,27 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
       <div className="metrics grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         <Metric
           icon={Church}
-          label="Churches Monitored"
+          label="Churches"
           value={String(stats.totalChurches)}
           tone="blue"
-          subtext="Active YDM Assemblies"
         />
         <Metric
           icon={Users}
-          label="Total YDM Members"
+          label="YDM Members"
           value={String(stats.totalMembers)}
           tone="green"
-          subtext="Enrolled youth registry"
         />
         <Metric
           icon={UserCheck}
-          label="Today's Present"
+          label="Present Today"
           value={String(stats.todayPresent)}
           tone="orange"
-          subtext="Attended today's meetings"
         />
         <Metric
           icon={CalendarCheck}
-          label="Attendance Turnout"
+          label="Turnout Rate"
           value={`${stats.overallAttendanceRate}%`}
           tone="violet"
-          subtext="District-wide avg rate"
         />
       </div>
 
@@ -406,9 +399,8 @@ export function YdmAttendancePage({ role }: YdmAttendancePageProps) {
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
-              <span>Showing <strong>{filteredChurches.length}</strong> churches</span>
-              <span>Click on any church to inspect members & mark attendance</span>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              <span>{filteredChurches.length} churches</span>
             </div>
           </div>
 

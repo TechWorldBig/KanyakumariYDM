@@ -64,14 +64,12 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
         <div className="art-copy">
           <span className="eyebrow">Kanyakumari District</span>
           <h1>
-            One district.
-            <br />
-            <em>Every detail.</em>
+            District Administration
           </h1>
-          <p>An enterprise-grade workspace connecting every section and local church.</p>
+          <p>Ecclesiastical governance and parish administration.</p>
           <div className="art-stat">
             <ShieldCheck size={18} />
-            <span>Role-based access &amp; governance</span>
+            <span>Role-based access</span>
           </div>
         </div>
       </div>
@@ -86,15 +84,9 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
 
         <div className="login-form">
           <div className="space-y-1 mb-6">
-            <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Authentication Portal
-            </span>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-              Welcome back
+              Sign In
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Sign in with your assigned administrative credentials.
-            </p>
           </div>
 
           <form onSubmit={submit} noValidate className="space-y-4">
@@ -106,7 +98,7 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
-                placeholder="e.g. admin or section1"
+                placeholder="Username"
                 required
               />
             </div>
@@ -120,7 +112,7 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                placeholder="••••••••••••"
+                placeholder="Password"
                 required
               />
             </div>
@@ -136,25 +128,13 @@ export function Login({ onLogin }: { onLogin: (session: LoginResult) => void }) 
 
             <Button
               type="submit"
-              className="w-full h-11 text-sm font-semibold shadow-md mt-2"
+              className="w-full h-10 text-sm font-semibold shadow-xs mt-2"
               disabled={loading}
             >
-              <span>{loading ? 'Authenticating…' : 'Enter Workspace'}</span>
+              <span>{loading ? 'Signing in…' : 'Sign in'}</span>
               {!loading && <ArrowUpRight size={17} />}
             </Button>
           </form>
-
-          <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800">
-              <LockKeyhole size={14} className="shrink-0 text-slate-500 mt-0.5" />
-              <div className="leading-relaxed">
-                <span className="font-semibold text-slate-900 dark:text-slate-100">Demo Accounts:</span>
-                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  District: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">admin</code> · Sections: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">section1–4</code> · Sunday School: <code className="font-mono font-medium text-slate-800 dark:text-slate-200">headmaster / teacher</code>
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </main>

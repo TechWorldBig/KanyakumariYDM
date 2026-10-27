@@ -249,17 +249,17 @@ export function MomEditorDialog({
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-district-500/10 text-district-600 dark:text-district-400 border border-district-500/20 tracking-wider uppercase">
                   <FileCheck2 size={12} />
-                  <span>Organiser Portal · Tell MOM</span>
+                  <span>Minutes of Meeting</span>
                 </span>
                 <span className="text-[11px] font-medium text-[var(--muted-foreground)]">
-                  Meeting: #{meeting.id}
+                  #{meeting.id}
                 </span>
               </div>
               <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)]">
-                Record Minutes of Meeting (MOM)
+                Meeting Minutes
               </DialogTitle>
               <DialogDescription className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                As the meeting organiser, record member attendance and key discussion points. Once published, all roles will be notified automatically.
+                Record attendance, discussions, and action items.
               </DialogDescription>
             </div>
 

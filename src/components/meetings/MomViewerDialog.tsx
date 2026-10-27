@@ -82,18 +82,17 @@ export function MomViewerDialog({
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 tracking-wide uppercase">
                   <FileCheck2 size={12} />
-                  <span>Minutes of Meeting (MOM)</span>
+                  <span>Minutes of Meeting</span>
                 </span>
                 <span className="text-[11px] font-semibold text-[var(--muted-foreground)]">
-                  Published {new Date(mom.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(mom.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
               <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--foreground)] truncate">
                 {mom.title}
               </DialogTitle>
               <DialogDescription className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Official minutes and member attendance recorded by{' '}
-                <strong className="text-[var(--foreground)] font-semibold">{mom.organiserName}</strong> ({mom.organiserRole}).
+                Recorded by {mom.organiserName} ({mom.organiserRole})
               </DialogDescription>
             </div>
 
@@ -104,10 +103,10 @@ export function MomViewerDialog({
                 size="sm"
                 onClick={() => void copyText()}
                 className="h-8 text-xs gap-1.5"
-                title="Copy formatted MOM to share on WhatsApp or Email"
+                title="Copy formatted MOM"
               >
                 <Copy size={13} />
-                <span>{copied ? 'Copied!' : 'Copy MOM'}</span>
+                <span>{copied ? 'Copied' : 'Copy'}</span>
               </Button>
               <Button
                 type="button"

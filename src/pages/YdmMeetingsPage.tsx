@@ -453,15 +453,12 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            District-wide notification & Governance
+          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            Ministries
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
-            YDM Video Meetings & MOM
+            YDM Meetings & Minutes
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Schedule district video conferences, review attendance, and publish official Minutes of Meeting (MOM).
-          </p>
         </div>
         <Button
           type="button"
@@ -487,15 +484,12 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
 
       {/* Schedule Form (Visible to authorised roles) */}
       {canSchedule && (
-        <Card className="p-6 border border-[var(--border)] shadow-xs">
+        <Card className="p-5 border border-[var(--border)] shadow-xs">
           <form onSubmit={schedule} noValidate className="space-y-4">
             <div>
-              <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
-                Schedule a YDM Meeting
+              <h2 className="text-base font-bold tracking-tight text-[var(--foreground)]">
+                Schedule Meeting
               </h2>
-              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                Every signed-in leader receives scheduled updates. When concluded, the organiser can record member attendance and publish the MOM.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -547,11 +541,6 @@ export function YdmMeetingsPage({ role }: { role: UserRole }) {
                   Scheduled Meetings
                 </h2>
               </div>
-              <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
-                {completedCount > 0
-                  ? 'Current active, past concluded conferences, and published Minutes of Meeting.'
-                  : 'Current active and past district video conferences.'}
-              </p>
             </div>
             <div className="flex items-center gap-1.5 self-start sm:self-auto flex-wrap">
               <Badge variant="success" className="text-xs font-semibold">

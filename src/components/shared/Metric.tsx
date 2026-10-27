@@ -11,7 +11,7 @@ interface MetricProps {
   badge?: string
 }
 
-export function Metric({ icon: Icon, label, value, tone, subtext = 'Within your access', badge }: MetricProps) {
+export function Metric({ icon: Icon, label, value, tone, subtext, badge }: MetricProps) {
   return (
     <Card className="min-w-0 flex items-start gap-3 p-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
       <div
@@ -38,7 +38,9 @@ export function Metric({ icon: Icon, label, value, tone, subtext = 'Within your 
         <div className="text-xl sm:text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-slate-50 tabular-nums leading-none">
           {value}
         </div>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-1.5 leading-tight">{subtext}</p>
+        {subtext && (
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-1.5 leading-tight">{subtext}</p>
+        )}
       </div>
     </Card>
   )

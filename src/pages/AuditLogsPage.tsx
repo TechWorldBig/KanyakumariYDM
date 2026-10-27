@@ -50,17 +50,12 @@ export function AuditLogsPage({ role }: { role: UserRole }) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--border)]">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-            Security & Governance
+          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+            Governance
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)] mt-1">
             Audit Logs
           </h1>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            {role === 'district'
-              ? 'An immutable log of security and administrative activity across the district.'
-              : 'Administrative actions recorded within your section scope.'}
-          </p>
         </div>
         <Button
           variant="outline"
@@ -70,7 +65,7 @@ export function AuditLogsPage({ role }: { role: UserRole }) {
           className="shrink-0"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          <span>{loading ? 'Refreshing...' : 'Refresh Logs'}</span>
+          <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
         </Button>
       </div>
 
@@ -85,22 +80,20 @@ export function AuditLogsPage({ role }: { role: UserRole }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Total Audit Events</span>
-          <strong className="block text-2xl font-bold text-slate-900 dark:text-slate-50 mt-1">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Total Events</span>
+          <strong className="block text-2xl font-bold font-mono text-slate-900 dark:text-slate-50 mt-1">
             {entries.length}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Logged in database</small>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Visibility Scope</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Scope</span>
           <strong className="block text-2xl font-bold text-district-600 dark:text-district-400 mt-1">
             {role === 'district' ? 'District-wide' : 'Section Only'}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">Permission boundary</small>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Latest Event Timestamp</span>
-          <strong className="block text-xl font-bold text-slate-900 dark:text-slate-50 mt-1 truncate">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Latest Activity</span>
+          <strong className="block text-xl font-bold font-mono text-slate-900 dark:text-slate-50 mt-1 truncate">
             {latest
               ? new Date(latest).toLocaleTimeString('en-IN', {
                   hour: '2-digit',
@@ -109,15 +102,6 @@ export function AuditLogsPage({ role }: { role: UserRole }) {
                 })
               : '—'}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-            {latest
-              ? new Date(latest).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })
-              : 'No activity'}
-          </small>
         </div>
       </div>
 

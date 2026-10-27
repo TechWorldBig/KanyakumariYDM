@@ -269,15 +269,12 @@ export function AccessControlWorkspace() {
             <ShieldCheck size={22} />
           </div>
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
-              District Administration
+            <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-[var(--color-district-600)] dark:text-[var(--color-district-400)]">
+              Permissions
             </span>
             <h2 className="text-xl font-bold tracking-tight text-[var(--foreground)] mt-0.5">
-              Access Control & Permissions Matrix
+              Access Control
             </h2>
-            <p className="text-xs text-[var(--muted-foreground)]">
-              Define what each role can view, edit, and manage across the district workspace.
-            </p>
           </div>
         </div>
         <Badge variant="success" dot className="self-start sm:self-center">
@@ -289,24 +286,21 @@ export function AccessControlWorkspace() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Configured Roles</span>
-          <strong className="block text-2xl font-bold text-slate-900 dark:text-slate-50 mt-1">
+          <strong className="block text-2xl font-bold font-mono text-slate-900 dark:text-slate-50 mt-1">
             {roles.length}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400">Across the district</small>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Full Management Roles</span>
-          <strong className="block text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Management Roles</span>
+          <strong className="block text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
             {managedCount}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400">Can manage at least one area</small>
         </div>
         <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Controlled Features</span>
-          <strong className="block text-2xl font-bold text-slate-900 dark:text-slate-50 mt-1">
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Features</span>
+          <strong className="block text-2xl font-bold font-mono text-slate-900 dark:text-slate-50 mt-1">
             {features.length}
           </strong>
-          <small className="text-[11px] text-slate-600 dark:text-slate-400">Workspace feature scopes</small>
         </div>
       </div>
 
@@ -348,7 +342,7 @@ export function AccessControlWorkspace() {
       <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
           <SlidersHorizontal size={14} className="shrink-0 text-slate-500 dark:text-slate-400" />
-          <span>Select the permission level for each column:</span>
+          <span>Levels:</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {(['manage', 'edit', 'view', 'none'] as AccessLevel[]).map((level) => (

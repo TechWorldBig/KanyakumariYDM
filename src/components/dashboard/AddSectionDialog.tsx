@@ -19,13 +19,11 @@ export function AddSectionDialog({ onClose, onCreate }: { onClose: () => void; o
   return <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
     <DialogContent className="add-section-dialog">
       <DialogClose />
-      <span className="eyebrow">District administration</span>
-      <DialogTitle className="text-2xl font-semibold tracking-tight">Create a section</DialogTitle>
-      <DialogDescription className="modal-town">Set the section identity and its first Super Admin.</DialogDescription>
-      <form onSubmit={submit} noValidate className="grid gap-4">
-        <label>Section name<Input value={name} onChange={event => setName(event.target.value)} placeholder="Example: Section 5" /></label>
-        <label>Location / area<Input value={town} onChange={event => setTown(event.target.value)} placeholder="Example: Colachel East" /></label>
-        <label>Super Admin username<Input value={admin} onChange={event => setAdmin(event.target.value)} placeholder="Example: section5" /></label>
+      <DialogTitle className="text-xl font-bold tracking-tight">Create Section</DialogTitle>
+      <form onSubmit={submit} noValidate className="grid gap-4 mt-2">
+        <label>Section name<Input value={name} onChange={event => setName(event.target.value)} placeholder="Section 5" /></label>
+        <label>Location / area<Input value={town} onChange={event => setTown(event.target.value)} placeholder="Colachel East" /></label>
+        <label>Super Admin username<Input value={admin} onChange={event => setAdmin(event.target.value)} placeholder="section5" /></label>
         {error && <div className="form-error" role="alert">{error}</div>}
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={onClose}>Cancel</Button><Button type="submit">Create section</Button></div>
       </form>

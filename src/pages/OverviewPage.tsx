@@ -54,11 +54,6 @@ export function OverviewPage({
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mt-1">
             {greeting()}, {roleName(role)}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-normal">
-            {district
-              ? "Comprehensive overview of the Kanyakumari district church network."
-              : `Administrative dashboard for ${list[0]?.name || 'your assigned section'}.`}
-          </p>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
           <Button
@@ -67,7 +62,7 @@ export function OverviewPage({
             leftIcon={<FileText size={15} />}
             className="shrink-0"
           >
-            View reports
+            Reports
           </Button>
           {district && (
             <img
@@ -84,51 +79,36 @@ export function OverviewPage({
       <div className="metrics grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         <Metric
           icon={Building2}
-          label="Active sections"
+          label="Sections"
           value={String(list.length)}
           tone="blue"
-          subtext={district ? "All district regions" : `Assigned to ${list[0]?.name || 'your section'}`}
-          badge={`${list.length} Active`}
         />
         <Metric
           icon={Church}
-          label="Registered churches"
+          label="Churches"
           value={String(churches)}
           tone="green"
-          subtext="Under administrative care"
-          badge={`${churches} Total`}
         />
         <Metric
           icon={Users}
-          label="People & members"
+          label="Registered Members"
           value={String(users)}
           tone="orange"
-          subtext="Total network registry"
-          badge={`${users} Verified`}
         />
         <Metric
           icon={Activity}
-          label="Access health"
+          label="System Health"
           value={`${health}%`}
           tone="violet"
-          subtext="System integrity score"
-          badge={health >= 90 ? "Optimal" : "Normal"}
         />
       </div>
 
       {/* Sections Directory Section */}
       <div>
         <div className="section-head mb-4">
-          <div>
-            <h2>
-              {district ? "District Sections" : `${list[0]?.name || 'Section'} Overview`}
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-              {district
-                ? "Administrative sections governing local church assemblies."
-                : `Limited to ${list[0]?.name || 'your assigned section'} administrative scope.`}
-            </p>
-          </div>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+            {district ? "Sections" : `${list[0]?.name || 'Section'} Overview`}
+          </h2>
         </div>
 
         <div className="section-grid">
@@ -146,8 +126,7 @@ export function OverviewPage({
                 <Plus size={20} strokeWidth={2.2} />
               </div>
               <div>
-                <strong className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">Add new section</strong>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">Expand administrative zone</span>
+                <strong className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">Add section</strong>
               </div>
             </button>
           )}
@@ -159,10 +138,9 @@ export function OverviewPage({
         <Card className="panel">
           <CardHeader className="p-0 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Recent administrative activity</CardTitle>
-              <Badge variant="blue">Live logs</Badge>
+              <CardTitle>Recent Activity</CardTitle>
+              <Badge variant="blue">Live</Badge>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Recent operations and verification events across the network.</p>
           </CardHeader>
           <CardContent className="p-0">
             <div className="activity-list space-y-1">
@@ -187,23 +165,22 @@ export function OverviewPage({
         <Card className="panel">
           <CardHeader className="p-0 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Authorized scope</CardTitle>
+              <CardTitle>Scope & Access</CardTitle>
               <Badge variant={district ? "success" : "secondary"}>
-                {district ? "Full District" : "Section Restricted"}
+                {district ? "Full District" : "Section"}
               </Badge>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Your security and delegation boundaries.</p>
           </CardHeader>
           <CardContent className="p-0 space-y-4">
             <div className="p-4 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)]">
-              <div className="flex items-center gap-2 mb-2 text-xs font-bold text-[var(--ink)]">
+              <div className="flex items-center gap-2 mb-1.5 text-xs font-semibold text-[var(--ink)]">
                 <ShieldCheck size={16} className="text-district-600" />
-                <span>Security Clearance: {roleName(role)}</span>
+                <span>{roleName(role)}</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed m-0">
                 {district
-                  ? "You have administrative permission to create, edit, audit, and manage churches, users, section boundaries, and meetings across the entire Kanyakumari district."
-                  : `Your access is scoped specifically to ${list[0]?.name || 'your section'}. Cross-section mutations and global logs are isolated.`}
+                  ? "Full administrative clearance across all 4 sections."
+                  : `Scoped to ${list[0]?.name || 'assigned section'}.`}
               </p>
             </div>
             <div className="flex flex-wrap gap-2 pt-1">

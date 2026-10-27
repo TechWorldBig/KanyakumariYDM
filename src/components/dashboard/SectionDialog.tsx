@@ -110,7 +110,7 @@ export function SectionDialog({
             </Button>
             <span className="text-[var(--muted-foreground)]">/</span>
             <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">
-              Section Workspace
+              Section
             </span>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
@@ -180,12 +180,13 @@ export function SectionDialog({
                   <Badge variant="blue">{section.town}</Badge>
                 </div>
                 <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                  {section.town} · {sectionChurches.length} churches registered in this district section
+                  {section.town} · {sectionChurches.length} churches
                 </p>
-                <p className="text-sm text-[var(--foreground)] mt-3 leading-relaxed">
-                  {section.description ||
-                    'Manage churches, people, and ministry information for this section.'}
-                </p>
+                {section.description && (
+                  <p className="text-sm text-[var(--foreground)] mt-3 leading-relaxed">
+                    {section.description}
+                  </p>
+                )}
               </div>
               {canEditSection && (
                 <Button

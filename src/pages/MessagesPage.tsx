@@ -454,7 +454,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
             }}
           >
             <UserRound size={14} className="mr-1.5" />
-            Direct Messages
+            Direct
           </TabTrigger>
           <TabTrigger
             active={view === 'groups'}
@@ -464,7 +464,7 @@ export function MessagesPage({ role }: { role: UserRole }) {
             }}
           >
             <Users size={14} className="mr-1.5" />
-            Team Groups
+            Groups
           </TabTrigger>
         </TabsList>
       </div>
